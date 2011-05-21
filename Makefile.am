@@ -13,6 +13,7 @@ liblikely_la_SOURCES = \
 # library headers to install (nobase prefix preserves directories under bosslya)
 nobase_include_HEADERS = \
 	likely/likely.h \
+	likely/RuntimeError.h \
 	likely/test/TestLikelihood.h
 
 # instructions for building each program
