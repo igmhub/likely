@@ -7,7 +7,7 @@
 namespace test = likely::test;
 
 int main(int argc, char *argv) {
-    test::TestLikelihood likelyfn(3,1,-0.75);
+    test::TestLikelihood likelyfn(3,1,-0.75,0.25);
     std::vector<double> params(3,0);
     params[1] = 1;
     std::cout << likelyfn(params) << std::endl;
