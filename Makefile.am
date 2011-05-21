@@ -3,8 +3,10 @@ AM_CPPFLAGS = -I@ROOTINCDIR@ $(BOOST_CPPFLAGS)
 AM_LDFLAGS = -L@ROOTLIBDIR@
 
 # targets to build and install
-bin_PROGRAMS = likelytest
 lib_LTLIBRARIES = liblikely.la
+
+# extra targets that should not be installed
+noinst_PROGRAMS = likelytest
 
 # instructions for building the library
 liblikely_la_SOURCES = \
