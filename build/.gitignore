@@ -1,0 +1,4 @@
+# ignore everything here
+*
+# except a .gitignore file (which we use to force git to create this otherwise empty dir)
+!.gitignore
