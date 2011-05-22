@@ -2,6 +2,8 @@
 
 #include "likely/types.h"
 
-#include "likely/test/TestLikelihood.h"
-
 #include "likely/RuntimeError.h"
+
+#include "likely/MinuitEngine.h"
+
+#include "likely/test/TestLikelihood.h"
