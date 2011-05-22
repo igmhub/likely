@@ -39,13 +39,13 @@ local::TestLikelihood::TestLikelihood(int npar, double sigma, double rho, double
 
 local::TestLikelihood::~TestLikelihood() { }
 
-double local::TestLikelihood::operator()(Parameters const &params) const {
+double local::TestLikelihood::operator()(std::vector<double> const &params) const {
     if(params.size() != _npar) {
         throw RuntimeError("TestLikelihood() called with wrong number of parameters.");
     }
     // Make a non-linear transformation of the input parameters to internal
     // Gaussian parameters.
-    Parameters internalParams(params);
+    std::vector<double> internalParams(params);
     if(_alpha != 0 && _npar > 1) {
         double normSq(0);
         for(int i = 1; i < _npar; ++i) {

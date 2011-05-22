@@ -3,10 +3,11 @@
 #ifndef LIKELY_TEST_TEST_LIKELIHOOD
 #define LIKELY_TEST_TEST_LIKELIHOOD
 
+#include "likely/types.h"
+
 #include <vector>
 
 namespace likely {
-    typedef std::vector<double> Parameters;
 namespace test {
 	class TestLikelihood {
 	public:
@@ -17,7 +18,7 @@ namespace test {
 	    // parameters to the internal Gaussian parameters.
 		TestLikelihood(int npar, double sigma = 1, double rho = 0, double alpha = 0);
 		virtual ~TestLikelihood();
-        double operator()(Parameters const &params) const;
+        double operator()(std::vector<double> const &params) const;
 	private:
         int _npar;
         double _sigma, _rho, _alpha;
