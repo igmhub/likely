@@ -5,6 +5,8 @@
 
 #include "Minuit2/MnPrint.h"
 
+#include "gsl/gsl_multimin.h"
+
 #include "boost/program_options.hpp"
 
 #include <iostream>
@@ -66,6 +68,8 @@ int main(int argc, char **argv) {
 
     lk::GslEngine gsl(testfn,npar);
     std::cout << "f0(gsl) = " << gsl(initial) << std::endl;
+    
+    gsl.minimize(gsl_multimin_fminimizer_nmsimplex2,initial,errors);
 
     return 0;
 }
