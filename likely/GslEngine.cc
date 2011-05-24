@@ -2,6 +2,8 @@
 
 #include "likely/GslEngine.h"
 
+#include "gsl/gsl_errno.h"
+
 namespace local = likely;
 
 local::GslEngine::GslEngine() { }

@@ -18,8 +18,12 @@ LT_INIT
 
 # Checks for libraries (there is no portable way to check for C++ classes in
 # the library, so we just check that the linker can find the library using 'main')
+AC_CHECK_LIB([m],[cos])
+AC_CHECK_LIB([gslcblas],[cblas_dgemm])
+AC_CHECK_LIB([gsl],[gsl_blas_dgemm],,
+	AC_MSG_ERROR([You need libgsl]))
 AC_CHECK_LIB([Minuit2], [main],, 
-	AC_MSG_ERROR([You need libMinuit2]),[-lm])
+	AC_MSG_ERROR([You need libMinuit2]))
 
 # We need a recent version of ROOT
 ROOT_PATH([5.28/00],,
