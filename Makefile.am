@@ -10,6 +10,7 @@ noinst_PROGRAMS = likelytest
 
 # instructions for building the library
 liblikely_la_SOURCES = \
+	likely/MarkovChainEngine.cc \
 	likely/MinuitEngine.cc \
 	likely/GslEngine.cc \
 	likely/GslErrorHandler.cc \
@@ -20,6 +21,7 @@ nobase_include_HEADERS = \
 	likely/likely.h \
 	likely/types.h \
 	likely/RuntimeError.h \
+	likely/MarkovChainEngine.h \
 	likely/MinuitEngine.h \
 	likely/GslEngine.h \
 	likely/GslErrorHandler.h \

@@ -75,8 +75,8 @@ am__base_list = \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 liblikely_la_LIBADD =
-am_liblikely_la_OBJECTS = MinuitEngine.lo GslEngine.lo \
-	GslErrorHandler.lo TestLikelihood.lo
+am_liblikely_la_OBJECTS = MarkovChainEngine.lo MinuitEngine.lo \
+	GslEngine.lo GslErrorHandler.lo TestLikelihood.lo
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(noinst_PROGRAMS)
 am_likelytest_OBJECTS = likelytest.$(OBJEXT)
@@ -260,6 +260,7 @@ lib_LTLIBRARIES = liblikely.la
 
 # instructions for building the library
 liblikely_la_SOURCES = \
+	likely/MarkovChainEngine.cc \
 	likely/MinuitEngine.cc \
 	likely/GslEngine.cc \
 	likely/GslErrorHandler.cc \
@@ -271,6 +272,7 @@ nobase_include_HEADERS = \
 	likely/likely.h \
 	likely/types.h \
 	likely/RuntimeError.h \
+	likely/MarkovChainEngine.h \
 	likely/MinuitEngine.h \
 	likely/GslEngine.h \
 	likely/GslErrorHandler.h \
@@ -375,6 +377,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslErrorHandler.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MarkovChainEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MinuitEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestLikelihood.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytest.Po@am__quote@
@@ -399,6 +402,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+
+MarkovChainEngine.lo: likely/MarkovChainEngine.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT MarkovChainEngine.lo -MD -MP -MF $(DEPDIR)/MarkovChainEngine.Tpo -c -o MarkovChainEngine.lo `test -f 'likely/MarkovChainEngine.cc' || echo '$(srcdir)/'`likely/MarkovChainEngine.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/MarkovChainEngine.Tpo $(DEPDIR)/MarkovChainEngine.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/MarkovChainEngine.cc' object='MarkovChainEngine.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o MarkovChainEngine.lo `test -f 'likely/MarkovChainEngine.cc' || echo '$(srcdir)/'`likely/MarkovChainEngine.cc
 
 MinuitEngine.lo: likely/MinuitEngine.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT MinuitEngine.lo -MD -MP -MF $(DEPDIR)/MinuitEngine.Tpo -c -o MinuitEngine.lo `test -f 'likely/MinuitEngine.cc' || echo '$(srcdir)/'`likely/MinuitEngine.cc
