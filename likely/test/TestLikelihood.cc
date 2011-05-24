@@ -4,9 +4,10 @@
 #include "likely/RuntimeError.h"
 
 #include "boost/lexical_cast.hpp"
-#include "boost/foreach.hpp"
+#include "boost/format.hpp"
 
 #include <cmath>
+#include <iostream>
 
 namespace local = likely::test;
 
@@ -34,18 +35,20 @@ local::TestLikelihood::TestLikelihood(int npar, double sigma, double rho, double
     double determinant(std::pow(1-rho,npar-1)*tmp*std::pow(sigmasq,npar));
     // Calculate the normalization factor.
     double twopi(8*std::atan(1));
-    _norm = std::pow(twopi,0.5*npar)*std::sqrt(std::fabs(determinant));
+    double norm(std::pow(twopi,0.5*npar)*std::sqrt(std::fabs(determinant)));
+    _logNorm = std::log(norm);
 }
 
 local::TestLikelihood::~TestLikelihood() { }
 
-double local::TestLikelihood::operator()(std::vector<double> const &params) const {
+double local::TestLikelihood::operator()(Parameters const &params) const {
     if(params.size() != _npar) {
-        throw RuntimeError("TestLikelihood() called with wrong number of parameters.");
+        throw RuntimeError("TestLikelihood() called with wrong number of parameters: "
+            + boost::lexical_cast<std::string>(params.size()));
     }
     // Make a non-linear transformation of the input parameters to internal
     // Gaussian parameters.
-    std::vector<double> internalParams(params);
+    Parameters internalParams(params);
     if(_alpha != 0 && _npar > 1) {
         double normSq(0);
         for(int i = 1; i < _npar; ++i) {
@@ -63,5 +66,17 @@ double local::TestLikelihood::operator()(std::vector<double> const &params) cons
     }
     arg1 *= _inverseDiagonal/2;
     arg2 *= _inverseOffDiagonal;
-    return std::exp(-arg1-arg2)/_norm;
+    // Return the -log(likelihood)
+    double result(arg1+arg2+_logNorm);
+    
+    if(_trace) {
+        boost::format pFormat("%.5f");
+        std::cout << "TestLikelihood(" << pFormat % params[0];
+        for(int i = 1; i < _npar; ++i) {
+            std::cout << ',' << pFormat % params[i];
+        }
+        std::cout << ") = " << result << std::endl;
+    }
+    
+    return result;
 }

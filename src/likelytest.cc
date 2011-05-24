@@ -7,16 +7,20 @@
 
 #include <iostream>
 
+namespace lk = likely;
 namespace test = likely::test;
 namespace po = boost::program_options;
 
 int main(int argc, char **argv) {
     
     // Configure command-line option processing
+    int npar;
     po::options_description cli("Likelihood analysis test program");
     cli.add_options()
         ("help,h", "Prints this info and exits.")
         ("verbose", "Prints additional information.")
+        ("npar", po::value<int>(&npar)->default_value(3),
+            "Number of floating parameters to use.")
         ;
 
     // do the command line parsing now
@@ -35,10 +39,21 @@ int main(int argc, char **argv) {
     }
     bool verbose(vm.count("verbose"));
 
-    test::TestLikelihood likelyfn(3,1,-0.75,0.25);
-    std::vector<double> params(3,0);
-    params[1] = 1;
-    std::cout << likelyfn(params) << std::endl;
+    // Create the likelihood function to use.
+    if(npar <= 0) {
+        std::cerr << "Number of parameters (npar) must be > 0." << std::endl;
+        return -2;
+    }
+    test::TestLikelihood testfn(npar,1,-0.75,0.25);
+    testfn.setTrace(true);
+    std::vector<double> initial(npar,1),errors(npar,1);
+    std::cout << "f0 = " << testfn(initial) << std::endl;
+    
+    // Run Minuit minimization algorithms.
+    lk::MinuitEngine minuit(testfn);
+    lk::Parameters mfit = minuit.simplex(initial,errors);
+    double mnval = testfn(mfit);
+    std::cout << "mnval = " << mnval << std::endl;
 
     return 0;
 }

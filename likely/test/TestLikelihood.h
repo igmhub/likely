@@ -18,12 +18,18 @@ namespace test {
 	    // parameters to the internal Gaussian parameters.
 		TestLikelihood(int npar, double sigma = 1, double rho = 0, double alpha = 0);
 		virtual ~TestLikelihood();
-        double operator()(std::vector<double> const &params) const;
+        double operator()(Parameters const &params) const;
+        // Turns evaluation tracing on/off.
+        void setTrace(bool value);
 	private:
         int _npar;
         double _sigma, _rho, _alpha;
-        double _inverseDiagonal, _inverseOffDiagonal, _norm;
+        double _inverseDiagonal, _inverseOffDiagonal, _logNorm;
+        bool _trace;
 	}; // TestLikelihood
+	
+    inline void TestLikelihood::setTrace(bool value) { _trace = value; }
+
 }} // likely::test
 
 #endif // LIKELY_TEST_TEST_LIKELIHOOD

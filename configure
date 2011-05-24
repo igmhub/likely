@@ -14187,9 +14187,49 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-# Checks for libraries.
-##AC_CHECK_LIB([cfitsio],[fits_init_cfitsio],,
-##	AC_MSG_ERROR([Cannot find the cfitsio library.]),[-lm])
+# Checks for libraries (there is no portable way to check for C++ classes in
+# the library, so we just check that the linker can find the library using 'main')
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lMinuit2" >&5
+$as_echo_n "checking for main in -lMinuit2... " >&6; }
+if ${ac_cv_lib_Minuit2_main+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lMinuit2 -lm $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+int
+main ()
+{
+return main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_Minuit2_main=yes
+else
+  ac_cv_lib_Minuit2_main=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Minuit2_main" >&5
+$as_echo "$ac_cv_lib_Minuit2_main" >&6; }
+if test "x$ac_cv_lib_Minuit2_main" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBMINUIT2 1
+_ACEOF
+
+  LIBS="-lMinuit2 $LIBS"
+
+else
+  as_fn_error $? "You need libMinuit2" "$LINENO" 5
+fi
+
 
 # We need a recent version of ROOT
 

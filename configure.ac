@@ -16,9 +16,10 @@ AC_PROG_CXX
 # The boost.m4 macros used below also need this.
 LT_INIT
 
-# Checks for libraries.
-##AC_CHECK_LIB([cfitsio],[fits_init_cfitsio],,
-##	AC_MSG_ERROR([Cannot find the cfitsio library.]),[-lm])
+# Checks for libraries (there is no portable way to check for C++ classes in
+# the library, so we just check that the linker can find the library using 'main')
+AC_CHECK_LIB([Minuit2], [main],, 
+	AC_MSG_ERROR([You need libMinuit2]),[-lm])
 
 # We need a recent version of ROOT
 ROOT_PATH([5.28/00],,
