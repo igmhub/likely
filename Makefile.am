@@ -12,6 +12,7 @@ noinst_PROGRAMS = likelytest
 liblikely_la_SOURCES = \
 	likely/MinuitEngine.cc \
 	likely/GslEngine.cc \
+	likely/GslErrorHandler.cc \
 	likely/test/TestLikelihood.cc
 
 # library headers to install (nobase prefix preserves directories under bosslya)
@@ -21,6 +22,7 @@ nobase_include_HEADERS = \
 	likely/RuntimeError.h \
 	likely/MinuitEngine.h \
 	likely/GslEngine.h \
+	likely/GslErrorHandler.h \
 	likely/test/TestLikelihood.h
 
 # instructions for building each program

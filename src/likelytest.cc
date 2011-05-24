@@ -63,5 +63,7 @@ int main(int argc, char **argv) {
     mn::FunctionMinimum mfit = minuit.variableMetric(initial,errors);
     std::cout << mfit;
 
+    lk::GslEngine gsl();
+
     return 0;
 }

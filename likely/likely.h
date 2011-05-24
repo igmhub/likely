@@ -6,5 +6,6 @@
 
 #include "likely/MinuitEngine.h"
 #include "likely/GslEngine.h"
+#include "likely/GslErrorHandler.h"
 
 #include "likely/test/TestLikelihood.h"
