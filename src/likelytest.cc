@@ -3,6 +3,8 @@
 
 #include "likely/likely.h"
 
+#include "Minuit2/MnPrint.h"
+
 #include "boost/program_options.hpp"
 
 #include <iostream>
@@ -10,17 +12,23 @@
 namespace lk = likely;
 namespace test = likely::test;
 namespace po = boost::program_options;
+namespace mn = ROOT::Minuit2;
 
 int main(int argc, char **argv) {
     
     // Configure command-line option processing
     int npar;
+    double rho,alpha;
     po::options_description cli("Likelihood analysis test program");
     cli.add_options()
         ("help,h", "Prints this info and exits.")
         ("verbose", "Prints additional information.")
-        ("npar", po::value<int>(&npar)->default_value(3),
+        ("npar,n", po::value<int>(&npar)->default_value(3),
             "Number of floating parameters to use.")
+        ("rho", po::value<double>(&alpha)->default_value(0),
+            "Likelihood linear correlation parameter.")
+        ("alpha", po::value<double>(&alpha)->default_value(0),
+            "Likelihood non-linearity parameter.")
         ;
 
     // do the command line parsing now
@@ -44,16 +52,16 @@ int main(int argc, char **argv) {
         std::cerr << "Number of parameters (npar) must be > 0." << std::endl;
         return -2;
     }
-    test::TestLikelihood testfn(npar,1,-0.75,0.25);
+    test::TestLikelihood testfn(npar,1,rho,alpha);
     testfn.setTrace(true);
     std::vector<double> initial(npar,1),errors(npar,1);
     std::cout << "f0 = " << testfn(initial) << std::endl;
     
     // Run Minuit minimization algorithms.
-    lk::MinuitEngine minuit(testfn);
-    lk::Parameters mfit = minuit.simplex(initial,errors);
-    double mnval = testfn(mfit);
-    std::cout << "mnval = " << mnval << std::endl;
+    lk::MinuitEngine minuit(testfn,npar);
+    //mn::FunctionMinimum mfit = minuit.simplex(initial,errors);
+    mn::FunctionMinimum mfit = minuit.variableMetric(initial,errors);
+    std::cout << mfit;
 
     return 0;
 }

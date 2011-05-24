@@ -1,15 +1,51 @@
 // Created 22-May-2011 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 
 #include "likely/MinuitEngine.h"
+#include "likely/RuntimeError.h"
 
-#include "Minuit2/FunctionMinimum.h"
+#include "Minuit2/VariableMetricMinimizer.h"
 #include "Minuit2/SimplexMinimizer.h"
+#include "Minuit2/MnUserParameterState.h"
+#include "Minuit2/MnUserParameters.h"
+#include "Minuit2/MnUserTransformation.h"
+#include "Minuit2/MnStrategy.h"
+#include "Minuit2/MnPrint.h"
+
+#include "boost/format.hpp"
+
+#include <iostream>
 
 namespace local = likely;
+namespace mn = ROOT::Minuit2;
 
-local::MinuitEngine::MinuitEngine(Function f)
-: _f(f)
-{ }
+local::MinuitEngine::MinuitEngine(Function f, int nPar)
+: _nPar(nPar), _f(f), _initialState(new mn::MnUserParameterState())
+{
+    if(_nPar <= 0) {
+        throw RuntimeError("MinuitEngine: number of parameters must be > 0.");
+    }
+    boost::format fmt("p%d");
+    // Minuit2 crashes during the fit if a parameter is initially defined fixed and
+    // then later released, so we always create the parameter as floating with
+    // zero error below.
+    for(int i = 0; i < _nPar; ++i) {
+        _initialState->Add(boost::str(fmt % i),0,0);
+    }
+}
+
+local::MinuitEngine::MinuitEngine(Function f, std::vector<std::string> const &parNames)
+: _nPar(parNames.size()), _f(f), _initialState(new mn::MnUserParameterState())
+{
+    if(_nPar == 0) {
+        throw RuntimeError("MinuitEngine: no parameter names specified.");
+    }
+    // Minuit2 crashes during the fit if a parameter is initially defined fixed and
+    // then later released, so we always create the parameter as floating with
+    // zero error below.
+    for(int i = 0; i < _nPar; ++i) {
+        _initialState->Add(parNames[i],0,0);
+    }   
+}
 
 local::MinuitEngine::~MinuitEngine() { }
 
@@ -18,16 +54,49 @@ double local::MinuitEngine::operator()(Parameters const &pValues) const {
 }
 
 double local::MinuitEngine::Up() const {
-    return 1;
+    // Assumes that Fcn returns -logL(p) and that we are interested in 1-sigma errors.
+    return 0.5;
 }
 
-local::Parameters local::MinuitEngine::simplex(
+void local::MinuitEngine::_setInitialState(
 Parameters const &initial, Parameters const &errors) {
+    // Check for the expected input vector sizes.
+    if(initial.size() != _nPar) {
+        throw RuntimeError("MinuitEngine: got unexpected number of initial parameter values.");
+    }
+    if(errors.size() != _nPar) {
+        throw RuntimeError("MinuitEngine: got unexpected number of initial parameter errors.");
+    }
+    // Set the parameter values and error estimates from the input vectors.
+    for(int i = 0; i < _nPar; ++i) {
+        _initialState->SetValue(i,initial[i]);
+        if(errors[i] > 0) {
+            _initialState->SetError(i,errors[i]);
+            _initialState->Release(i);
+        }
+        else {
+            _initialState->SetError(i,0);
+            _initialState->Fix(i);
+        }
+    }
+}
+
+mn::FunctionMinimum
+local::MinuitEngine::simplex(Parameters const &initial, Parameters const &errors) {
+    _setInitialState(initial,errors);
     // Allocate a SimplexMinimizer if this is the first time we are called.
-    if(!_simplex) _simplex.reset(new ROOT::Minuit2::SimplexMinimizer());
+    if(!_simplex) _simplex.reset(new mn::SimplexMinimizer());    
     // Run the mimizer.
-    ROOT::Minuit2::FunctionMinimum min = _simplex->Minimize(*this, initial, errors, 1, 1000, 0.1);
-    // Extract the parameters at the function minimum.
-    Parameters result(min.UserParameters().Params());
-    return result;
+    mn::MnStrategy strategy(1);
+    return _simplex->Minimize(*this, *_initialState, strategy);
+}
+
+mn::FunctionMinimum
+local::MinuitEngine::variableMetric(Parameters const &initial, Parameters const &errors) {
+    _setInitialState(initial,errors);
+    // Allocate a VariableMetricMinimizer if this is the first time we are called.
+    if(!_variableMetric) _variableMetric.reset(new mn::VariableMetricMinimizer());
+    // Run the mimizer.
+    mn::MnStrategy strategy(1);
+    return _variableMetric->Minimize(*this, *_initialState, strategy);
 }
