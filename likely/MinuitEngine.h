@@ -28,8 +28,8 @@ namespace likely {
 		MinuitEngine(Function f, int nPar);
 		MinuitEngine(Function f, std::vector<std::string> const &parNames);
 		virtual ~MinuitEngine();
-		// Returns the value of -2log(Likelihood) for the specified input parameter values.
-        virtual double operator()(std::vector<double> const& pValues) const;
+		// Evaluates the engine's function for the specified input parameter values.
+        virtual double operator()(Parameters const& pValues) const;
         // Returns the change in function value corresponding to one unit of error.
         // Can be changed to calculate different confidence intervals. For 1-sigma errors,
         // this value should be 1 for both chi-square and -2log(L) functions.

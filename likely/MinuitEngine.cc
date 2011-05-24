@@ -50,6 +50,9 @@ local::MinuitEngine::MinuitEngine(Function f, std::vector<std::string> const &pa
 local::MinuitEngine::~MinuitEngine() { }
 
 double local::MinuitEngine::operator()(Parameters const &pValues) const {
+    if(pValues.size() != _nPar) {
+        throw RuntimeError("MinuitEngine: function evaluated with wrong number of parameters.");
+    }
     return _f(pValues);
 }
 

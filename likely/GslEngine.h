@@ -3,12 +3,30 @@
 #ifndef LIKELY_GSL_ENGINE
 #define LIKELY_GSL_ENGINE
 
+#include "likely/types.h"
+
+#include "gsl/gsl_multimin.h"
+
+#include <stack>
+#include <utility>
+
 namespace likely {
 	class GslEngine {
 	public:
-		GslEngine();
+	    // Creates a new engine for the specified function of the specified number
+	    // of parameters.
+		GslEngine(Function f, int nPar);
 		virtual ~GslEngine();
+		// Evaluates the engine's function for the specified input parameter values.
+        double operator()(Parameters const& pValues) const;
 	private:
+        int _nPar;
+        Function _f;
+        gsl_multimin_function _func;
+        // Global C-style callback that evaluates the top function on its stack.
+        static double _evaluate(const gsl_vector *v, void *params);
+        typedef std::pair<Function,Parameters> Binding;
+        static std::stack<Binding> _functionStack;
 	}; // GslEngine
 } // likely
 

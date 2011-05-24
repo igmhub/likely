@@ -57,13 +57,15 @@ int main(int argc, char **argv) {
     std::vector<double> initial(npar,1),errors(npar,1);
     std::cout << "f0 = " << testfn(initial) << std::endl;
     
-    // Run Minuit minimization algorithms.
     lk::MinuitEngine minuit(testfn,npar);
-    //mn::FunctionMinimum mfit = minuit.simplex(initial,errors);
-    mn::FunctionMinimum mfit = minuit.variableMetric(initial,errors);
-    std::cout << mfit;
+    std::cout << "f0(mn) = " << minuit(initial) << std::endl;
 
-    lk::GslEngine gsl();
+    //mn::FunctionMinimum mfit = minuit.simplex(initial,errors);
+    //mn::FunctionMinimum mfit = minuit.variableMetric(initial,errors);
+    //std::cout << mfit;
+
+    lk::GslEngine gsl(testfn,npar);
+    std::cout << "f0(gsl) = " << gsl(initial) << std::endl;
 
     return 0;
 }
