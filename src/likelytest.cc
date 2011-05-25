@@ -56,19 +56,24 @@ int main(int argc, char **argv) {
     }
     test::TestLikelihood testfn(npar,1,rho,alpha);
     testfn.setTrace(true);
+    
+    // Specify the initial parameter values and error estimates.
     std::vector<double> initial(npar,1),errors(npar,1);
     std::cout << "f0 = " << testfn(initial) << std::endl;
     
-    lk::MinuitEngine minuit(testfn,npar);
+    lk::AbsMinimizerPtr minimizer(new lk::GslMinimizer(testfn,npar));
+    lk::Parameters final(minimizer->minimize(initial,errors));
+
+    //lk::MinuitEngine minuit(testfn,npar);
     //mn::FunctionMinimum mfit = minuit.simplex(initial,errors);
     //mn::FunctionMinimum mfit = minuit.variableMetric(initial,errors);
     //std::cout << mfit;
 
-    lk::GslEngine gsl(testfn,npar);
+    //lk::GslEngine gsl(testfn,npar);
     //gsl.minimize(gsl_multimin_fminimizer_nmsimplex2,initial,errors);
     
-    lk::MarkovChainEngine mc(testfn,npar);
-    lk::Parameters sample = mc.advance(initial,errors,10);
+    //lk::MarkovChainEngine mc(testfn,npar);
+    //lk::Parameters sample = mc.advance(initial,errors,10);
 
     return 0;
 }

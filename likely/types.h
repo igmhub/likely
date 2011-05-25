@@ -4,6 +4,7 @@
 #define LIKELY_TYPES
 
 #include "boost/function.hpp"
+#include "boost/smart_ptr.hpp"
 
 #include <vector>
 
@@ -17,6 +18,9 @@ namespace likely {
     // parameters. In case a function cannot be evaluated for its input parameters,
     // it should return +-inf, nan, or throw an exception.
     typedef boost::function<double (Parameters const &)> Function;
+    
+    class AbsMinimizer;
+    typedef boost::shared_ptr<AbsMinimizer> AbsMinimizerPtr;
 
 } // likely
 

@@ -4,9 +4,6 @@
 
 #include "likely/RuntimeError.h"
 
-#include "likely/MinuitEngine.h"
-#include "likely/GslEngine.h"
-#include "likely/GslErrorHandler.h"
-#include "likely/MarkovChainEngine.h"
+#include "likely/GslMinimizer.h"
 
 #include "likely/test/TestLikelihood.h"
