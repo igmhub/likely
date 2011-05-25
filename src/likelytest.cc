@@ -60,16 +60,15 @@ int main(int argc, char **argv) {
     std::cout << "f0 = " << testfn(initial) << std::endl;
     
     lk::MinuitEngine minuit(testfn,npar);
-    std::cout << "f0(mn) = " << minuit(initial) << std::endl;
-
     //mn::FunctionMinimum mfit = minuit.simplex(initial,errors);
     //mn::FunctionMinimum mfit = minuit.variableMetric(initial,errors);
     //std::cout << mfit;
 
     lk::GslEngine gsl(testfn,npar);
-    std::cout << "f0(gsl) = " << gsl(initial) << std::endl;
+    //gsl.minimize(gsl_multimin_fminimizer_nmsimplex2,initial,errors);
     
-    gsl.minimize(gsl_multimin_fminimizer_nmsimplex2,initial,errors);
+    lk::MarkovChainEngine mc(testfn,npar);
+    lk::Parameters sample = mc.advance(initial,errors,10);
 
     return 0;
 }

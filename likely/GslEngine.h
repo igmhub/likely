@@ -18,7 +18,7 @@ namespace likely {
 		GslEngine(Function f, int nPar);
 		virtual ~GslEngine();
 		// Evaluates the engine's function for the specified input parameter values.
-        double operator()(Parameters const& pValues) const;
+        //double operator()(Parameters const& pValues) const;
         // Runs a simplex minimization using the specified initial parameter values
         // and error estimates.
         typedef const gsl_multimin_fminimizer_type *Method;

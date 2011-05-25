@@ -4,13 +4,14 @@
 #include "likely/GslErrorHandler.h"
 #include "likely/RuntimeError.h"
 
-#include <cstdio>
-
 namespace local = likely;
 
 local::GslEngine::GslEngine(Function f, int nPar)
 : _nPar(nPar), _f(f)
 {
+    if(_nPar <= 0) {
+        throw RuntimeError("GslEngine: number of parameters must be > 0.");
+    }
     _func.n = nPar;
     _func.f = _evaluate;
     _func.params = 0;
@@ -48,6 +49,7 @@ double minSize, int maxIterations) {
     gsl_vector_free(gsl_initial);
 }
 
+/*
 double local::GslEngine::operator()(Parameters const& pValues) const {
     // This method is not intended to be a streamlined way to call our function,
     // but rather a way to exercise and test the function stack machinery.
@@ -65,6 +67,7 @@ double local::GslEngine::operator()(Parameters const& pValues) const {
     gsl_vector_free(v);
     return result;
 }
+*/
 
 double local::GslEngine::_evaluate(const gsl_vector *v, void *params) {
     Binding bound(_functionStack.top());
