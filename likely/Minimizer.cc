@@ -25,6 +25,6 @@ Parameters const& initial, Parameters const &errors) {
 }
 
 local::Minimizer::Registry &local::Minimizer::getRegistry() {
-    static Registry *_registry = new Registry();
-    return *_registry;
+    static Registry *registry = new Registry();
+    return *registry;
 }
