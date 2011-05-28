@@ -32,7 +32,7 @@ namespace likely {
         // Global C-style callback that evaluates the top function on its stack.
         static double _evaluate(const gsl_vector *v, void *params);
         typedef std::pair<Function,Parameters> Binding;
-        static std::stack<Binding> _functionStack;
+        static std::stack<Binding> &getFunctionStack();
 	}; // GslEngine
 } // likely
 

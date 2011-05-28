@@ -15,11 +15,11 @@ local::GslEngine::GslEngine(Function f, int nPar)
     _func.n = nPar;
     _func.f = _evaluate;
     _func.params = 0;
-    _functionStack.push(Binding(f,Parameters(nPar)));
+    getFunctionStack().push(Binding(f,Parameters(nPar)));
 }
 
 local::GslEngine::~GslEngine() {
-    _functionStack.pop();
+    getFunctionStack().pop();
 }
 
 void local::GslEngine::minimize(Method method,
@@ -70,7 +70,7 @@ double local::GslEngine::operator()(Parameters const& pValues) const {
 */
 
 double local::GslEngine::_evaluate(const gsl_vector *v, void *params) {
-    Binding bound(_functionStack.top());
+    Binding bound(getFunctionStack().top());
     Function &f(bound.first);
     Parameters &values(bound.second);
     int nPar(values.size());
@@ -78,5 +78,7 @@ double local::GslEngine::_evaluate(const gsl_vector *v, void *params) {
     return f(values);
 }
 
-std::stack<local::GslEngine::Binding>
-    local::GslEngine::_functionStack = std::stack<local::GslEngine::Binding>();
+std::stack<local::GslEngine::Binding> &local::GslEngine::getFunctionStack() {
+    static std::stack<Binding> *stack = new std::stack<Binding>();
+    return *stack;
+}
