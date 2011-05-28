@@ -4,6 +4,7 @@
 #define LIKELY_MINUIT_ENGINE
 
 #include "likely/types.h"
+#include "likely/AbsEngine.h"
 
 #include "Minuit2/FCNBase.h"
 #include "Minuit2/FunctionMinimum.h"
@@ -21,7 +22,7 @@ namespace Minuit2 {
 
 namespace likely {
     // Implements minimization and error analysis using the Minuit2 library.
-	class MinuitEngine : public ROOT::Minuit2::FCNBase {
+	class MinuitEngine : public ROOT::Minuit2::FCNBase, AbsEngine {
 	public:
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters. If names are not specified, they will be P0,P1,P2,...

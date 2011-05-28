@@ -4,13 +4,14 @@
 #define LIKELY_MARKOV_CHAIN_ENGINE
 
 #include "likely/types.h"
+#include "likely/AbsEngine.h"
 
 #include "boost/random/mersenne_twister.hpp"
 
 #include "boost/function.hpp"
 
 namespace likely {
-	class MarkovChainEngine {
+	class MarkovChainEngine : public AbsEngine {
 	public:
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters.

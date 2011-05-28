@@ -49,34 +49,39 @@ int main(int argc, char **argv) {
     }
     bool verbose(vm.count("verbose"));
 
-    // Create the likelihood function to use.
-    if(npar <= 0) {
-        std::cerr << "Number of parameters (npar) must be > 0." << std::endl;
-        return -2;
+    try {
+        // Create the likelihood function to use.
+        if(npar <= 0) {
+            std::cerr << "Number of parameters (npar) must be > 0." << std::endl;
+            return -2;
+        }
+        test::TestLikelihood testfn(npar,1,rho,alpha);
+        testfn.setTrace(true);
+    
+        // Specify the initial parameter values and error estimates.
+        std::vector<double> initial(npar,1),errors(npar,1);
+        std::cout << "f0 = " << testfn(initial) << std::endl;
+    
+        //lk::AbsMinimizerPtr minimizer(new lk::GslMinimizer(testfn,npar));
+        //lk::Parameters final(minimizer->minimize(initial,errors));
+
+        lk::Minimizer minimizer(testfn,npar,"gsl::simplex");
+        lk::Parameters final = minimizer.minimize(initial,errors);
+
+        //lk::MinuitEngine minuit(testfn,npar);
+        //mn::FunctionMinimum mfit = minuit.simplex(initial,errors);
+        //mn::FunctionMinimum mfit = minuit.variableMetric(initial,errors);
+        //std::cout << mfit;
+
+        //lk::GslEngine gsl(testfn,npar);
+        //gsl.minimize(gsl_multimin_fminimizer_nmsimplex2,initial,errors);
+    
+        //lk::MarkovChainEngine mc(testfn,npar);
+        //lk::Parameters sample = mc.advance(initial,errors,10);
     }
-    test::TestLikelihood testfn(npar,1,rho,alpha);
-    testfn.setTrace(true);
-    
-    // Specify the initial parameter values and error estimates.
-    std::vector<double> initial(npar,1),errors(npar,1);
-    std::cout << "f0 = " << testfn(initial) << std::endl;
-    
-    //lk::AbsMinimizerPtr minimizer(new lk::GslMinimizer(testfn,npar));
-    //lk::Parameters final(minimizer->minimize(initial,errors));
-
-    lk::Minimizer minimizer(testfn,npar,"gsl::simplex");
-    lk::Parameters final = minimizer.minimize(initial,errors);
-
-    //lk::MinuitEngine minuit(testfn,npar);
-    //mn::FunctionMinimum mfit = minuit.simplex(initial,errors);
-    //mn::FunctionMinimum mfit = minuit.variableMetric(initial,errors);
-    //std::cout << mfit;
-
-    //lk::GslEngine gsl(testfn,npar);
-    //gsl.minimize(gsl_multimin_fminimizer_nmsimplex2,initial,errors);
-    
-    //lk::MarkovChainEngine mc(testfn,npar);
-    //lk::Parameters sample = mc.advance(initial,errors,10);
+    catch(lk::RuntimeError const &e) {
+        std::cerr << e.what() << std::endl;
+    }
 
     return 0;
 }

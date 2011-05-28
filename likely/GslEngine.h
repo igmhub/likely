@@ -4,6 +4,7 @@
 #define LIKELY_GSL_ENGINE
 
 #include "likely/types.h"
+#include "likely/AbsEngine.h"
 
 #include "gsl/gsl_multimin.h"
 
@@ -11,7 +12,7 @@
 #include <utility>
 
 namespace likely {
-	class GslEngine {
+	class GslEngine : public AbsEngine {
 	public:
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters.

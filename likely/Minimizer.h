@@ -15,14 +15,14 @@ namespace likely {
     class AbsEngine;
 	class Minimizer {
 	public:
-		Minimizer(Function f, int nPar, std::string const &method);
+		Minimizer(Function f, int nPar, std::string const &methodName);
 		virtual ~Minimizer();
         Parameters minimize(Parameters const& initial, Parameters const &errors);        
 
         typedef boost::function<AbsEngine* (Function, int)> MethodFactory;
         void registerMethod(std::string const& methodName, MethodFactory methodFactory);
 
-        typedef std::map<std::string,MethodFactory> Registry;
+        typedef std::map<std::string, MethodFactory> Registry;
         static Registry &getRegistry();
 
 	private:

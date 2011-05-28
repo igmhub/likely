@@ -3,8 +3,10 @@
 #ifndef LIKELY_ABS_ENGINE
 #define LIKELY_ABS_ENGINE
 
+#include "boost/utility.hpp"
+
 namespace likely {
-	class AbsEngine {
+	class AbsEngine : public boost::noncopyable {
 	public:
 		AbsEngine();
 		virtual ~AbsEngine();
