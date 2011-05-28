@@ -19,9 +19,6 @@ namespace likely {
     // it should return +-inf, nan, or throw an exception.
     typedef boost::function<double (Parameters const &)> Function;
     
-    class AbsMinimizer;
-    typedef boost::shared_ptr<AbsMinimizer> AbsMinimizerPtr;
-
 } // likely
 
 #endif // LIKELY_TYPES

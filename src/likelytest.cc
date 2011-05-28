@@ -61,8 +61,11 @@ int main(int argc, char **argv) {
     std::vector<double> initial(npar,1),errors(npar,1);
     std::cout << "f0 = " << testfn(initial) << std::endl;
     
-    lk::AbsMinimizerPtr minimizer(new lk::GslMinimizer(testfn,npar));
-    lk::Parameters final(minimizer->minimize(initial,errors));
+    //lk::AbsMinimizerPtr minimizer(new lk::GslMinimizer(testfn,npar));
+    //lk::Parameters final(minimizer->minimize(initial,errors));
+
+    lk::Minimizer minimizer(testfn,npar,"gsl::simplex");
+    lk::Parameters final = minimizer.minimize(initial,errors);
 
     //lk::MinuitEngine minuit(testfn,npar);
     //mn::FunctionMinimum mfit = minuit.simplex(initial,errors);

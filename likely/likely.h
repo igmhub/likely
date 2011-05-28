@@ -4,6 +4,6 @@
 
 #include "likely/RuntimeError.h"
 
-#include "likely/GslMinimizer.h"
+#include "likely/Minimizer.h"
 
 #include "likely/test/TestLikelihood.h"

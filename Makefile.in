@@ -75,9 +75,9 @@ am__base_list = \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 liblikely_la_LIBADD =
-am_liblikely_la_OBJECTS = MarkovChainEngine.lo MinuitEngine.lo \
-	GslEngine.lo GslErrorHandler.lo AbsMinimizer.lo \
-	GslMinimizer.lo TestLikelihood.lo
+am_liblikely_la_OBJECTS = AbsEngine.lo MarkovChainEngine.lo \
+	MinuitEngine.lo GslEngine.lo GslErrorHandler.lo Minimizer.lo \
+	TestLikelihood.lo
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(noinst_PROGRAMS)
 am_likelytest_OBJECTS = likelytest.$(OBJEXT)
@@ -261,12 +261,12 @@ lib_LTLIBRARIES = liblikely.la
 
 # instructions for building the library
 liblikely_la_SOURCES = \
+	likely/AbsEngine.cc \
 	likely/MarkovChainEngine.cc \
 	likely/MinuitEngine.cc \
 	likely/GslEngine.cc \
 	likely/GslErrorHandler.cc \
-	likely/AbsMinimizer.cc \
-	likely/GslMinimizer.cc \
+	likely/Minimizer.cc \
 	likely/test/TestLikelihood.cc
 
 
@@ -275,12 +275,12 @@ nobase_include_HEADERS = \
 	likely/likely.h \
 	likely/types.h \
 	likely/RuntimeError.h \
+	likely/AbsEngine.h \
 	likely/MarkovChainEngine.h \
 	likely/MinuitEngine.h \
 	likely/GslEngine.h \
 	likely/GslErrorHandler.h \
-	likely/AbsMinimizer.h \
-	likely/GslMinimizer.h \
+	likely/Minimizer.h \
 	likely/test/TestLikelihood.h
 
 
@@ -380,11 +380,11 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsMinimizer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslErrorHandler.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslMinimizer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MarkovChainEngine.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Minimizer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MinuitEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestLikelihood.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytest.Po@am__quote@
@@ -409,6 +409,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+
+AbsEngine.lo: likely/AbsEngine.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AbsEngine.lo -MD -MP -MF $(DEPDIR)/AbsEngine.Tpo -c -o AbsEngine.lo `test -f 'likely/AbsEngine.cc' || echo '$(srcdir)/'`likely/AbsEngine.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/AbsEngine.Tpo $(DEPDIR)/AbsEngine.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/AbsEngine.cc' object='AbsEngine.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AbsEngine.lo `test -f 'likely/AbsEngine.cc' || echo '$(srcdir)/'`likely/AbsEngine.cc
 
 MarkovChainEngine.lo: likely/MarkovChainEngine.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT MarkovChainEngine.lo -MD -MP -MF $(DEPDIR)/MarkovChainEngine.Tpo -c -o MarkovChainEngine.lo `test -f 'likely/MarkovChainEngine.cc' || echo '$(srcdir)/'`likely/MarkovChainEngine.cc
@@ -438,19 +445,12 @@ GslErrorHandler.lo: likely/GslErrorHandler.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GslErrorHandler.lo `test -f 'likely/GslErrorHandler.cc' || echo '$(srcdir)/'`likely/GslErrorHandler.cc
 
-AbsMinimizer.lo: likely/AbsMinimizer.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AbsMinimizer.lo -MD -MP -MF $(DEPDIR)/AbsMinimizer.Tpo -c -o AbsMinimizer.lo `test -f 'likely/AbsMinimizer.cc' || echo '$(srcdir)/'`likely/AbsMinimizer.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/AbsMinimizer.Tpo $(DEPDIR)/AbsMinimizer.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/AbsMinimizer.cc' object='AbsMinimizer.lo' libtool=yes @AMDEPBACKSLASH@
+Minimizer.lo: likely/Minimizer.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Minimizer.lo -MD -MP -MF $(DEPDIR)/Minimizer.Tpo -c -o Minimizer.lo `test -f 'likely/Minimizer.cc' || echo '$(srcdir)/'`likely/Minimizer.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Minimizer.Tpo $(DEPDIR)/Minimizer.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/Minimizer.cc' object='Minimizer.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AbsMinimizer.lo `test -f 'likely/AbsMinimizer.cc' || echo '$(srcdir)/'`likely/AbsMinimizer.cc
-
-GslMinimizer.lo: likely/GslMinimizer.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GslMinimizer.lo -MD -MP -MF $(DEPDIR)/GslMinimizer.Tpo -c -o GslMinimizer.lo `test -f 'likely/GslMinimizer.cc' || echo '$(srcdir)/'`likely/GslMinimizer.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/GslMinimizer.Tpo $(DEPDIR)/GslMinimizer.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/GslMinimizer.cc' object='GslMinimizer.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GslMinimizer.lo `test -f 'likely/GslMinimizer.cc' || echo '$(srcdir)/'`likely/GslMinimizer.cc
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Minimizer.lo `test -f 'likely/Minimizer.cc' || echo '$(srcdir)/'`likely/Minimizer.cc
 
 TestLikelihood.lo: likely/test/TestLikelihood.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestLikelihood.lo -MD -MP -MF $(DEPDIR)/TestLikelihood.Tpo -c -o TestLikelihood.lo `test -f 'likely/test/TestLikelihood.cc' || echo '$(srcdir)/'`likely/test/TestLikelihood.cc
