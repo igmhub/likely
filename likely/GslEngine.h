@@ -31,8 +31,12 @@ namespace likely {
         gsl_multimin_function _func;
         // Global C-style callback that evaluates the top function on its stack.
         static double _evaluate(const gsl_vector *v, void *params);
+        // Maintain a function stack.
         typedef std::pair<Function,Parameters> Binding;
         static std::stack<Binding> &getFunctionStack();
+        // Registers our named methods.
+        static bool registerGslEngineMethods();
+        static bool _registered;
 	}; // GslEngine
 } // likely
 

@@ -13,7 +13,9 @@ local::Minimizer::Minimizer(Function f, int nPar, std::string const &methodName)
     if(found == getRegistry().end()) {
         throw RuntimeError("Minimizer: no such method '" + methodName + "'");
     }
+    // Create our engine.
     MethodFactory methodFactory = found->second;
+    _engine.reset(methodFactory(f,nPar));
 }
 
 local::Minimizer::~Minimizer() { }

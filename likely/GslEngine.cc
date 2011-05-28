@@ -2,13 +2,20 @@
 
 #include "likely/GslEngine.h"
 #include "likely/GslErrorHandler.h"
+#include "likely/Minimizer.h"
 #include "likely/RuntimeError.h"
+
+#include "boost/functional/factory.hpp"
+#include "boost/bind.hpp"
+
+#include <iostream> // -- remove me --
 
 namespace local = likely;
 
 local::GslEngine::GslEngine(Function f, int nPar)
 : _nPar(nPar), _f(f)
 {
+    std::cout << "GslEngine:: hello, world!" << std::endl;
     if(_nPar <= 0) {
         throw RuntimeError("GslEngine: number of parameters must be > 0.");
     }
@@ -82,3 +89,16 @@ std::stack<local::GslEngine::Binding> &local::GslEngine::getFunctionStack() {
     static std::stack<Binding> *stack = new std::stack<Binding>();
     return *stack;
 }
+
+bool local::GslEngine::registerGslEngineMethods() {
+    std::cout << "Registering GSL methods..." << std::endl;
+    // Create a function object that constructs a GslEngine for (Function f, int npar).
+    Minimizer::MethodFactory factory = boost::bind(boost::factory<GslEngine*>(),_1,_2);
+    // Register our minimization methods.
+    Minimizer::Registry &minRegistry = Minimizer::getRegistry();
+    minRegistry["gsl::simplex"] = factory;
+    // Return a dummy value so that we can be called at program startup.
+    return true;
+}
+
+bool local::GslEngine::_registered = local::GslEngine::registerGslEngineMethods();
