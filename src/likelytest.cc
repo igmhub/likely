@@ -49,12 +49,13 @@ int main(int argc, char **argv) {
     }
     bool verbose(vm.count("verbose"));
 
+    if(npar <= 0) {
+        std::cerr << "Number of parameters (npar) must be > 0." << std::endl;
+        return -2;
+    }
+
     try {
         // Create the likelihood function to use.
-        if(npar <= 0) {
-            std::cerr << "Number of parameters (npar) must be > 0." << std::endl;
-            return -2;
-        }
         test::TestLikelihood testfn(npar,1,rho,alpha);
         testfn.setTrace(true);
     
@@ -65,8 +66,10 @@ int main(int argc, char **argv) {
         //lk::AbsMinimizerPtr minimizer(new lk::GslMinimizer(testfn,npar));
         //lk::Parameters final(minimizer->minimize(initial,errors));
 
-        lk::Minimizer minimizer(testfn,npar,"gsl::simplex");
-        lk::Parameters final = minimizer.minimize(initial,errors);
+        lk::FunctionMinimum fmin = lk::findMinimum(testfn,initial,errors,"gsl::simplex2");
+        //fmin.print(std::cout);
+        //fmin.estimateCovariance("mn2:hesse");
+        //fmin.estimateError();
 
         //lk::MinuitEngine minuit(testfn,npar);
         //mn::FunctionMinimum mfit = minuit.simplex(initial,errors);

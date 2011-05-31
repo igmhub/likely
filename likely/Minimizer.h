@@ -19,11 +19,7 @@ namespace likely {
 		virtual ~Minimizer();
         Parameters minimize(Parameters const& initial, Parameters const &errors);        
 
-        typedef boost::function<AbsEngine* (Function, int)> MethodFactory;
-        void registerMethod(std::string const& methodName, MethodFactory methodFactory);
 
-        typedef std::map<std::string, MethodFactory> Registry;
-        static Registry &getRegistry();
 
 	private:
         boost::scoped_ptr<AbsEngine> _engine;

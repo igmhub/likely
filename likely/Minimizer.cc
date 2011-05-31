@@ -8,6 +8,7 @@ namespace local = likely;
 
 local::Minimizer::Minimizer(Function f, int nPar, std::string const &methodName)
 {
+    /**
     // Look up the requested method by name.
     Registry::iterator found = getRegistry().find(methodName);
     if(found == getRegistry().end()) {
@@ -16,6 +17,7 @@ local::Minimizer::Minimizer(Function f, int nPar, std::string const &methodName)
     // Create our engine.
     MethodFactory methodFactory = found->second;
     _engine.reset(methodFactory(f,nPar));
+    **/
 }
 
 local::Minimizer::~Minimizer() { }
@@ -26,7 +28,3 @@ Parameters const& initial, Parameters const &errors) {
     return final;
 }
 
-local::Minimizer::Registry &local::Minimizer::getRegistry() {
-    static Registry *registry = new Registry();
-    return *registry;
-}

@@ -41,6 +41,7 @@ BOOST_SMART_PTR
 
 # Required boost libraries
 BOOST_PROGRAM_OPTIONS
+BOOST_REGEX
 
 # Checks for header files.
 

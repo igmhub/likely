@@ -8,6 +8,7 @@
 
 #include "gsl/gsl_multimin.h"
 
+#include <string>
 #include <stack>
 #include <utility>
 
@@ -16,7 +17,7 @@ namespace likely {
 	public:
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters.
-		GslEngine(Function f, int nPar);
+		GslEngine(Function f, int nPar, std::string const &algorithm);
 		virtual ~GslEngine();
 		// Evaluates the engine's function for the specified input parameter values.
         //double operator()(Parameters const& pValues) const;
