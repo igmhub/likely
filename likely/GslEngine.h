@@ -39,8 +39,6 @@ namespace likely {
         // Registers our named methods.
         static bool registerGslEngineMethods();
         static bool _registered;
-        
-        FunctionMinimum fmin(Parameters const &, Parameters const &);
 	}; // GslEngine
 } // likely
 

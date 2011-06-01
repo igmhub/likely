@@ -68,9 +68,9 @@ int main(int argc, char **argv) {
 
         lk::FunctionMinimumPtr fmin =
             lk::findMinimum(testfn,initial,errors,"gsl::simplex2");
-        //fmin.print(std::cout);
-        //fmin.estimateCovariance("mn2:hesse");
-        //fmin.estimateError();
+        fmin->printToStream(std::cout);
+        //fmin->estimateCovariance("mn2:hesse");
+        //fmin->estimateError();
 
         //lk::MinuitEngine minuit(testfn,npar);
         //mn::FunctionMinimum mfit = minuit.simplex(initial,errors);

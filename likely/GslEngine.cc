@@ -34,10 +34,6 @@ local::GslEngine::GslEngine(Function f, int nPar, std::string const &algorithm)
     }
 }
 
-local::FunctionMinimum local::GslEngine::fmin(Parameters const &p, Parameters const &e) {
-    return FunctionMinimum();
-}
-
 local::GslEngine::~GslEngine() {
     getFunctionStack().pop();
 }
@@ -47,9 +43,6 @@ Parameters const &initial, Parameters const &errors,
 double minSize, int maxIterations) {
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::minimize");
-    // Initialize our result object.
-    FunctionMinimumPtr fmin(new FunctionMinimum());
-    
     // Copy the input initial values and errors to GSL vectors.
     gsl_vector *gsl_initial(gsl_vector_alloc(_nPar)), *gsl_errors(gsl_vector_alloc(_nPar));
     for(int i = 0; i < _nPar; ++i) {
@@ -57,7 +50,6 @@ double minSize, int maxIterations) {
         gsl_vector_set(gsl_errors,i,errors[i]);
     }
     // Initialize the minimizer
-    //const gsl_multimin_fminimizer_type *T(gsl_multimin_fminimizer_nmsimplex2);
     gsl_multimin_fminimizer *state(gsl_multimin_fminimizer_alloc(method,_nPar));
     gsl_multimin_fminimizer_set(state, &_func, gsl_initial, gsl_errors);
     // Do the minimization...
@@ -67,9 +59,17 @@ double minSize, int maxIterations) {
         double size(gsl_multimin_fminimizer_size(state));
         if(gsl_multimin_test_size(size,minSize) != GSL_CONTINUE) break;
     }
+    // Copy the results into our result object.
+    Parameters final(_nPar);
+    for(int i = 0; i < _nPar; ++i) {
+        final[i] = gsl_vector_get(state->x,i);
+    }
+    // Initialize our result object.
+    FunctionMinimumPtr fmin(new FunctionMinimum(state->fval,final));
     // Clean up.
     gsl_vector_free(gsl_errors);
     gsl_vector_free(gsl_initial);
+    gsl_multimin_fminimizer_free(state);
 
     return fmin;
 }
