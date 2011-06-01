@@ -24,19 +24,14 @@ local::TestLikelihood::TestLikelihood(int npar, double sigma, double rho, double
             boost::lexical_cast<std::string>(rho));
     }
     double tmp(1 + (npar-1)*rho),sigmasq(sigma*sigma);
-    if(tmp == 0) {
+    double determinant(std::pow(1-rho,npar-1)*tmp*std::pow(sigmasq,npar));
+    if(determinant == 0) {
         throw RuntimeError("TestLikelihood: determinant is zero.");
     }
     // Calculate the two distinct elements of the inverse covariance matrix.
-    double denom(tmp*(1-rho)*sigmasq);
+    double denom((1-rho)*tmp*sigmasq);
     _inverseDiagonal = (1+(npar-2)*rho)/denom;
     _inverseOffDiagonal = -rho/denom;
-    // Calculate the covariance matrix determinant.
-    double determinant(std::pow(1-rho,npar-1)*tmp*std::pow(sigmasq,npar));
-    // Calculate the normalization factor.
-    double twopi(8*std::atan(1));
-    double norm(std::pow(twopi,0.5*npar)*std::sqrt(std::fabs(determinant)));
-    _logNorm = std::log(norm);
 }
 
 local::TestLikelihood::~TestLikelihood() { }
@@ -66,21 +61,16 @@ double local::TestLikelihood::operator()(Parameters const &params) const {
     }
     arg1 *= _inverseDiagonal/2;
     arg2 *= _inverseOffDiagonal;
-    // Return the -log(likelihood)
-    double result(arg1+arg2+_logNorm);
+    double result(arg1+arg2);
     
+    _count++;    
     if(_trace) {
         boost::format pFormat("%.5f");
-        std::cout << "TestLikelihood(" << pFormat % params[0];
+        std::cout << '[' << _count << "] TestLikelihood(" << pFormat % params[0];
         for(int i = 1; i < _npar; ++i) {
             std::cout << ',' << pFormat % params[i];
         }
         std::cout << ") = " << result << std::endl;
     }
-    
     return result;
-}
-
-double local::TestLikelihood::getMinimum() const {
-    return 0;
 }

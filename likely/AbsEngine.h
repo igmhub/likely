@@ -21,7 +21,8 @@ namespace likely {
 
 		// Declare our dynamic entry point for findMinimum.
 		typedef boost::function<FunctionMinimumPtr
-		    (Parameters const &pInitial, Parameters const &pErrors)> MinimumFinder;
+		    (Parameters const &pInitial, Parameters const &pErrors, double, long)>
+		    MinimumFinder;
         MinimumFinder minimumFinder;
 
 	    // Declare a global registry for creating engines by name.
@@ -38,9 +39,14 @@ namespace likely {
     // Finds a minimum of the specified function starting from the initial parameters
     // provided, with steps sizes scaled to the error estimates provided. Returns
     // a smart pointer to a FunctionMinimum object or else throws a RuntimeError.
-    // Uses the the method specified by name.
+    // Uses the the method specified by name. The precision parameter determines how
+    // precisely the algorithm will attempt to locate the minimum. Its exact definition
+    // is algorithm dependent but a smaller value will generally require more evaluations
+    // and provide a more precise minimum. Use a positive value for maxIterations to
+    // request a maximum number of times that the function is called.
 	FunctionMinimumPtr findMinimum(Function f, Parameters const &initial,
-        Parameters const &errors, std::string const &methodName);
+        Parameters const &errors, std::string const &methodName,
+        double precision = 1e-3, long maxIterations = 0);
 	
 } // likely
 

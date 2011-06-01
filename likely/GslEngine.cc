@@ -24,7 +24,7 @@ local::GslEngine::GslEngine(Function f, int nPar, std::string const &algorithm)
     // Select the requested algorithm.
     if(algorithm == "simplex2") {
         minimumFinder = boost::bind(&GslEngine::minimize,this,
-            gsl_multimin_fminimizer_nmsimplex2,_1,_2,1e-3,1000);
+            gsl_multimin_fminimizer_nmsimplex2,_1,_2,_3,_4);
     }
     else if(algorithm == "simplex2rand") {
         minimumFinder = boost::bind(&GslEngine::minimize,this,
@@ -41,7 +41,7 @@ local::GslEngine::~GslEngine() {
 
 local::FunctionMinimumPtr local::GslEngine::minimize(Method method,
 Parameters const &initial, Parameters const &errors,
-double minSize, int maxIterations) {
+double minSize, long maxIterations) {
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::minimize");
     // Copy the input initial values and errors to GSL vectors.
@@ -54,8 +54,9 @@ double minSize, int maxIterations) {
     gsl_multimin_fminimizer *state(gsl_multimin_fminimizer_alloc(method,_nPar));
     gsl_multimin_fminimizer_set(state, &_func, gsl_initial, gsl_errors);
     // Do the minimization...
-    int nIterations(0);
-    while(nIterations++ < maxIterations) {
+    long nIterations(0);
+    while(0 == maxIterations || nIterations < maxIterations) {
+        nIterations++;
         if(gsl_multimin_fminimizer_iterate(state)) break;
         double size(gsl_multimin_fminimizer_size(state));
         if(gsl_multimin_test_size(size,minSize) != GSL_CONTINUE) break;

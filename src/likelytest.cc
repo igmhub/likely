@@ -20,6 +20,13 @@ namespace test = likely::test;
 namespace po = boost::program_options;
 namespace mn = ROOT::Minuit2;
 
+void useMethod(std::string const &methodName, test::TestLikelihood &tester, lk::Function f,
+lk::Parameters const &initial,lk::Parameters const &errors, double prec) {
+    tester.resetCount();
+    lk::FunctionMinimumPtr fmin = lk::findMinimum(f,initial,errors,methodName,prec);
+    std::cout << ' ' << tester.getCount() << ' ' << std::log10(fmin->getMinValue());
+}
+
 int main(int argc, char **argv) {
     
     // Configure command-line option processing
@@ -69,15 +76,21 @@ int main(int argc, char **argv) {
     boost::variate_generator<boost::mt19937&, boost::uniform_real<> > random(gen,flat);
     
     // Print out column headings for our output below.
-    std::cout << "norm gsl_simplex2 gsl_simplex2rand" << std::endl;
+    std::cout << "norm fval gsl_simplex2 gsl_simplex2rand" << std::endl;
 
     try {
         // Create a likelihood function using the command-line parameters.
-        test::TestLikelihood testfn(npar,1,rho,alpha);
-        if(trace) testfn.setTrace(true);
-        double trueMinVal(testfn.getMinimum());
-        lk::FunctionMinimumPtr fmin;
+        test::TestLikelihood tester(npar,1,rho,alpha);
+        if(trace) tester.setTrace(true);
+        lk::Function f(tester);
             
+        // Specify the different precision values to use for each trial.
+        std::vector<double> precision;
+        precision.push_back(1e-3);
+        precision.push_back(1e-4);
+        precision.push_back(1e-5);
+        precision.push_back(1e-6);
+
         // Loop over minimization trials.
         for(int trial = 0; trial < ntrial; ++trial) {
             // Choose random initial parameter values within [-1,+1]
@@ -89,16 +102,16 @@ int main(int argc, char **argv) {
                 norm += value*value;
             }
             norm = std::sqrt(norm);
-            std::cout << norm;
+            std::cout << norm << ' ' << f(initial);
             // Use fixed initial error estimates.
             lk::Parameters errors(npar,1);
-            // Use methods that do not use the function gradient.
-            fmin = lk::findMinimum(testfn,initial,errors,"gsl::simplex2");
-            std::cout << ' ' << testfn.getCount() << ' ' << fmin->getMinValue()-trueMinVal;
-            testfn.resetCount();
-            fmin = lk::findMinimum(testfn,initial,errors,"gsl::simplex2rand");
-            std::cout << ' ' << testfn.getCount() << ' ' << fmin->getMinValue()-trueMinVal;
-            testfn.resetCount();
+            // Loop over precision goals.
+            for(int precIndex = 0; precIndex < precision.size(); ++precIndex) {
+                double precValue(precision[precIndex]);
+                // Use methods that do not use the function gradient.
+                useMethod("gsl::simplex2",tester,f,initial,errors,precValue);
+                useMethod("gsl::simplex2rand",tester,f,initial,errors,precValue);
+            }
             std::cout << std::endl;
         }
     }

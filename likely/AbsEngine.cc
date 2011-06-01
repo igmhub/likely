@@ -29,7 +29,8 @@ local::ParsedMethodName local::parseMethodName(std::string const &methodName) {
 }
 
 local::FunctionMinimumPtr local::findMinimum(Function f, Parameters const &initial,
-Parameters const &errors, std::string const &methodName) {
+Parameters const &errors, std::string const &methodName,
+double precision, long maxIterations) {
     // Check that the input vectors have the same length.
     int nPar(initial.size());
     if(errors.size() != nPar) {
@@ -47,5 +48,5 @@ Parameters const &errors, std::string const &methodName) {
     AbsEngine::Factory factory = found->second;
     boost::scoped_ptr<AbsEngine> engine(factory(f,nPar,parsed.second));
     // Run the algorithm and return its result.
-    return engine->minimumFinder(initial,errors);
+    return engine->minimumFinder(initial,errors,precision,maxIterations);
 }
