@@ -32,6 +32,9 @@ namespace likely {
     typedef boost::function<double (Parameters const &pInitial, Parameters const &pErrors,
     Parameters &pFinal, Covariance &covariance)>
         MinimumAndCovarianceFinder;
+        
+    class FunctionMinimum;
+    typedef boost::shared_ptr<FunctionMinimum> FunctionMinimumPtr;
 
 } // likely
 

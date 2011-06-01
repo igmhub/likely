@@ -66,7 +66,8 @@ int main(int argc, char **argv) {
         //lk::AbsMinimizerPtr minimizer(new lk::GslMinimizer(testfn,npar));
         //lk::Parameters final(minimizer->minimize(initial,errors));
 
-        lk::FunctionMinimum fmin = lk::findMinimum(testfn,initial,errors,"gsl::simplex2");
+        lk::FunctionMinimumPtr fmin =
+            lk::findMinimum(testfn,initial,errors,"gsl::simplex2");
         //fmin.print(std::cout);
         //fmin.estimateCovariance("mn2:hesse");
         //fmin.estimateError();

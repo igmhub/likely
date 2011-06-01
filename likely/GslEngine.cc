@@ -2,7 +2,7 @@
 
 #include "likely/GslEngine.h"
 #include "likely/GslErrorHandler.h"
-#include "likely/Minimizer.h"
+#include "likely/FunctionMinimum.h"
 #include "likely/RuntimeError.h"
 
 #include "boost/functional/factory.hpp"
@@ -19,21 +19,37 @@ local::GslEngine::GslEngine(Function f, int nPar, std::string const &algorithm)
     if(_nPar <= 0) {
         throw RuntimeError("GslEngine: number of parameters must be > 0.");
     }
+    // Bind this function to our GSL global function
     _func.n = nPar;
     _func.f = _evaluate;
     _func.params = 0;
     getFunctionStack().push(Binding(f,Parameters(nPar)));
+    // Select the requested algorithm.
+    if(algorithm == "simplex2") {
+        minimumFinder = //boost::bind(&GslEngine::fmin,this,_1,_2);
+        boost::bind(&GslEngine::minimize,this,gsl_multimin_fminimizer_nmsimplex2,_1,_2,1e-3,1000);
+    }
+    else {
+        throw RuntimeError("GslEngine: unknown algorithm '" + algorithm + "'");
+    }
+}
+
+local::FunctionMinimum local::GslEngine::fmin(Parameters const &p, Parameters const &e) {
+    return FunctionMinimum();
 }
 
 local::GslEngine::~GslEngine() {
     getFunctionStack().pop();
 }
 
-void local::GslEngine::minimize(Method method,
+local::FunctionMinimumPtr local::GslEngine::minimize(Method method,
 Parameters const &initial, Parameters const &errors,
 double minSize, int maxIterations) {
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::minimize");
+    // Initialize our result object.
+    FunctionMinimumPtr fmin(new FunctionMinimum());
+    
     // Copy the input initial values and errors to GSL vectors.
     gsl_vector *gsl_initial(gsl_vector_alloc(_nPar)), *gsl_errors(gsl_vector_alloc(_nPar));
     for(int i = 0; i < _nPar; ++i) {
@@ -54,6 +70,8 @@ double minSize, int maxIterations) {
     // Clean up.
     gsl_vector_free(gsl_errors);
     gsl_vector_free(gsl_initial);
+
+    return fmin;
 }
 
 /*
@@ -64,7 +82,8 @@ double local::GslEngine::operator()(Parameters const& pValues) const {
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::operator()");
     if(pValues.size() != _nPar) {
-        throw RuntimeError("GslEngine: function evaluated with wrong number of parameters.");
+        throw RuntimeError(
+            "GslEngine: function evaluated with wrong number of parameters.");
     }
     gsl_vector *v(gsl_vector_alloc(_nPar));
     for(int i = 0; i < _nPar; ++i) {

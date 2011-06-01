@@ -24,7 +24,8 @@ namespace likely {
         // Runs a simplex minimization using the specified initial parameter values
         // and error estimates.
         typedef const gsl_multimin_fminimizer_type *Method;
-        void minimize(Method method, Parameters const &initial, Parameters const &errors,
+        FunctionMinimumPtr minimize(Method method,
+            Parameters const &initial, Parameters const &errors,
             double minSize = 1e-3, int maxIterations = 1000);
 	private:
         int _nPar;
@@ -38,6 +39,8 @@ namespace likely {
         // Registers our named methods.
         static bool registerGslEngineMethods();
         static bool _registered;
+        
+        FunctionMinimum fmin(Parameters const &, Parameters const &);
 	}; // GslEngine
 } // likely
 

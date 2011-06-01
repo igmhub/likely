@@ -28,7 +28,7 @@ local::ParsedMethodName local::parseMethodName(std::string const &methodName) {
     return ParsedMethodName(engine,algorithm);
 }
 
-local::FunctionMinimum local::findMinimum(Function f, Parameters const &initial,
+local::FunctionMinimumPtr local::findMinimum(Function f, Parameters const &initial,
 Parameters const &errors, std::string const &methodName) {
     // Check that the input vectors have the same length.
     int nPar(initial.size());
@@ -38,15 +38,14 @@ Parameters const &errors, std::string const &methodName) {
     }
     // Parse the method name, which should have the form <engine>::<algorithm>
     ParsedMethodName parsed(parseMethodName(methodName));
-    // Lookup a factory for this engine.
+    // Lookup the factory that creates this type of engine.
     AbsEngine::Registry::iterator found = AbsEngine::getRegistry().find(parsed.first);
     if(found == AbsEngine::getRegistry().end()) {
         throw RuntimeError("findMinimum: no such engine '" + methodName + "'");
     }
-    AbsEngine::Factory factory = found->second;
     // Create a new engine for this function.
+    AbsEngine::Factory factory = found->second;
     boost::scoped_ptr<AbsEngine> engine(factory(f,nPar,parsed.second));
-
-    FunctionMinimum fmin;
-    return fmin;
+    // Run the algorithm and return its result.
+    return engine->minimumFinder(initial,errors);
 }
