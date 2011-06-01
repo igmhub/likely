@@ -26,8 +26,12 @@ local::GslEngine::GslEngine(Function f, int nPar, std::string const &algorithm)
     getFunctionStack().push(Binding(f,Parameters(nPar)));
     // Select the requested algorithm.
     if(algorithm == "simplex2") {
-        minimumFinder = //boost::bind(&GslEngine::fmin,this,_1,_2);
-        boost::bind(&GslEngine::minimize,this,gsl_multimin_fminimizer_nmsimplex2,_1,_2,1e-3,1000);
+        minimumFinder = boost::bind(&GslEngine::minimize,this,
+            gsl_multimin_fminimizer_nmsimplex2,_1,_2,1e-3,1000);
+    }
+    else if(algorithm == "simplex2rand") {
+        minimumFinder = boost::bind(&GslEngine::minimize,this,
+            gsl_multimin_fminimizer_nmsimplex2rand,_1,_2,1e-3,1000);
     }
     else {
         throw RuntimeError("GslEngine: unknown algorithm '" + algorithm + "'");
