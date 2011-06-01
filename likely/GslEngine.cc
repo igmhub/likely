@@ -8,14 +8,11 @@
 #include "boost/functional/factory.hpp"
 #include "boost/bind.hpp"
 
-#include <iostream> // -- remove me --
-
 namespace local = likely;
 
 local::GslEngine::GslEngine(Function f, int nPar, std::string const &algorithm)
 : _nPar(nPar), _f(f)
 {
-    std::cout << "starting gsl::" << algorithm << std::endl;
     if(_nPar <= 0) {
         throw RuntimeError("GslEngine: number of parameters must be > 0.");
     }
@@ -114,7 +111,6 @@ std::stack<local::GslEngine::Binding> &local::GslEngine::getFunctionStack() {
 }
 
 bool local::GslEngine::registerGslEngineMethods() {
-    std::cout << "Registering GSL engine..." << std::endl;
     // Create a function object that constructs a GslEngine with parameters
     // (Function f, int npar, std::string const &methodName).
     AbsEngine::Factory factory = boost::bind(boost::factory<GslEngine*>(),_1,_2,_3);

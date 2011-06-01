@@ -18,17 +18,28 @@ namespace test {
 	    // parameters to the internal Gaussian parameters.
 		TestLikelihood(int npar, double sigma = 1, double rho = 0, double alpha = 0);
 		virtual ~TestLikelihood();
+		// Evaluates this likelihood function at the specified parameter values.
         double operator()(Parameters const &params) const;
+        // Returns the function value at the likelihood minimum.
+        double getMinimum() const;
         // Turns evaluation tracing on/off.
         void setTrace(bool value);
+        // Returns the number of function evaluations since this object was created
+        // or resetCount() was called.
+        long getCount() const;
+        // Resets the evaluation counter.
+        void resetCount();
 	private:
         int _npar;
+        long _count;
         double _sigma, _rho, _alpha;
         double _inverseDiagonal, _inverseOffDiagonal, _logNorm;
         bool _trace;
 	}; // TestLikelihood
 	
     inline void TestLikelihood::setTrace(bool value) { _trace = value; }
+    inline long TestLikelihood::getCount() const { return _count; }
+    inline void TestLikelihood::resetCount() { _count = 0; }
 
 }} // likely::test
 

@@ -12,7 +12,7 @@
 namespace local = likely::test;
 
 local::TestLikelihood::TestLikelihood(int npar, double sigma, double rho, double alpha)
-: _npar(npar), _sigma(sigma), _rho(rho), _alpha(alpha)
+: _npar(npar), _sigma(sigma), _rho(rho), _alpha(alpha), _trace(false), _count(0)
 {
     // Check for valid inputs.
     if(npar < 0) {
@@ -79,4 +79,8 @@ double local::TestLikelihood::operator()(Parameters const &params) const {
     }
     
     return result;
+}
+
+double local::TestLikelihood::getMinimum() const {
+    return 0;
 }

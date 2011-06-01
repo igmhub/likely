@@ -8,8 +8,12 @@
 #include "gsl/gsl_multimin.h"
 
 #include "boost/program_options.hpp"
+#include "boost/random/mersenne_twister.hpp"
+#include "boost/random/uniform_real.hpp"
+#include "boost/random/variate_generator.hpp"
 
 #include <iostream>
+#include <cmath>
 
 namespace lk = likely;
 namespace test = likely::test;
@@ -19,13 +23,18 @@ namespace mn = ROOT::Minuit2;
 int main(int argc, char **argv) {
     
     // Configure command-line option processing
-    int npar;
+    int npar,ntrial,seed;
     double rho,alpha;
     po::options_description cli("Likelihood analysis test program");
     cli.add_options()
         ("help,h", "Prints this info and exits.")
         ("verbose", "Prints additional information.")
-        ("npar,n", po::value<int>(&npar)->default_value(3),
+        ("trace", "Traces all calls to the likelihood function.")
+        ("ntrial", po::value<int>(&ntrial)->default_value(100),
+            "Number of minimization trials to perform.")
+        ("seed", po::value<int>(&seed)->default_value(123),
+            "Random seed for generating initial parameter values.")
+        ("npar", po::value<int>(&npar)->default_value(3),
             "Number of floating parameters to use.")
         ("rho", po::value<double>(&alpha)->default_value(0),
             "Likelihood linear correlation parameter.")
@@ -47,41 +56,51 @@ int main(int argc, char **argv) {
         std::cout << cli << std::endl;
         return 1;
     }
-    bool verbose(vm.count("verbose"));
+    bool verbose(vm.count("verbose")), trace(vm.count("trace"));
 
     if(npar <= 0) {
         std::cerr << "Number of parameters (npar) must be > 0." << std::endl;
         return -2;
     }
 
+    // Initialize a uniform random number generator.
+    boost::mt19937 gen(seed);
+    boost::uniform_real<> flat(-1,+1);
+    boost::variate_generator<boost::mt19937&, boost::uniform_real<> > random(gen,flat);
+    
+    // Print out column headings for our output below.
+    std::cout << "norm gsl_simplex2 gsl_simplex2rand" << std::endl;
+
     try {
-        // Create the likelihood function to use.
+        // Create a likelihood function using the command-line parameters.
         test::TestLikelihood testfn(npar,1,rho,alpha);
-        testfn.setTrace(true);
-    
-        // Specify the initial parameter values and error estimates.
-        std::vector<double> initial(npar,1),errors(npar,1);
-        std::cout << "f0 = " << testfn(initial) << std::endl;
-    
-        //lk::AbsMinimizerPtr minimizer(new lk::GslMinimizer(testfn,npar));
-        //lk::Parameters final(minimizer->minimize(initial,errors));
-
-        lk::FunctionMinimumPtr fmin =
-            lk::findMinimum(testfn,initial,errors,"gsl::simplex2");
-        fmin->printToStream(std::cout);
-        //fmin->estimateCovariance("mn2:hesse");
-        //fmin->estimateError();
-
-        //lk::MinuitEngine minuit(testfn,npar);
-        //mn::FunctionMinimum mfit = minuit.simplex(initial,errors);
-        //mn::FunctionMinimum mfit = minuit.variableMetric(initial,errors);
-        //std::cout << mfit;
-
-        //lk::GslEngine gsl(testfn,npar);
-        //gsl.minimize(gsl_multimin_fminimizer_nmsimplex2,initial,errors);
-    
-        //lk::MarkovChainEngine mc(testfn,npar);
-        //lk::Parameters sample = mc.advance(initial,errors,10);
+        if(trace) testfn.setTrace(true);
+        double trueMinVal(testfn.getMinimum());
+        lk::FunctionMinimumPtr fmin;
+            
+        // Loop over minimization trials.
+        for(int trial = 0; trial < ntrial; ++trial) {
+            // Choose random initial parameter values within [-1,+1]
+            lk::Parameters initial(npar);
+            double norm(0);
+            for(int par = 0; par < npar; ++par) {
+                double value = random();
+                initial[par] = value;
+                norm += value*value;
+            }
+            norm = std::sqrt(norm);
+            std::cout << norm;
+            // Use fixed initial error estimates.
+            lk::Parameters errors(npar,1);
+            // Use methods that do not use the function gradient.
+            fmin = lk::findMinimum(testfn,initial,errors,"gsl::simplex2");
+            std::cout << ' ' << testfn.getCount() << ' ' << fmin->getMinValue()-trueMinVal;
+            testfn.resetCount();
+            fmin = lk::findMinimum(testfn,initial,errors,"gsl::simplex2rand");
+            std::cout << ' ' << testfn.getCount() << ' ' << fmin->getMinValue()-trueMinVal;
+            testfn.resetCount();
+            std::cout << std::endl;
+        }
     }
     catch(lk::RuntimeError const &e) {
         std::cerr << e.what() << std::endl;
