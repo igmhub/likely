@@ -9,7 +9,7 @@
 
 #include "boost/program_options.hpp"
 #include "boost/random/mersenne_twister.hpp"
-#include "boost/random/uniform_real.hpp"
+#include "boost/random/uniform_on_sphere.hpp"
 #include "boost/random/variate_generator.hpp"
 #include "boost/ref.hpp"
 
@@ -75,8 +75,9 @@ int main(int argc, char **argv) {
 
     // Initialize a uniform random number generator.
     boost::mt19937 gen(seed);
-    boost::uniform_real<> flat(-1,+1);
-    boost::variate_generator<boost::mt19937&, boost::uniform_real<> > random(gen,flat);
+    boost::uniform_on_sphere<> spherical(npar);
+    boost::variate_generator<boost::mt19937&, boost::uniform_on_sphere<> >
+        randomOnSphere(gen,spherical);
     
     // Print out column headings for our output below.
     std::cout << "method ncall err" << std::endl;
@@ -102,6 +103,10 @@ int main(int argc, char **argv) {
 
         // Loop over minimization trials.
         for(int trial = 0; trial < ntrial; ++trial) {
+            // Choose a random point on the unit sphere (in npar dimensions)
+            // for the initial parameter values.
+            lk::Parameters initial(randomOnSphere());
+            /*
             // Choose random initial parameter values within [-1,+1]
             lk::Parameters initial(npar);
             //!! double norm(0);
@@ -110,6 +115,7 @@ int main(int argc, char **argv) {
                 initial[par] = value;
                 //!! norm += value*value;
             }
+            */
             //!! std::cout << std::sqrt(norm) << ' ' << (*f)(initial);
             // Loop over precision goals.
             for(int precIndex = 0; precIndex < precision.size(); ++precIndex) {
