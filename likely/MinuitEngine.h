@@ -7,7 +7,6 @@
 #include "likely/AbsEngine.h"
 
 #include "Minuit2/FCNBase.h"
-#include "Minuit2/FunctionMinimum.h"
 
 #include "boost/smart_ptr.hpp"
 
@@ -22,12 +21,11 @@ namespace Minuit2 {
 
 namespace likely {
     // Implements minimization and error analysis using the Minuit2 library.
-	class MinuitEngine : public ROOT::Minuit2::FCNBase, AbsEngine {
+	class MinuitEngine : public ROOT::Minuit2::FCNBase, public AbsEngine {
 	public:
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters. If names are not specified, they will be P0,P1,P2,...
-		MinuitEngine(FunctionPtr f, int nPar);
-		MinuitEngine(FunctionPtr f, std::vector<std::string> const &parNames);
+		MinuitEngine(FunctionPtr f, int nPar, std::string const &algorithm);
 		virtual ~MinuitEngine();
 		// Evaluates the engine's function for the specified input parameter values.
         virtual double operator()(Parameters const& pValues) const;
@@ -43,6 +41,7 @@ namespace likely {
         template<class T>
         FunctionMinimumPtr minimize(Parameters const &initial, Parameters const &errors,
             double toler, int maxfcn);        
+/*
         // Runs a simplex minimization using the specified initial parameter values
         // and error estimates.
         ROOT::Minuit2::FunctionMinimum
@@ -51,13 +50,19 @@ namespace likely {
         // and error estimates.
         ROOT::Minuit2::FunctionMinimum
             variableMetric(Parameters const &initial, Parameters const &errors);
+*/
 	private:
         int _nPar;
         FunctionPtr _f;
         StatePtr _initialState;
+        /*
         boost::scoped_ptr<ROOT::Minuit2::SimplexMinimizer> _simplex;
         boost::scoped_ptr<ROOT::Minuit2::VariableMetricMinimizer> _variableMetric;
+        */
         void _setInitialState(Parameters const &initial, Parameters const &errors);
+        // Registers our named methods.
+        static bool registerMinuitEngineMethods();
+        static bool _registered;
 	}; // MinuitEngine
 	
 	inline MinuitEngine::StatePtr MinuitEngine::getInitialState() {

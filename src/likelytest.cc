@@ -14,19 +14,20 @@
 #include "boost/ref.hpp"
 
 #include <iostream>
-#include <cmath>
+//!! #include <cmath>
 
 namespace lk = likely;
 namespace test = likely::test;
 namespace po = boost::program_options;
 namespace mn = ROOT::Minuit2;
 
-void useMethod(std::string const &methodName, test::TestLikelihood &tester,
+void useMethod(int methodId, std::string const &methodName, test::TestLikelihood &tester,
 lk::FunctionPtr f, lk::Parameters const &initial,
 lk::Parameters const &errors, double prec) {
     tester.resetCount();
     lk::FunctionMinimumPtr fmin = lk::findMinimum(f,initial,errors,methodName,prec);
-    std::cout << ' ' << tester.getCount() << ' ' << std::log10(fmin->getMinValue());
+    std::cout << methodId << ' ' << tester.getCount()
+        << ' ' << std::log10(fmin->getMinValue()) << std::endl;
 }
 
 int main(int argc, char **argv) {
@@ -78,7 +79,7 @@ int main(int argc, char **argv) {
     boost::variate_generator<boost::mt19937&, boost::uniform_real<> > random(gen,flat);
     
     // Print out column headings for our output below.
-    std::cout << "norm fval gsl_simplex2 gsl_simplex2rand" << std::endl;
+    std::cout << "method ncall err" << std::endl;
 
     try {
         // Create a likelihood function using the command-line parameters.
@@ -96,28 +97,31 @@ int main(int argc, char **argv) {
         precision.push_back(1e-5);
         precision.push_back(1e-6);
 
+        // Use fixed initial error estimates.
+        lk::Parameters errors(npar,1);
+
         // Loop over minimization trials.
         for(int trial = 0; trial < ntrial; ++trial) {
             // Choose random initial parameter values within [-1,+1]
             lk::Parameters initial(npar);
-            double norm(0);
+            //!! double norm(0);
             for(int par = 0; par < npar; ++par) {
                 double value = random();
                 initial[par] = value;
-                norm += value*value;
+                //!! norm += value*value;
             }
-            norm = std::sqrt(norm);
-            std::cout << norm << ' ' << (*f)(initial);
-            // Use fixed initial error estimates.
-            lk::Parameters errors(npar,1);
+            //!! std::cout << std::sqrt(norm) << ' ' << (*f)(initial);
             // Loop over precision goals.
             for(int precIndex = 0; precIndex < precision.size(); ++precIndex) {
                 double precValue(precision[precIndex]);
                 // Use methods that do not use the function gradient.
-                useMethod("gsl::simplex2",tester,f,initial,errors,precValue);
-                useMethod("gsl::simplex2rand",tester,f,initial,errors,precValue);
+                useMethod(1,"gsl::simplex2",tester,f,initial,errors,precValue);
+                useMethod(2,"gsl::simplex2rand",tester,f,initial,errors,precValue);
+                useMethod(3,"mn::simplex",tester,f,initial,errors,precValue);
+                useMethod(4,"mn::vmetric",tester,f,initial,errors,precValue);
+                //useMethod(5,"mn::fumili",tester,f,initial,errors,precValue);
             }
-            std::cout << std::endl;
+            //!! std::cout << std::endl;
         }
     }
     catch(lk::RuntimeError const &e) {
