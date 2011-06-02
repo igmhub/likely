@@ -10,7 +10,7 @@
 
 namespace local = likely;
 
-local::GslEngine::GslEngine(Function f, int nPar, std::string const &algorithm)
+local::GslEngine::GslEngine(FunctionPtr f, int nPar, std::string const &algorithm)
 : _nPar(nPar), _f(f)
 {
     if(_nPar <= 0) {
@@ -99,11 +99,11 @@ double local::GslEngine::operator()(Parameters const& pValues) const {
 
 double local::GslEngine::_evaluate(const gsl_vector *v, void *params) {
     Binding bound(getFunctionStack().top());
-    Function &f(bound.first);
+    FunctionPtr f(bound.first);
     Parameters &values(bound.second);
     int nPar(values.size());
     for(int i = 0; i < nPar; ++i) values[i] = gsl_vector_get(v,i);
-    return f(values);
+    return (*f)(values);
 }
 
 std::stack<local::GslEngine::Binding> &local::GslEngine::getFunctionStack() {

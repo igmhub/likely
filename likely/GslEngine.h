@@ -17,7 +17,7 @@ namespace likely {
 	public:
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters.
-		GslEngine(Function f, int nPar, std::string const &algorithm);
+		GslEngine(FunctionPtr f, int nPar, std::string const &algorithm);
 		virtual ~GslEngine();
 		// Evaluates the engine's function for the specified input parameter values.
         //double operator()(Parameters const& pValues) const;
@@ -29,12 +29,12 @@ namespace likely {
             double minSize = 1e-3, long maxIterations = 1000);
 	private:
         int _nPar;
-        Function _f;
+        FunctionPtr _f;
         gsl_multimin_function _func;
         // Global C-style callback that evaluates the top function on its stack.
         static double _evaluate(const gsl_vector *v, void *params);
         // Maintain a function stack.
-        typedef std::pair<Function,Parameters> Binding;
+        typedef std::pair<FunctionPtr,Parameters> Binding;
         static std::stack<Binding> &getFunctionStack();
         // Registers our named methods.
         static bool registerGslEngineMethods();

@@ -11,7 +11,7 @@
 
 namespace likely {
 namespace test {
-	class TestLikelihood /*: public boost::noncopyable*/ {
+	class TestLikelihood : public boost::noncopyable {
 	public:
 	    // Creates a test likelihood function with the specified number of parameters.
 	    // The common variance of all parameters is sigma^2.

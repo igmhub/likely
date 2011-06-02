@@ -6,7 +6,6 @@
 #include "likely/types.h"
 
 #include "boost/utility.hpp"
-#include "boost/function.hpp"
 
 #include <string>
 #include <map>
@@ -19,16 +18,24 @@ namespace likely {
 		AbsEngine();
 		virtual ~AbsEngine();
 
-		// Declare our dynamic entry point for findMinimum.
+	    // Declares a global registry for creating engines by name.
+        typedef boost::function<AbsEngine* (FunctionPtr, int, std::string const&)> Factory;
+        typedef std::map<std::string, Factory> Registry;
+        static Registry &getRegistry();
+        
+		// Declares our dynamic entry point for findMinimum.
 		typedef boost::function<FunctionMinimumPtr
 		    (Parameters const &pInitial, Parameters const &pErrors, double, long)>
 		    MinimumFinder;
         MinimumFinder minimumFinder;
 
-	    // Declare a global registry for creating engines by name.
-        typedef boost::function<AbsEngine* (Function, int, std::string const&)> Factory;
-        typedef std::map<std::string, Factory> Registry;
-        static Registry &getRegistry();
+        /*
+        typedef boost::function<double (Parameters const &pInitial,
+            Parameters const &pErrors,Parameters &pFinal, Covariance &covariance)>
+            MinimumAndCovarianceFinder;
+        typedef boost::function<void (Parameters const &pValues, Gradients &gValues)>
+            FunctionGradientCalculator;
+        */
         
 	}; // AbsEngine
 	
@@ -44,7 +51,7 @@ namespace likely {
     // is algorithm dependent but a smaller value will generally require more evaluations
     // and provide a more precise minimum. Use a positive value for maxIterations to
     // request a maximum number of times that the function is called.
-	FunctionMinimumPtr findMinimum(Function f, Parameters const &initial,
+	FunctionMinimumPtr findMinimum(FunctionPtr f, Parameters const &initial,
         Parameters const &errors, std::string const &methodName,
         double precision = 1e-3, long maxIterations = 0);
 	

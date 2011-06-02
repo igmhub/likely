@@ -28,7 +28,7 @@ local::ParsedMethodName local::parseMethodName(std::string const &methodName) {
     return ParsedMethodName(engine,algorithm);
 }
 
-local::FunctionMinimumPtr local::findMinimum(Function f, Parameters const &initial,
+local::FunctionMinimumPtr local::findMinimum(FunctionPtr f, Parameters const &initial,
 Parameters const &errors, std::string const &methodName,
 double precision, long maxIterations) {
     // Check that the input vectors have the same length.

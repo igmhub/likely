@@ -11,6 +11,7 @@
 #include "boost/random/mersenne_twister.hpp"
 #include "boost/random/uniform_real.hpp"
 #include "boost/random/variate_generator.hpp"
+#include "boost/ref.hpp"
 
 #include <iostream>
 #include <cmath>
@@ -20,8 +21,9 @@ namespace test = likely::test;
 namespace po = boost::program_options;
 namespace mn = ROOT::Minuit2;
 
-void useMethod(std::string const &methodName, test::TestLikelihood &tester, lk::Function f,
-lk::Parameters const &initial,lk::Parameters const &errors, double prec) {
+void useMethod(std::string const &methodName, test::TestLikelihood &tester,
+lk::FunctionPtr f, lk::Parameters const &initial,
+lk::Parameters const &errors, double prec) {
     tester.resetCount();
     lk::FunctionMinimumPtr fmin = lk::findMinimum(f,initial,errors,methodName,prec);
     std::cout << ' ' << tester.getCount() << ' ' << std::log10(fmin->getMinValue());
@@ -82,8 +84,11 @@ int main(int argc, char **argv) {
         // Create a likelihood function using the command-line parameters.
         test::TestLikelihood tester(npar,1,rho,alpha);
         if(trace) tester.setTrace(true);
-        lk::Function f(tester);
-            
+        // Create a generic function pointer using ref() to ensure that
+        // the underlying TestLikelihood is never copied and maintains its
+        // state when the function pointer is passed around.
+        lk::FunctionPtr f(new lk::Function(boost::ref(tester)));
+
         // Specify the different precision values to use for each trial.
         std::vector<double> precision;
         precision.push_back(1e-3);
@@ -102,7 +107,7 @@ int main(int argc, char **argv) {
                 norm += value*value;
             }
             norm = std::sqrt(norm);
-            std::cout << norm << ' ' << f(initial);
+            std::cout << norm << ' ' << (*f)(initial);
             // Use fixed initial error estimates.
             lk::Parameters errors(npar,1);
             // Loop over precision goals.

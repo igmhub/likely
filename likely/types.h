@@ -14,25 +14,19 @@ namespace likely {
     // Represents a vector of parameter values.
     typedef std::vector<double> Parameters;
     
-    // Represents a likelihood function that, by convention, returns -logL(p).
-    // The likelihood L(p) is not required to be normalized with respect to its
-    // parameters. In case a function cannot be evaluated for its input parameters,
-    // it should return +-inf, nan, or throw an exception.
-    typedef boost::function<double (Parameters const &pValues)> Function;
-    
     // Represents a vector of function gradients with respect to each parameter.
     typedef std::vector<double> Gradients;
-
-    typedef boost::function<void (Parameters const &pValues, Gradients &gValues)>
-        FunctionGradientCalculator;
 
     // Represents a Function covariance matrix near a local minimum.
     typedef boost::numeric::ublas::symmetric_matrix<double> Covariance;
 
-    typedef boost::function<double (Parameters const &pInitial, Parameters const &pErrors,
-    Parameters &pFinal, Covariance &covariance)>
-        MinimumAndCovarianceFinder;
-        
+    // Encapsulates a minimization objective function.
+    typedef boost::function<double (Parameters const &pValues)> Function;
+
+    // Declares a smart pointer to an objective function.
+    typedef boost::shared_ptr<Function> FunctionPtr;
+
+    // Represents a smart pointer to a function minimum object.
     class FunctionMinimum;
     typedef boost::shared_ptr<FunctionMinimum> FunctionMinimumPtr;
 
