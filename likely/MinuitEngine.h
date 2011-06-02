@@ -26,8 +26,8 @@ namespace likely {
 	public:
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters. If names are not specified, they will be P0,P1,P2,...
-		MinuitEngine(Function f, int nPar);
-		MinuitEngine(Function f, std::vector<std::string> const &parNames);
+		MinuitEngine(FunctionPtr f, int nPar);
+		MinuitEngine(FunctionPtr f, std::vector<std::string> const &parNames);
 		virtual ~MinuitEngine();
 		// Evaluates the engine's function for the specified input parameter values.
         virtual double operator()(Parameters const& pValues) const;
@@ -38,6 +38,11 @@ namespace likely {
         // Returns a smart pointer to the initial parameter state.
         typedef boost::shared_ptr<ROOT::Minuit2::MnUserParameterState> StatePtr;
         StatePtr getInitialState();
+        // Runs a stateless minimization templated on a ROOT::Minuit2::FunctionMinimizer
+        // subclass.
+        template<class T>
+        FunctionMinimumPtr minimize(Parameters const &initial, Parameters const &errors,
+            double toler, int maxfcn);        
         // Runs a simplex minimization using the specified initial parameter values
         // and error estimates.
         ROOT::Minuit2::FunctionMinimum
@@ -48,7 +53,7 @@ namespace likely {
             variableMetric(Parameters const &initial, Parameters const &errors);
 	private:
         int _nPar;
-        Function _f;
+        FunctionPtr _f;
         StatePtr _initialState;
         boost::scoped_ptr<ROOT::Minuit2::SimplexMinimizer> _simplex;
         boost::scoped_ptr<ROOT::Minuit2::VariableMetricMinimizer> _variableMetric;

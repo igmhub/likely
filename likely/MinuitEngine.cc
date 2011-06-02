@@ -2,9 +2,11 @@
 
 #include "likely/MinuitEngine.h"
 #include "likely/RuntimeError.h"
+#include "likely/FunctionMinimum.h"
 
 #include "Minuit2/VariableMetricMinimizer.h"
 #include "Minuit2/SimplexMinimizer.h"
+#include "Minuit2/FumiliMinimizer.h"
 #include "Minuit2/MnUserParameterState.h"
 #include "Minuit2/MnUserParameters.h"
 #include "Minuit2/MnUserTransformation.h"
@@ -18,7 +20,7 @@
 namespace local = likely;
 namespace mn = ROOT::Minuit2;
 
-local::MinuitEngine::MinuitEngine(Function f, int nPar)
+local::MinuitEngine::MinuitEngine(FunctionPtr f, int nPar)
 : _nPar(nPar), _f(f), _initialState(new mn::MnUserParameterState())
 {
     if(_nPar <= 0) {
@@ -33,7 +35,7 @@ local::MinuitEngine::MinuitEngine(Function f, int nPar)
     }
 }
 
-local::MinuitEngine::MinuitEngine(Function f, std::vector<std::string> const &parNames)
+local::MinuitEngine::MinuitEngine(FunctionPtr f, std::vector<std::string> const &parNames)
 : _nPar(parNames.size()), _f(f), _initialState(new mn::MnUserParameterState())
 {
     if(_nPar == 0) {
@@ -53,7 +55,7 @@ double local::MinuitEngine::operator()(Parameters const &pValues) const {
     if(pValues.size() != _nPar) {
         throw RuntimeError("MinuitEngine: function evaluated with wrong number of parameters.");
     }
-    return _f(pValues);
+    return (*_f)(pValues);
 }
 
 double local::MinuitEngine::Up() const {
@@ -83,6 +85,28 @@ Parameters const &initial, Parameters const &errors) {
         }
     }
 }
+
+template <class T>
+local::FunctionMinimumPtr local::MinuitEngine::minimize(
+Parameters const &initial, Parameters const &errors, double toler, int maxfcn) {
+    _setInitialState(initial,errors);
+    T algorithm;
+    mn::MnStrategy strategy(1);
+    mn::FunctionMinimum mnmin = algorithm.Minimize(*this, *_initialState, strategy);
+    FunctionMinimumPtr fmin(new FunctionMinimum(_nPar,initial));
+    return fmin;
+}
+
+// Explicit template instantiations.
+template local::FunctionMinimumPtr
+    local::MinuitEngine::minimize<mn::SimplexMinimizer>
+    (Parameters const&,Parameters const&,double,int);
+template local::FunctionMinimumPtr
+    local::MinuitEngine::minimize<mn::VariableMetricMinimizer>
+    (Parameters const&,Parameters const&,double,int);
+template local::FunctionMinimumPtr
+    local::MinuitEngine::minimize<mn::FumiliMinimizer>
+    (Parameters const&,Parameters const&,double,int);
 
 mn::FunctionMinimum
 local::MinuitEngine::simplex(Parameters const &initial, Parameters const &errors) {
