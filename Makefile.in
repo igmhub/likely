@@ -40,8 +40,8 @@ noinst_PROGRAMS = likelytest$(EXEEXT)
 subdir = .
 DIST_COMMON = $(am__configure_deps) $(nobase_include_HEADERS) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(top_srcdir)/configure config.guess config.sub depcomp \
-	install-sh ltmain.sh missing
+	$(srcdir)/config.h.in $(top_srcdir)/configure config.guess \
+	config.sub depcomp install-sh ltmain.sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -49,6 +49,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
+CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
@@ -76,8 +77,7 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 liblikely_la_LIBADD =
 am_liblikely_la_OBJECTS = FunctionMinimum.lo AbsEngine.lo \
-	MarkovChainEngine.lo MinuitEngine.lo GslEngine.lo \
-	GslErrorHandler.lo TestLikelihood.lo
+	MarkovChainEngine.lo TestLikelihood.lo
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(noinst_PROGRAMS)
 am_likelytest_OBJECTS = likelytest.$(OBJEXT)
@@ -182,20 +182,6 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
-ROOTAUXCFLAGS = @ROOTAUXCFLAGS@
-ROOTAUXLIBS = @ROOTAUXLIBS@
-ROOTCFLAGS = @ROOTCFLAGS@
-ROOTCINT = @ROOTCINT@
-ROOTCONF = @ROOTCONF@
-ROOTETCDIR = @ROOTETCDIR@
-ROOTEXEC = @ROOTEXEC@
-ROOTGLIBS = @ROOTGLIBS@
-ROOTINCDIR = @ROOTINCDIR@
-ROOTLIBDIR = @ROOTLIBDIR@
-ROOTLIBS = @ROOTLIBS@
-ROOTRPATH = @ROOTRPATH@
-ROOTSOVERSION = @ROOTSOVERSION@
-ROOTVERSION = @ROOTVERSION@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
@@ -256,8 +242,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
 # global compile and link options
-AM_CPPFLAGS = -I@ROOTINCDIR@ $(BOOST_CPPFLAGS)
-AM_LDFLAGS = -L@ROOTLIBDIR@
+AM_CPPFLAGS = $(BOOST_CPPFLAGS)
 
 # targets to build and install
 lib_LTLIBRARIES = liblikely.la
@@ -267,9 +252,6 @@ liblikely_la_SOURCES = \
 	likely/FunctionMinimum.cc \
 	likely/AbsEngine.cc \
 	likely/MarkovChainEngine.cc \
-	likely/MinuitEngine.cc \
-	likely/GslEngine.cc \
-	likely/GslErrorHandler.cc \
 	likely/test/TestLikelihood.cc
 
 
@@ -281,21 +263,19 @@ nobase_include_HEADERS = \
 	likely/FunctionMinimum.h \
 	likely/AbsEngine.h \
 	likely/MarkovChainEngine.h \
-	likely/MinuitEngine.h \
-	likely/GslEngine.h \
-	likely/GslErrorHandler.h \
 	likely/test/TestLikelihood.h
 
 
 # instructions for building each program
 likelytest_SOURCES = src/likelytest.cc
 likelytest_DEPENDENCIES = $(lib_LIBRARIES)
-likelytest_LDADD = @ROOTLIBS@ @ROOTAUXLIBS@ \
+likelytest_LDADD = \
 	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) \
 	$(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS) \
 	-L. -llikely
 
-all: all-am
+all: config.h
+	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
 .SUFFIXES: .cc .lo .o .obj
@@ -333,6 +313,23 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	$(am__cd) $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 $(am__aclocal_m4_deps):
+
+config.h: stamp-h1
+	@if test ! -f $@; then \
+	  rm -f stamp-h1; \
+	  $(MAKE) $(AM_MAKEFLAGS) stamp-h1; \
+	else :; fi
+
+stamp-h1: $(srcdir)/config.h.in $(top_builddir)/config.status
+	@rm -f stamp-h1
+	cd $(top_builddir) && $(SHELL) ./config.status config.h
+$(srcdir)/config.h.in:  $(am__configure_deps) 
+	($(am__cd) $(top_srcdir) && $(AUTOHEADER))
+	rm -f stamp-h1
+	touch $@
+
+distclean-hdr:
+	-rm -f config.h stamp-h1
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	test -z "$(libdir)" || $(MKDIR_P) "$(DESTDIR)$(libdir)"
@@ -387,10 +384,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FunctionMinimum.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslEngine.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslErrorHandler.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MarkovChainEngine.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MinuitEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestLikelihood.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytest.Po@am__quote@
 
@@ -435,27 +429,6 @@ MarkovChainEngine.lo: likely/MarkovChainEngine.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/MarkovChainEngine.cc' object='MarkovChainEngine.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o MarkovChainEngine.lo `test -f 'likely/MarkovChainEngine.cc' || echo '$(srcdir)/'`likely/MarkovChainEngine.cc
-
-MinuitEngine.lo: likely/MinuitEngine.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT MinuitEngine.lo -MD -MP -MF $(DEPDIR)/MinuitEngine.Tpo -c -o MinuitEngine.lo `test -f 'likely/MinuitEngine.cc' || echo '$(srcdir)/'`likely/MinuitEngine.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/MinuitEngine.Tpo $(DEPDIR)/MinuitEngine.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/MinuitEngine.cc' object='MinuitEngine.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o MinuitEngine.lo `test -f 'likely/MinuitEngine.cc' || echo '$(srcdir)/'`likely/MinuitEngine.cc
-
-GslEngine.lo: likely/GslEngine.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GslEngine.lo -MD -MP -MF $(DEPDIR)/GslEngine.Tpo -c -o GslEngine.lo `test -f 'likely/GslEngine.cc' || echo '$(srcdir)/'`likely/GslEngine.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/GslEngine.Tpo $(DEPDIR)/GslEngine.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/GslEngine.cc' object='GslEngine.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GslEngine.lo `test -f 'likely/GslEngine.cc' || echo '$(srcdir)/'`likely/GslEngine.cc
-
-GslErrorHandler.lo: likely/GslErrorHandler.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GslErrorHandler.lo -MD -MP -MF $(DEPDIR)/GslErrorHandler.Tpo -c -o GslErrorHandler.lo `test -f 'likely/GslErrorHandler.cc' || echo '$(srcdir)/'`likely/GslErrorHandler.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/GslErrorHandler.Tpo $(DEPDIR)/GslErrorHandler.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/GslErrorHandler.cc' object='GslErrorHandler.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GslErrorHandler.lo `test -f 'likely/GslErrorHandler.cc' || echo '$(srcdir)/'`likely/GslErrorHandler.cc
 
 TestLikelihood.lo: likely/test/TestLikelihood.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestLikelihood.lo -MD -MP -MF $(DEPDIR)/TestLikelihood.Tpo -c -o TestLikelihood.lo `test -f 'likely/test/TestLikelihood.cc' || echo '$(srcdir)/'`likely/test/TestLikelihood.cc
@@ -520,11 +493,11 @@ ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	mkid -fID $$unique
 tags: TAGS
 
-TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+TAGS:  $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	set x; \
 	here=`pwd`; \
-	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
+	list='$(SOURCES) $(HEADERS) config.h.in $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
 	  done | \
@@ -542,9 +515,9 @@ TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 	  fi; \
 	fi
 ctags: CTAGS
-CTAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+CTAGS:  $(HEADERS) $(SOURCES) config.h.in $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
-	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
+	list='$(SOURCES) $(HEADERS) config.h.in $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
 	  done | \
@@ -710,7 +683,7 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 check: check-am
-all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(HEADERS)
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(HEADERS) config.h
 installdirs:
 	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
@@ -750,7 +723,7 @@ distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-libtool distclean-tags
+	distclean-hdr distclean-libtool distclean-tags
 
 dvi: dvi-am
 
@@ -814,13 +787,13 @@ ps-am:
 
 uninstall-am: uninstall-libLTLIBRARIES uninstall-nobase_includeHEADERS
 
-.MAKE: install-am install-strip
+.MAKE: all install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am am--refresh check check-am clean \
 	clean-generic clean-libLTLIBRARIES clean-libtool \
 	clean-noinstPROGRAMS ctags dist dist-all dist-bzip2 dist-gzip \
 	dist-lzma dist-shar dist-tarZ dist-xz dist-zip distcheck \
-	distclean distclean-compile distclean-generic \
+	distclean distclean-compile distclean-generic distclean-hdr \
 	distclean-libtool distclean-tags distcleancheck distdir \
 	distuninstallcheck dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am install-dvi \
@@ -835,6 +808,14 @@ uninstall-am: uninstall-libLTLIBRARIES uninstall-nobase_includeHEADERS
 	tags uninstall uninstall-am uninstall-libLTLIBRARIES \
 	uninstall-nobase_includeHEADERS
 
+
+# add GSL features when libgsl is available
+@USE_GSL_TRUE@	liblikely_la_SOURCES += likely/GslEngine.cc likely/GslErrorHandler.cc
+@USE_GSL_TRUE@	nobase_include_HEADERS += likely/GslEngine.h likely/GslErrorHandler.h
+
+# add Minuit2 features when libMinuit2 is available
+@USE_MINUIT2_TRUE@	liblikely_la_SOURCES += likely/MinuitEngine.cc
+@USE_MINUIT2_TRUE@	nobase_include_HEADERS += likely/MinuitEngine.h
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

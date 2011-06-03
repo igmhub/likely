@@ -1,11 +1,9 @@
 // Created 20-May-2011 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 // A test program for studying likelihood analysis methods.
 
+#include "config.h"
+
 #include "likely/likely.h"
-
-#include "Minuit2/MnPrint.h"
-
-#include "gsl/gsl_multimin.h"
 
 #include "boost/program_options.hpp"
 #include "boost/random/mersenne_twister.hpp"
@@ -19,7 +17,6 @@
 namespace lk = likely;
 namespace test = likely::test;
 namespace po = boost::program_options;
-namespace mn = ROOT::Minuit2;
 
 void useMethod(int methodId, std::string const &methodName, test::TestLikelihood &tester,
 lk::FunctionPtr f, lk::Parameters const &initial,
@@ -114,12 +111,15 @@ int main(int argc, char **argv) {
             for(int precIndex = 0; precIndex < precision.size(); ++precIndex) {
                 double precValue(precision[precIndex]);
                 // Use methods that do not use the function gradient.
+#ifdef HAVE_LIBGSL
                 useMethod(1,"gsl::simplex2",tester,f,initial,errors,precValue);
                 useMethod(2,"gsl::simplex2rand",tester,f,initial,errors,precValue);
+#endif
+#ifdef HAVE_LIBMINUIT2
                 useMethod(3,"mn::simplex",tester,f,initial,errors,precValue);
                 useMethod(4,"mn::vmetric",tester,f,initial,errors,precValue);
                 useMethod(5,"mn::vmetric_fast",tester,f,initial,errors,precValue);
-                //useMethod(6,"mn::fumili",tester,f,initial,errors,precValue);
+#endif
             }
         }
     }

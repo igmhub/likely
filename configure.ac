@@ -20,14 +20,8 @@ LT_INIT
 # the library, so we just check that the linker can find the library using 'main')
 AC_CHECK_LIB([m],[cos])
 AC_CHECK_LIB([gslcblas],[cblas_dgemm])
-AC_CHECK_LIB([gsl],[gsl_blas_dgemm],,
-	AC_MSG_ERROR([You need libgsl]))
-AC_CHECK_LIB([Minuit2], [main],, 
-	AC_MSG_ERROR([You need libMinuit2]))
-
-# We need a recent version of ROOT
-ROOT_PATH([5.28/00],,
-	AC_MSG_ERROR([Cannot find a recent version of ROOT.]))
+AC_CHECK_LIB([gsl],[gsl_blas_dgemm])
+AC_CHECK_LIB([Minuit2], [main])
 
 # We need a recent version of boost
 BOOST_REQUIRE([1.45])
@@ -43,14 +37,13 @@ BOOST_SMART_PTR
 BOOST_PROGRAM_OPTIONS
 BOOST_REGEX
 
-# Checks for header files.
-
-# Checks for typedefs, structures, and compiler characteristics.
-
-# Checks for library functions.
-
 # Configure automake
 AC_CONFIG_FILES([Makefile])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+AC_CONFIG_HEADERS([config.h])
+
+# Define automake variables that flag whether optional libraries should be used.
+AM_CONDITIONAL([USE_GSL],[grep HAVE_LIBGSL confdefs.h > /dev/null])
+AM_CONDITIONAL([USE_MINUIT2],[grep HAVE_LIBMINUIT2 confdefs.h > /dev/null])
 
 AC_OUTPUT
