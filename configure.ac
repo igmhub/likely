@@ -18,10 +18,30 @@ LT_INIT
 
 # Checks for libraries (there is no portable way to check for C++ classes in
 # the library, so we just check that the linker can find the library using 'main')
-AC_CHECK_LIB([m],[cos])
-AC_CHECK_LIB([gslcblas],[cblas_dgemm])
-AC_CHECK_LIB([gsl],[gsl_blas_dgemm])
-AC_CHECK_LIB([Minuit2], [main])
+AC_CHECK_LIB([m],[cos],,
+	AC_MSG_ERROR([Cannot find the math library.]))
+
+# Following http://www.gentoo.org/proj/en/qa/automagic.xml below...
+
+# Use 'configure --without-gsl' if GSL should not be used.
+AC_ARG_WITH([gsl],
+	AS_HELP_STRING([--without-gsl], [Build without the GSL library.]))
+AS_IF([test "x$with_gsl" != "xno"], [
+	AC_CHECK_LIB([gslcblas],[cblas_dgemm],,
+		AC_MSG_ERROR([Cannot find the gslcblas library.]))
+])
+AS_IF([test "x$with_gsl" != "xno"], [
+	AC_CHECK_LIB([gsl],[gsl_blas_dgemm],,
+		AC_MSG_ERROR([Cannot find the gsl library.]))
+])
+
+# Use 'configure --without-minuit2' if Minuit2 should not be used.
+AC_ARG_WITH([minuit2],
+	AS_HELP_STRING([--without-minuit2], [Build without the Minuit2 library.]))
+AS_IF([test "x$with_minuit2" != "xno"], [
+	AC_CHECK_LIB([Minuit2], [main],,
+		AC_MSG_ERROR([Cannot find the Minuit2 library.]))
+])
 
 # We need a recent version of boost
 BOOST_REQUIRE([1.45])
@@ -43,7 +63,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_HEADERS([config.h])
 
 # Define automake variables that flag whether optional libraries should be used.
-AM_CONDITIONAL([USE_GSL],[grep HAVE_LIBGSL confdefs.h > /dev/null])
-AM_CONDITIONAL([USE_MINUIT2],[grep HAVE_LIBMINUIT2 confdefs.h > /dev/null])
+AM_CONDITIONAL([USE_GSL], [test "x$ac_cv_lib_gsl_gsl_blas_dgemm" = "xyes"])
+AM_CONDITIONAL([USE_MINUIT2],[test "x$ac_cv_lib_Minuit2_main" = "xyes"])
 
 AC_OUTPUT

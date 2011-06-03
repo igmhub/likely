@@ -26,14 +26,14 @@ nobase_include_HEADERS = \
 
 # add GSL features when libgsl is available
 if USE_GSL
-	liblikely_la_SOURCES += likely/GslEngine.cc likely/GslErrorHandler.cc
-	nobase_include_HEADERS += likely/GslEngine.h likely/GslErrorHandler.h
+liblikely_la_SOURCES += likely/GslEngine.cc likely/GslErrorHandler.cc
+nobase_include_HEADERS += likely/GslEngine.h likely/GslErrorHandler.h
 endif
 
 # add Minuit2 features when libMinuit2 is available
 if USE_MINUIT2
-	liblikely_la_SOURCES += likely/MinuitEngine.cc
-	nobase_include_HEADERS += likely/MinuitEngine.h
+liblikely_la_SOURCES += likely/MinuitEngine.cc
+nobase_include_HEADERS += likely/MinuitEngine.h
 endif
 
 # instructions for building each program

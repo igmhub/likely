@@ -37,8 +37,16 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = likelytest$(EXEEXT)
+
+# add GSL features when libgsl is available
+@USE_GSL_TRUE@am__append_1 = likely/GslEngine.cc likely/GslErrorHandler.cc
+@USE_GSL_TRUE@am__append_2 = likely/GslEngine.h likely/GslErrorHandler.h
+
+# add Minuit2 features when libMinuit2 is available
+@USE_MINUIT2_TRUE@am__append_3 = likely/MinuitEngine.cc
+@USE_MINUIT2_TRUE@am__append_4 = likely/MinuitEngine.h
 subdir = .
-DIST_COMMON = $(am__configure_deps) $(nobase_include_HEADERS) \
+DIST_COMMON = $(am__configure_deps) $(am__nobase_include_HEADERS_DIST) \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/config.h.in $(top_srcdir)/configure config.guess \
 	config.sub depcomp install-sh ltmain.sh missing
@@ -76,8 +84,15 @@ am__base_list = \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 liblikely_la_LIBADD =
+am__liblikely_la_SOURCES_DIST = likely/FunctionMinimum.cc \
+	likely/AbsEngine.cc likely/MarkovChainEngine.cc \
+	likely/test/TestLikelihood.cc likely/GslEngine.cc \
+	likely/GslErrorHandler.cc likely/MinuitEngine.cc
+@USE_GSL_TRUE@am__objects_1 = GslEngine.lo GslErrorHandler.lo
+@USE_MINUIT2_TRUE@am__objects_2 = MinuitEngine.lo
 am_liblikely_la_OBJECTS = FunctionMinimum.lo AbsEngine.lo \
-	MarkovChainEngine.lo TestLikelihood.lo
+	MarkovChainEngine.lo TestLikelihood.lo $(am__objects_1) \
+	$(am__objects_2)
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(noinst_PROGRAMS)
 am_likelytest_OBJECTS = likelytest.$(OBJEXT)
@@ -97,7 +112,12 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(liblikely_la_SOURCES) $(likelytest_SOURCES)
-DIST_SOURCES = $(liblikely_la_SOURCES) $(likelytest_SOURCES)
+DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(likelytest_SOURCES)
+am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
+	likely/RuntimeError.h likely/FunctionMinimum.h \
+	likely/AbsEngine.h likely/MarkovChainEngine.h \
+	likely/test/TestLikelihood.h likely/GslEngine.h \
+	likely/GslErrorHandler.h likely/MinuitEngine.h
 HEADERS = $(nobase_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -248,23 +268,15 @@ AM_CPPFLAGS = $(BOOST_CPPFLAGS)
 lib_LTLIBRARIES = liblikely.la
 
 # instructions for building the library
-liblikely_la_SOURCES = \
-	likely/FunctionMinimum.cc \
-	likely/AbsEngine.cc \
-	likely/MarkovChainEngine.cc \
-	likely/test/TestLikelihood.cc
-
+liblikely_la_SOURCES = likely/FunctionMinimum.cc likely/AbsEngine.cc \
+	likely/MarkovChainEngine.cc likely/test/TestLikelihood.cc \
+	$(am__append_1) $(am__append_3)
 
 # library headers to install (nobase prefix preserves directories under bosslya)
-nobase_include_HEADERS = \
-	likely/likely.h \
-	likely/types.h \
-	likely/RuntimeError.h \
-	likely/FunctionMinimum.h \
-	likely/AbsEngine.h \
-	likely/MarkovChainEngine.h \
-	likely/test/TestLikelihood.h
-
+nobase_include_HEADERS = likely/likely.h likely/types.h \
+	likely/RuntimeError.h likely/FunctionMinimum.h \
+	likely/AbsEngine.h likely/MarkovChainEngine.h \
+	likely/test/TestLikelihood.h $(am__append_2) $(am__append_4)
 
 # instructions for building each program
 likelytest_SOURCES = src/likelytest.cc
@@ -384,7 +396,10 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FunctionMinimum.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslEngine.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslErrorHandler.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MarkovChainEngine.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MinuitEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestLikelihood.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytest.Po@am__quote@
 
@@ -436,6 +451,27 @@ TestLikelihood.lo: likely/test/TestLikelihood.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/test/TestLikelihood.cc' object='TestLikelihood.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestLikelihood.lo `test -f 'likely/test/TestLikelihood.cc' || echo '$(srcdir)/'`likely/test/TestLikelihood.cc
+
+GslEngine.lo: likely/GslEngine.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GslEngine.lo -MD -MP -MF $(DEPDIR)/GslEngine.Tpo -c -o GslEngine.lo `test -f 'likely/GslEngine.cc' || echo '$(srcdir)/'`likely/GslEngine.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/GslEngine.Tpo $(DEPDIR)/GslEngine.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/GslEngine.cc' object='GslEngine.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GslEngine.lo `test -f 'likely/GslEngine.cc' || echo '$(srcdir)/'`likely/GslEngine.cc
+
+GslErrorHandler.lo: likely/GslErrorHandler.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT GslErrorHandler.lo -MD -MP -MF $(DEPDIR)/GslErrorHandler.Tpo -c -o GslErrorHandler.lo `test -f 'likely/GslErrorHandler.cc' || echo '$(srcdir)/'`likely/GslErrorHandler.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/GslErrorHandler.Tpo $(DEPDIR)/GslErrorHandler.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/GslErrorHandler.cc' object='GslErrorHandler.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o GslErrorHandler.lo `test -f 'likely/GslErrorHandler.cc' || echo '$(srcdir)/'`likely/GslErrorHandler.cc
+
+MinuitEngine.lo: likely/MinuitEngine.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT MinuitEngine.lo -MD -MP -MF $(DEPDIR)/MinuitEngine.Tpo -c -o MinuitEngine.lo `test -f 'likely/MinuitEngine.cc' || echo '$(srcdir)/'`likely/MinuitEngine.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/MinuitEngine.Tpo $(DEPDIR)/MinuitEngine.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/MinuitEngine.cc' object='MinuitEngine.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o MinuitEngine.lo `test -f 'likely/MinuitEngine.cc' || echo '$(srcdir)/'`likely/MinuitEngine.cc
 
 likelytest.o: src/likelytest.cc
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelytest.o -MD -MP -MF $(DEPDIR)/likelytest.Tpo -c -o likelytest.o `test -f 'src/likelytest.cc' || echo '$(srcdir)/'`src/likelytest.cc
@@ -808,14 +844,6 @@ uninstall-am: uninstall-libLTLIBRARIES uninstall-nobase_includeHEADERS
 	tags uninstall uninstall-am uninstall-libLTLIBRARIES \
 	uninstall-nobase_includeHEADERS
 
-
-# add GSL features when libgsl is available
-@USE_GSL_TRUE@	liblikely_la_SOURCES += likely/GslEngine.cc likely/GslErrorHandler.cc
-@USE_GSL_TRUE@	nobase_include_HEADERS += likely/GslEngine.h likely/GslErrorHandler.h
-
-# add Minuit2 features when libMinuit2 is available
-@USE_MINUIT2_TRUE@	liblikely_la_SOURCES += likely/MinuitEngine.cc
-@USE_MINUIT2_TRUE@	nobase_include_HEADERS += likely/MinuitEngine.h
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

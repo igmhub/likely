@@ -753,6 +753,8 @@ enable_fast_install
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
+with_gsl
+with_minuit2
 with_boost
 enable_static_boost
 enable_dependency_tracking
@@ -1409,6 +1411,8 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
+  --without-gsl           Build without the GSL library.
+  --without-minuit2       Build without the Minuit2 library.
   --with-boost=DIR        prefix of Boost 1.45 [guess]
 
 Some influential environment variables:
@@ -14223,9 +14227,23 @@ _ACEOF
 
   LIBS="-lm $LIBS"
 
+else
+  as_fn_error $? "Cannot find the math library." "$LINENO" 5
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cblas_dgemm in -lgslcblas" >&5
+
+# Following http://www.gentoo.org/proj/en/qa/automagic.xml below...
+
+# Use 'configure --without-gsl' if GSL should not be used.
+
+# Check whether --with-gsl was given.
+if test "${with_gsl+set}" = set; then :
+  withval=$with_gsl;
+fi
+
+if test "x$with_gsl" != "xno"; then :
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cblas_dgemm in -lgslcblas" >&5
 $as_echo_n "checking for cblas_dgemm in -lgslcblas... " >&6; }
 if ${ac_cv_lib_gslcblas_cblas_dgemm+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -14268,9 +14286,15 @@ _ACEOF
 
   LIBS="-lgslcblas $LIBS"
 
+else
+  as_fn_error $? "Cannot find the gslcblas library." "$LINENO" 5
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl_blas_dgemm in -lgsl" >&5
+
+fi
+if test "x$with_gsl" != "xno"; then :
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl_blas_dgemm in -lgsl" >&5
 $as_echo_n "checking for gsl_blas_dgemm in -lgsl... " >&6; }
 if ${ac_cv_lib_gsl_gsl_blas_dgemm+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -14313,9 +14337,23 @@ _ACEOF
 
   LIBS="-lgsl $LIBS"
 
+else
+  as_fn_error $? "Cannot find the gsl library." "$LINENO" 5
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lMinuit2" >&5
+
+fi
+
+# Use 'configure --without-minuit2' if Minuit2 should not be used.
+
+# Check whether --with-minuit2 was given.
+if test "${with_minuit2+set}" = set; then :
+  withval=$with_minuit2;
+fi
+
+if test "x$with_minuit2" != "xno"; then :
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lMinuit2" >&5
 $as_echo_n "checking for main in -lMinuit2... " >&6; }
 if ${ac_cv_lib_Minuit2_main+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -14352,8 +14390,12 @@ _ACEOF
 
   LIBS="-lMinuit2 $LIBS"
 
+else
+  as_fn_error $? "Cannot find the Minuit2 library." "$LINENO" 5
 fi
 
+
+fi
 
 # We need a recent version of boost
 echo "$as_me: this is boost.m4 serial 16" >&5
@@ -16064,7 +16106,7 @@ ac_config_headers="$ac_config_headers config.h"
 
 
 # Define automake variables that flag whether optional libraries should be used.
- if grep HAVE_LIBGSL confdefs.h > /dev/null; then
+ if test "x$ac_cv_lib_gsl_gsl_blas_dgemm" = "xyes"; then
   USE_GSL_TRUE=
   USE_GSL_FALSE='#'
 else
@@ -16072,7 +16114,7 @@ else
   USE_GSL_FALSE=
 fi
 
- if grep HAVE_LIBMINUIT2 confdefs.h > /dev/null; then
+ if test "x$ac_cv_lib_Minuit2_main" = "xyes"; then
   USE_MINUIT2_TRUE=
   USE_MINUIT2_FALSE='#'
 else
