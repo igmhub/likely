@@ -13,8 +13,8 @@
 #include "boost/random/variate_generator.hpp"
 #include "boost/ref.hpp"
 
+#include <algorithm>
 #include <iostream>
-//!! #include <cmath>
 
 namespace lk = likely;
 namespace test = likely::test;
@@ -26,15 +26,15 @@ lk::FunctionPtr f, lk::Parameters const &initial,
 lk::Parameters const &errors, double prec) {
     tester.resetCount();
     lk::FunctionMinimumPtr fmin = lk::findMinimum(f,initial,errors,methodName,prec);
-    std::cout << methodId << ' ' << tester.getCount()
-        << ' ' << std::log10(fmin->getMinValue()) << std::endl;
+    std::cout << methodId << ' ' << std::log10(tester.getCount())
+        << ' ' << -std::log10(fmin->getMinValue()) << std::endl;
 }
 
 int main(int argc, char **argv) {
     
     // Configure command-line option processing
     int npar,ntrial,seed;
-    double rho,alpha;
+    double rho,alpha,radius;
     po::options_description cli("Likelihood analysis test program");
     cli.add_options()
         ("help,h", "Prints this info and exits.")
@@ -50,6 +50,8 @@ int main(int argc, char **argv) {
             "Likelihood linear correlation parameter.")
         ("alpha", po::value<double>(&alpha)->default_value(0),
             "Likelihood non-linearity parameter.")
+        ("radius", po::value<double>(&radius)->default_value(2),
+            "Radius of the initial-parameter value sphere.")
         ;
 
     // do the command line parsing now
@@ -79,8 +81,8 @@ int main(int argc, char **argv) {
     boost::variate_generator<boost::mt19937&, boost::uniform_on_sphere<> >
         randomOnSphere(gen,spherical);
     
-    // Print out column headings for our output below.
-    std::cout << "method ncall err" << std::endl;
+    // Print out column headings for the output we generate below.
+    std::cout << "method ncall accuracy" << std::endl;
 
     try {
         // Create a likelihood function using the command-line parameters.
@@ -93,10 +95,10 @@ int main(int argc, char **argv) {
 
         // Specify the different precision values to use for each trial.
         std::vector<double> precision;
+        precision.push_back(1e-1);
+        precision.push_back(1e-2);
         precision.push_back(1e-3);
         precision.push_back(1e-4);
-        precision.push_back(1e-5);
-        precision.push_back(1e-6);
 
         // Use fixed initial error estimates.
         lk::Parameters errors(npar,1);
@@ -106,18 +108,9 @@ int main(int argc, char **argv) {
             // Choose a random point on the unit sphere (in npar dimensions)
             // for the initial parameter values.
             lk::Parameters initial(randomOnSphere());
-            /*
-            // Choose random initial parameter values within [-1,+1]
-            lk::Parameters initial(npar);
-            //!! double norm(0);
-            for(int par = 0; par < npar; ++par) {
-                double value = random();
-                initial[par] = value;
-                //!! norm += value*value;
-            }
-            */
-            //!! std::cout << std::sqrt(norm) << ' ' << (*f)(initial);
-            // Loop over precision goals.
+            std::transform(initial.begin(), initial.end(), initial.begin(),
+                std::bind1st(std::multiplies<double>(),radius));
+           // Loop over precision goals.
             for(int precIndex = 0; precIndex < precision.size(); ++precIndex) {
                 double precValue(precision[precIndex]);
                 // Use methods that do not use the function gradient.
@@ -125,9 +118,9 @@ int main(int argc, char **argv) {
                 useMethod(2,"gsl::simplex2rand",tester,f,initial,errors,precValue);
                 useMethod(3,"mn::simplex",tester,f,initial,errors,precValue);
                 useMethod(4,"mn::vmetric",tester,f,initial,errors,precValue);
-                //useMethod(5,"mn::fumili",tester,f,initial,errors,precValue);
+                useMethod(5,"mn::vmetric_fast",tester,f,initial,errors,precValue);
+                //useMethod(6,"mn::fumili",tester,f,initial,errors,precValue);
             }
-            //!! std::cout << std::endl;
         }
     }
     catch(lk::RuntimeError const &e) {

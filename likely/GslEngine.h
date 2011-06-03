@@ -26,7 +26,7 @@ namespace likely {
         typedef const gsl_multimin_fminimizer_type *Method;
         FunctionMinimumPtr minimize(Method method,
             Parameters const &initial, Parameters const &errors,
-            double minSize = 1e-3, long maxIterations = 1000);
+            double prec, long maxIterations);
 	private:
         int _nPar;
         FunctionPtr _f;

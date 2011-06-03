@@ -8,6 +8,8 @@
 #include "boost/functional/factory.hpp"
 #include "boost/bind.hpp"
 
+#include <cmath>
+
 namespace local = likely;
 
 local::GslEngine::GslEngine(FunctionPtr f, int nPar, std::string const &algorithm)
@@ -41,7 +43,7 @@ local::GslEngine::~GslEngine() {
 
 local::FunctionMinimumPtr local::GslEngine::minimize(Method method,
 Parameters const &initial, Parameters const &errors,
-double minSize, long maxIterations) {
+double prec, long maxIterations) {
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::minimize");
     // Copy the input initial values and errors to GSL vectors.
@@ -55,6 +57,7 @@ double minSize, long maxIterations) {
     gsl_multimin_fminimizer_set(state, &_func, gsl_initial, gsl_errors);
     // Do the minimization...
     long nIterations(0);
+    double minSize = (prec > 0) ? std::sqrt(prec) : 1e-3;
     while(0 == maxIterations || nIterations < maxIterations) {
         nIterations++;
         if(gsl_multimin_fminimizer_iterate(state)) break;

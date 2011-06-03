@@ -15,8 +15,6 @@
 namespace ROOT {
 namespace Minuit2 {
     class MnUserParameterState;
-    class SimplexMinimizer;
-    class VariableMetricMinimizer;
 }} // ROOT::Minuit2
 
 namespace likely {
@@ -29,6 +27,7 @@ namespace likely {
 		virtual ~MinuitEngine();
 		// Evaluates the engine's function for the specified input parameter values.
         virtual double operator()(Parameters const& pValues) const;
+        virtual double operator()(double const *pValues) const;
         // Returns the change in function value corresponding to one unit of error.
         // Can be changed to calculate different confidence intervals. For 1-sigma errors,
         // this value should be 1 for both chi-square and -2log(L) functions.
@@ -40,25 +39,11 @@ namespace likely {
         // subclass.
         template<class T>
         FunctionMinimumPtr minimize(Parameters const &initial, Parameters const &errors,
-            double toler, int maxfcn);        
-/*
-        // Runs a simplex minimization using the specified initial parameter values
-        // and error estimates.
-        ROOT::Minuit2::FunctionMinimum
-            simplex(Parameters const &initial, Parameters const &errors);
-        // Runs a variable-metric minimization using the specified initial parameter values
-        // and error estimates.
-        ROOT::Minuit2::FunctionMinimum
-            variableMetric(Parameters const &initial, Parameters const &errors);
-*/
+            double prec, int maxfcn, int strategy);        
 	private:
         int _nPar;
         FunctionPtr _f;
         StatePtr _initialState;
-        /*
-        boost::scoped_ptr<ROOT::Minuit2::SimplexMinimizer> _simplex;
-        boost::scoped_ptr<ROOT::Minuit2::VariableMetricMinimizer> _variableMetric;
-        */
         void _setInitialState(Parameters const &initial, Parameters const &errors);
         // Registers our named methods.
         static bool registerMinuitEngineMethods();

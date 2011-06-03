@@ -6,7 +6,6 @@
 
 #include "Minuit2/VariableMetricMinimizer.h"
 #include "Minuit2/SimplexMinimizer.h"
-#include "Minuit2/FumiliMinimizer.h"
 #include "Minuit2/MnUserParameterState.h"
 #include "Minuit2/MnUserParameters.h"
 #include "Minuit2/MnUserTransformation.h"
@@ -36,18 +35,18 @@ local::MinuitEngine::MinuitEngine(FunctionPtr f, int nPar, std::string const &al
     for(int i = 0; i < _nPar; ++i) {
         _initialState->Add(boost::str(fmt % i),0,0);
     }
-    // Select the requested algorithm.
+    // Select the requested algorithm (last parameter is the MnStrategy value)
     if(algorithm == "simplex") {
         minimumFinder = boost::bind(
-            &MinuitEngine::minimize<mn::SimplexMinimizer>,this,_1,_2,_3,_4);
+            &MinuitEngine::minimize<mn::SimplexMinimizer>,this,_1,_2,_3,_4,1);
     }
     else if(algorithm == "vmetric") {
         minimumFinder = boost::bind(
-            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4);
+            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,1);
     }
-    else if(algorithm == "fumili") {
+    else if(algorithm == "vmetric_fast") {
         minimumFinder = boost::bind(
-            &MinuitEngine::minimize<mn::FumiliMinimizer>,this,_1,_2,_3,_4);
+            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,0);
     }
     else {
         throw RuntimeError("MinuitEngine: unknown algorithm '" + algorithm + "'");
@@ -61,6 +60,14 @@ double local::MinuitEngine::operator()(Parameters const &pValues) const {
         throw RuntimeError("MinuitEngine: function evaluated with wrong number of parameters.");
     }
     return (*_f)(pValues);
+}
+
+double local::MinuitEngine::operator()(double const *pValues) const {
+    Parameters pVec(_nPar);
+    for(int i = 0; i < _nPar; ++i) {
+        pVec[i] = *pValues++;
+    }
+    return (*_f)(pVec);
 }
 
 double local::MinuitEngine::Up() const {
@@ -92,16 +99,15 @@ Parameters const &initial, Parameters const &errors) {
 }
 
 template <class T>
-local::FunctionMinimumPtr local::MinuitEngine::minimize(
-Parameters const &initial, Parameters const &errors, double toler, int maxfcn) {
+local::FunctionMinimumPtr local::MinuitEngine::minimize(Parameters const &initial,
+Parameters const &errors, double prec, int maxfcn, int strategy) {
     _setInitialState(initial,errors);
     // Do the minimization using the templated class, which is assumed to have
     // a default constructor and provide a Minimize method, e.g., a subclass
     // of ROOT::Minuit2::FunctionMinimizer.
     T algorithm;
-    mn::MnStrategy strategy(1);
     mn::FunctionMinimum mnmin =
-        algorithm.Minimize(*this, *_initialState, strategy, maxfcn, toler);
+        algorithm.Minimize(*this, *_initialState, mn::MnStrategy(strategy), maxfcn, prec);
     // Transfer the minimization results from the Minuit-specific return object
     // to our engine-neutral return object.
     FunctionMinimumPtr fmin(new FunctionMinimum(mnmin.Fval(),
@@ -112,13 +118,10 @@ Parameters const &initial, Parameters const &errors, double toler, int maxfcn) {
 // Explicit template instantiations.
 template local::FunctionMinimumPtr
     local::MinuitEngine::minimize<mn::SimplexMinimizer>
-    (Parameters const&,Parameters const&,double,int);
+    (Parameters const&,Parameters const&,double,int,int);
 template local::FunctionMinimumPtr
     local::MinuitEngine::minimize<mn::VariableMetricMinimizer>
-    (Parameters const&,Parameters const&,double,int);
-template local::FunctionMinimumPtr
-    local::MinuitEngine::minimize<mn::FumiliMinimizer>
-    (Parameters const&,Parameters const&,double,int);
+    (Parameters const&,Parameters const&,double,int,int);
 
 bool local::MinuitEngine::registerMinuitEngineMethods() {
     // Create a function object that constructs a MinuitEngine with parameters
@@ -131,25 +134,3 @@ bool local::MinuitEngine::registerMinuitEngineMethods() {
 }
 
 bool local::MinuitEngine::_registered = local::MinuitEngine::registerMinuitEngineMethods();
-
-/*
-mn::FunctionMinimum
-local::MinuitEngine::simplex(Parameters const &initial, Parameters const &errors) {
-    _setInitialState(initial,errors);
-    // Allocate a SimplexMinimizer if this is the first time we are called.
-    if(!_simplex) _simplex.reset(new mn::SimplexMinimizer());    
-    // Run the mimizer.
-    mn::MnStrategy strategy(1);
-    return _simplex->Minimize(*this, *_initialState, strategy);
-}
-
-mn::FunctionMinimum
-local::MinuitEngine::variableMetric(Parameters const &initial, Parameters const &errors) {
-    _setInitialState(initial,errors);
-    // Allocate a VariableMetricMinimizer if this is the first time we are called.
-    if(!_variableMetric) _variableMetric.reset(new mn::VariableMetricMinimizer());
-    // Run the mimizer.
-    mn::MnStrategy strategy(1);
-    return _variableMetric->Minimize(*this, *_initialState, strategy);
-}
-*/
