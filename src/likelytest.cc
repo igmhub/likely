@@ -9,6 +9,7 @@
 #include "boost/random/mersenne_twister.hpp"
 #include "boost/random/uniform_on_sphere.hpp"
 #include "boost/random/variate_generator.hpp"
+#include "boost/format.hpp"
 #include "boost/ref.hpp"
 
 #include <algorithm>
@@ -21,10 +22,13 @@ namespace po = boost::program_options;
 void useMethod(int methodId, std::string const &methodName, test::TestLikelihood &tester,
 lk::FunctionPtr f, lk::Parameters const &initial,
 lk::Parameters const &errors, double prec) {
+    boost::format fmt("%d %.4f %.4f %.4f\n");
     tester.resetCounts();
     lk::FunctionMinimumPtr fmin = lk::findMinimum(f,initial,errors,methodName,prec);
-    std::cout << methodId << ' ' << std::log10(tester.getCounts().first)
-        << ' ' << -std::log10(fmin->getMinValue()) << std::endl;
+    test::TestLikelihood::Counts counts(tester.getCounts());
+    std::cout << fmt % methodId % std::log10(counts.first)
+        % (counts.second ? std::log10(counts.second) : 0.)
+        % -std::log10(fmin->getMinValue());
 }
 
 int main(int argc, char **argv) {
@@ -79,7 +83,7 @@ int main(int argc, char **argv) {
         randomOnSphere(gen,spherical);
     
     // Print out column headings for the output we generate below.
-    std::cout << "method ncall accuracy" << std::endl;
+    std::cout << "method ncall ngrad accuracy" << std::endl;
 
     try {
         // Create a likelihood function using the command-line parameters.
