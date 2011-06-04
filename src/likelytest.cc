@@ -10,6 +10,7 @@
 #include "boost/random/uniform_on_sphere.hpp"
 #include "boost/random/variate_generator.hpp"
 #include "boost/format.hpp"
+#include "boost/bind.hpp"
 #include "boost/ref.hpp"
 
 #include <algorithm>
@@ -89,10 +90,20 @@ int main(int argc, char **argv) {
         // Create a likelihood function using the command-line parameters.
         test::TestLikelihood tester(npar,1,rho,alpha);
         if(trace) tester.setTrace(true);
-        // Create a generic function pointer using ref() to ensure that
-        // the underlying TestLikelihood is never copied and maintains its
-        // state when the function pointer is passed around.
-        lk::FunctionPtr f(new lk::Function(boost::ref(tester)));
+
+        // Since our function object has internal state (call counters), we
+        // want to ensure that the original object is passed around and
+        // never copied. There are two ways to do this:
+        lk::FunctionPtr f;
+        if(true) {
+            // First, using boost::ref with the tester operator() method
+            f.reset(new lk::Function(boost::ref(tester)));
+        }
+        else {
+            // Second, bind the object's evaluate() method with a pointer to tester
+            f.reset(new lk::Function(
+                boost::bind(&test::TestLikelihood::evaluate,&tester,_1)));
+        }
 
         // Specify the different precision values to use for each trial.
         std::vector<double> precision;
