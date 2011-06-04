@@ -21,9 +21,9 @@ namespace po = boost::program_options;
 void useMethod(int methodId, std::string const &methodName, test::TestLikelihood &tester,
 lk::FunctionPtr f, lk::Parameters const &initial,
 lk::Parameters const &errors, double prec) {
-    tester.resetCount();
+    tester.resetCounts();
     lk::FunctionMinimumPtr fmin = lk::findMinimum(f,initial,errors,methodName,prec);
-    std::cout << methodId << ' ' << std::log10(tester.getCount())
+    std::cout << methodId << ' ' << std::log10(tester.getCounts().first)
         << ' ' << -std::log10(fmin->getMinValue()) << std::endl;
 }
 

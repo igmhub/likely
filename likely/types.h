@@ -14,8 +14,8 @@ namespace likely {
     // Represents a vector of parameter values.
     typedef std::vector<double> Parameters;
     
-    // Represents a vector of function gradients with respect to each parameter.
-    typedef std::vector<double> Gradients;
+    // Represents a gradient vector of function partial derivatives.
+    typedef std::vector<double> Gradient;
 
     // Represents a Function covariance matrix near a local minimum.
     typedef boost::numeric::ublas::symmetric_matrix<double> Covariance;

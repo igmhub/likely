@@ -12,7 +12,7 @@
 namespace local = likely::test;
 
 local::TestLikelihood::TestLikelihood(int npar, double sigma, double rho, double alpha)
-: _npar(npar), _sigma(sigma), _rho(rho), _alpha(alpha), _trace(false), _count(0)
+: _npar(npar), _sigma(sigma), _rho(rho), _alpha(alpha), _trace(false), _counts(0,0)
 {
     // Check for valid inputs.
     if(npar < 0) {
@@ -36,7 +36,7 @@ local::TestLikelihood::TestLikelihood(int npar, double sigma, double rho, double
 
 local::TestLikelihood::~TestLikelihood() { }
 
-double local::TestLikelihood::operator()(Parameters const &params) const {
+double local::TestLikelihood::evaluate(Parameters const &params) const {
     if(params.size() != _npar) {
         throw RuntimeError("TestLikelihood() called with wrong number of parameters: "
             + boost::lexical_cast<std::string>(params.size()));
@@ -63,14 +63,19 @@ double local::TestLikelihood::operator()(Parameters const &params) const {
     arg2 *= _inverseOffDiagonal;
     double result(arg1+arg2);
     
-    _count++;    
+    _counts.first++;    
     if(_trace) {
         boost::format pFormat("%.5f");
-        std::cout << '[' << _count << "] TestLikelihood(" << pFormat % params[0];
+        std::cout << '[' << _counts.first << "] TestLikelihood(" << pFormat % params[0];
         for(int i = 1; i < _npar; ++i) {
             std::cout << ',' << pFormat % params[i];
         }
         std::cout << ") = " << result << std::endl;
     }
     return result;
+}
+
+void local::TestLikelihood::evaluateGradient(Parameters const &params,
+Gradient &grad) const {
+    _counts.second++;
 }
