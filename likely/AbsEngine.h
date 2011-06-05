@@ -30,8 +30,8 @@ namespace likely {
 
     protected:
         // Subclass API for managing evaluation counts.
-        void incrementEvalCount();
-        void incrementGradCount();
+        void incrementEvalCount() const;
+        void incrementGradCount() const;
 
 		// Declares our dynamic entry point for findMinimum.
 		typedef boost::function<FunctionMinimumPtr
@@ -58,14 +58,14 @@ namespace likely {
         */
         
     private:        
-        long _evalCount, _gradCount;
+        mutable long _evalCount, _gradCount;
 
 	}; // AbsEngine
 	
     inline long AbsEngine::getEvalCount() const { return _evalCount; }
     inline long AbsEngine::getGradCount() const { return _gradCount; }
-    inline void AbsEngine::incrementEvalCount() { _evalCount++; }
-    inline void AbsEngine::incrementGradCount() { _gradCount++; }
+    inline void AbsEngine::incrementEvalCount() const { _evalCount++; }
+    inline void AbsEngine::incrementGradCount() const { _gradCount++; }
 	
 	// Parses a method name of the form <engine>::<algorithm> or throws a RuntimeError.
     typedef std::pair<std::string,std::string> ParsedMethodName;

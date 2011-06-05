@@ -163,6 +163,7 @@ double local::GslEngine::_evaluate(const gsl_vector *v, void *p) {
     // Get the top engine on the stack.
     GslEngine *top(_useTopEngine(v));
     // Call the function and return its value.
+    top->incrementEvalCount();
     return (*(top->_f))(top->_params);
 }
 
@@ -172,6 +173,7 @@ void local::GslEngine::_evaluateGradient(const gsl_vector *v, void *p, gsl_vecto
     // Get the top engine on the stack.
     GslEngine *top(_useTopEngine(v));
     // Fill the engine's gradient vector.
+    top->incrementGradCount();
     (*(top->_gc))(top->_params,top->_grad);
     // Copy the gradient components to the GSL vector provided.
     for(int i = 0; i < top->_nPar; ++i) gsl_vector_set(g,i,top->_grad[i]);
@@ -181,21 +183,16 @@ void local::GslEngine::_evaluateBoth(const gsl_vector *v, void *p,
 double *fval, gsl_vector *g) {
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::_evaluateBoth");
-/*
-    // Use the top function on the stack.
-    Binding const& bound(_useTopBinding(v));
-    FunctionPtr f(bound.get<0>());
-    Parameters &values(bound.get<1>());
-    GradientCalculatorPtr gc(bound.get<2>());
-    Gradient &grad(bound.get<3>());
-    // Call the function and save the result.
-    *fval = (*f)(values);
-    // Fill our cached gradient object.
-    (*gc)(values,grad);
+    // Get the top engine on the stack.
+    GslEngine *top(_useTopEngine(v));
+    // Call the function and save its value.
+    top->incrementEvalCount();
+    *fval = (*(top->_f))(top->_params);
+    // Fill the engine's gradient vector.
+    top->incrementGradCount();
+    (*(top->_gc))(top->_params,top->_grad);
     // Copy the gradient components to the GSL vector provided.
-    int nPar(values.size());
-    for(int i = 0; i < nPar; ++i) gsl_vector_set(g,i,grad[i]);
-*/
+    for(int i = 0; i < top->_nPar; ++i) gsl_vector_set(g,i,top->_grad[i]);
 }
 
 local::GslEngine* local::GslEngine::_useTopEngine(const gsl_vector *v) {

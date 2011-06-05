@@ -27,7 +27,9 @@ namespace likely {
 		virtual ~MinuitEngine();
 		// Evaluates the engine's function for the specified input parameter values.
         virtual double operator()(Parameters const& pValues) const;
+        /*
         virtual double operator()(double const *pValues) const;
+        */
         // Returns the change in function value corresponding to one unit of error.
         // Can be changed to calculate different confidence intervals. For 1-sigma errors,
         // this value should be 1 for both chi-square and -2log(L) functions.

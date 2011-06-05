@@ -8,7 +8,9 @@
 
 namespace local = likely;
 
-local::AbsEngine::AbsEngine() { }
+local::AbsEngine::AbsEngine()
+: _evalCount(0), _gradCount(0)
+{ }
 
 local::AbsEngine::~AbsEngine() { }
 

@@ -59,9 +59,11 @@ double local::MinuitEngine::operator()(Parameters const &pValues) const {
     if(pValues.size() != _nPar) {
         throw RuntimeError("MinuitEngine: function evaluated with wrong number of parameters.");
     }
+    incrementEvalCount();
     return (*_f)(pValues);
 }
 
+/**
 double local::MinuitEngine::operator()(double const *pValues) const {
     Parameters pVec(_nPar);
     for(int i = 0; i < _nPar; ++i) {
@@ -69,6 +71,7 @@ double local::MinuitEngine::operator()(double const *pValues) const {
     }
     return (*_f)(pVec);
 }
+**/
 
 double local::MinuitEngine::Up() const {
     // Assumes that Fcn returns -logL(p) and that we are interested in 1-sigma errors.
