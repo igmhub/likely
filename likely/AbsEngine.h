@@ -18,10 +18,15 @@ namespace likely {
 		AbsEngine();
 		virtual ~AbsEngine();
 
-	    // Declares a global registry for creating engines by name.
+	    // Declares global registries for creating engines by name, with or without
+	    // a gradient calculator.
         typedef boost::function<AbsEngine* (FunctionPtr, int, std::string const&)> Factory;
         typedef std::map<std::string, Factory> Registry;
         static Registry &getRegistry();
+        typedef boost::function<AbsEngine* (FunctionPtr, GradientCalculatorPtr,
+            int, std::string const&)> FactoryWithGC;
+        typedef std::map<std::string, FactoryWithGC> RegistryWithGC;
+        static RegistryWithGC &getRegistryWithGC();
         
 		// Declares our dynamic entry point for findMinimum.
 		typedef boost::function<FunctionMinimumPtr
@@ -51,8 +56,12 @@ namespace likely {
     // is algorithm dependent but a smaller value will generally require more evaluations
     // and provide a more precise minimum. Use a positive value for maxIterations to
     // request a maximum number of times that the function is called.
-	FunctionMinimumPtr findMinimum(FunctionPtr f, Parameters const &initial,
-        Parameters const &errors, std::string const &methodName,
+	FunctionMinimumPtr findMinimum(FunctionPtr f,
+	    Parameters const &initial, Parameters const &errors, std::string const &methodName,
+        double precision = 1e-3, long maxIterations = 0);
+    // Same as above, but using a gradient calculator.
+	FunctionMinimumPtr findMinimum(FunctionPtr f, GradientCalculatorPtr gc,
+	    Parameters const &initial, Parameters const &errors, std::string const &methodName,
         double precision = 1e-3, long maxIterations = 0);
 	
 } // likely

@@ -13,7 +13,6 @@
 #include "boost/bind.hpp"
 #include "boost/ref.hpp"
 
-#include <algorithm>
 #include <iostream>
 
 namespace lk = likely;
@@ -126,23 +125,26 @@ int main(int argc, char **argv) {
 
         // Loop over minimization trials.
         for(int trial = 0; trial < ntrial; ++trial) {
-            // Choose a random point on the unit sphere (in npar dimensions)
+            // Choose a random point on a sphere (in npar dimensions)
             // for the initial parameter values.
             lk::Parameters initial(randomOnSphere());
-            std::transform(initial.begin(), initial.end(), initial.begin(),
-                std::bind1st(std::multiplies<double>(),radius));
+            for(int i = 0; i < initial.size(); ++i) initial[i] *= radius;
            // Loop over precision goals.
             for(int precIndex = 0; precIndex < precision.size(); ++precIndex) {
                 double precValue(precision[precIndex]);
                 // Use methods that do not use the function gradient.
 #ifdef HAVE_LIBGSL
-                useMethod(1,"gsl::simplex2",tester,f,initial,errors,precValue);
-                useMethod(2,"gsl::simplex2rand",tester,f,initial,errors,precValue);
+                useMethod(1,"gsl::nmsimplex2",tester,f,initial,errors,precValue);
+                useMethod(2,"gsl::nmsimplex2rand",tester,f,initial,errors,precValue);
 #endif
 #ifdef HAVE_LIBMINUIT2
                 useMethod(3,"mn::simplex",tester,f,initial,errors,precValue);
                 useMethod(4,"mn::vmetric",tester,f,initial,errors,precValue);
                 useMethod(5,"mn::vmetric_fast",tester,f,initial,errors,precValue);
+#endif
+                // Use methods that require a gradient calculator.
+#ifdef HAVE_LIBGSL
+                //useMethod(6,"gsl::conjugate_fr",tester,f,gc,initial,errors,precValue);
 #endif
             }
         }

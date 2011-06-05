@@ -24,10 +24,16 @@ namespace likely {
 		virtual ~GslEngine();
         // Performs a minimization without derivatives, using the specified initial
         // parameter values and error estimates.
-        typedef const gsl_multimin_fminimizer_type *Method;
-        FunctionMinimumPtr minimize(Method method,
+        typedef const gsl_multimin_fminimizer_type *fMethod;
+        FunctionMinimumPtr minimize(fMethod method,
             Parameters const &initial, Parameters const &errors,
             double prec, long maxIterations);
+        // Performs a minimization with derivatives, using the specified initial
+        // parameter values and error estimates.
+        typedef const gsl_multimin_fdfminimizer_type *fdfMethod;
+        FunctionMinimumPtr minimizeWithGradient(fdfMethod method,
+            Parameters const &initial, Parameters const &errors,
+            double prec, long maxIterations);        
 	private:
         int _nPar;
         FunctionPtr _f;

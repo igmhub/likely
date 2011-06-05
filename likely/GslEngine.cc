@@ -26,11 +26,15 @@ local::GslEngine::GslEngine(FunctionPtr f, int nPar, std::string const &algorith
     _params = Parameters(nPar);
     _getFunctionStack().push(Binding(_f,boost::ref(_params),_gc,boost::ref(_grad)));
     // Select the requested algorithm.
-    if(algorithm == "simplex2") {
+    if(algorithm == "nmsimplex") {
+        minimumFinder = boost::bind(&GslEngine::minimize,this,
+            gsl_multimin_fminimizer_nmsimplex,_1,_2,_3,_4);
+    }
+    else if(algorithm == "nmsimplex2") {
         minimumFinder = boost::bind(&GslEngine::minimize,this,
             gsl_multimin_fminimizer_nmsimplex2,_1,_2,_3,_4);
     }
-    else if(algorithm == "simplex2rand") {
+    else if(algorithm == "nmsimplex2rand") {
         minimumFinder = boost::bind(&GslEngine::minimize,this,
             gsl_multimin_fminimizer_nmsimplex2rand,_1,_2,_3,_4);
     }
@@ -57,7 +61,24 @@ std::string const &algorithm)
     _getFunctionStack().push(Binding(_f,boost::ref(_params),_gc,boost::ref(_grad)));
     // Select the requested algorithm.
     if(algorithm == "conjugate_fr") {
-        // ...
+        minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
+            gsl_multimin_fdfminimizer_conjugate_fr,_1,_2,_3,_4);
+    }
+    else if(algorithm == "conjugate_pr") {
+        minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
+            gsl_multimin_fdfminimizer_conjugate_pr,_1,_2,_3,_4);
+    }
+    else if(algorithm == "vector_bfgs") {
+        minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
+            gsl_multimin_fdfminimizer_vector_bfgs,_1,_2,_3,_4);
+    }
+    else if(algorithm == "vector_bfgs2") {
+        minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
+            gsl_multimin_fdfminimizer_vector_bfgs2,_1,_2,_3,_4);
+    }
+    else if(algorithm == "steepest_descent") {
+        minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
+            gsl_multimin_fdfminimizer_steepest_descent,_1,_2,_3,_4);
     }
     else {
         throw RuntimeError("GslEngine: unknown algorithm '" + algorithm + "'");
@@ -68,7 +89,38 @@ local::GslEngine::~GslEngine() {
     _getFunctionStack().pop();
 }
 
-local::FunctionMinimumPtr local::GslEngine::minimize(Method method,
+local::FunctionMinimumPtr local::GslEngine::minimizeWithGradient(fdfMethod method,
+Parameters const &initial, Parameters const &errors,
+double prec, long maxIterations) {
+    // Declare our error-handling context.
+    GslErrorHandler eh("GslEngine::minimizeWithGradient");
+    // Copy the input initial values to a GSL vector.
+    gsl_vector *gsl_initial(gsl_vector_alloc(_nPar));
+    for(int i = 0; i < _nPar; ++i) {
+        gsl_vector_set(gsl_initial,i,initial[i]);
+    }
+    // Initialize the minimizer
+    gsl_multimin_fdfminimizer *state(gsl_multimin_fdfminimizer_alloc(method,_nPar));
+
+    double stepSize(0.1), tol(0.01);
+    gsl_multimin_fdfminimizer_set(state, &_funcWithGradient, gsl_initial, stepSize, tol);
+
+    // Do the minimization...
+
+    // Copy the results into our result object.
+    Parameters final(_nPar);
+    for(int i = 0; i < _nPar; ++i) {
+        final[i] = gsl_vector_get(state->x,i);
+    }
+    FunctionMinimumPtr fmin(new FunctionMinimum(state->f,final));
+    // Clean up.
+    gsl_vector_free(gsl_initial);
+    gsl_multimin_fdfminimizer_free(state);
+
+    return fmin;    
+}
+
+local::FunctionMinimumPtr local::GslEngine::minimize(fMethod method,
 Parameters const &initial, Parameters const &errors,
 double prec, long maxIterations) {
     // Declare our error-handling context.
@@ -96,7 +148,6 @@ double prec, long maxIterations) {
     for(int i = 0; i < _nPar; ++i) {
         final[i] = gsl_vector_get(state->x,i);
     }
-    // Initialize our result object.
     FunctionMinimumPtr fmin(new FunctionMinimum(state->fval,final));
     // Clean up.
     gsl_vector_free(gsl_errors);
@@ -171,10 +222,15 @@ bool local::GslEngine::registerGslEngineMethods() {
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::registerEngineMethods");
     // Create a function object that constructs a GslEngine with parameters
-    // (Function f, int npar, std::string const &methodName).
+    // (FunctionPtr f, int npar, std::string const &methodName).
     AbsEngine::Factory factory = boost::bind(boost::factory<GslEngine*>(),_1,_2,_3);
-    // Register our minimization methods.
+    // Create a function object that constructs a GslEngine with parameters
+    // (FunctionPtr f, GradientCalculatorPtr gc, int npar, std::string const &methodName).
+    AbsEngine::FactoryWithGC factoryWithGC =
+        boost::bind(boost::factory<GslEngine*>(),_1,_2,_3,_4);
+    // Register our factory methods.
     AbsEngine::getRegistry()["gsl"] = factory;
+    AbsEngine::getRegistryWithGC()["gsl"] = factoryWithGC;
     // Return a dummy value so that we can be called at program startup.
     return true;
 }
