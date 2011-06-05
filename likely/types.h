@@ -25,6 +25,13 @@ namespace likely {
 
     // Declares a smart pointer to an objective function.
     typedef boost::shared_ptr<Function> FunctionPtr;
+    
+    // Encapsulates a gradient calculator for a minimization objective function.
+    typedef boost::function<void (Parameters const &pValues, Gradient &gValues)>
+        GradientCalculator;
+        
+    // Declares a smart pointer to a gradient calculator.
+    typedef boost::shared_ptr<GradientCalculator> GradientCalculatorPtr;
 
     // Represents a smart pointer to a function minimum object.
     class FunctionMinimum;

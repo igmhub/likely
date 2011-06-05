@@ -41,17 +41,18 @@ int main(int argc, char **argv) {
     cli.add_options()
         ("help,h", "Prints this info and exits.")
         ("verbose", "Prints additional information.")
-        ("trace", "Traces all calls to the likelihood function.")
+        ("eval", "Prints the NLL and its gradient at a fixed point.")
+        ("trace", "Traces all calls to the NLL function.")
         ("ntrial", po::value<int>(&ntrial)->default_value(100),
             "Number of minimization trials to perform.")
         ("seed", po::value<int>(&seed)->default_value(123),
             "Random seed for generating initial parameter values.")
         ("npar", po::value<int>(&npar)->default_value(3),
             "Number of floating parameters to use.")
-        ("rho", po::value<double>(&alpha)->default_value(0),
-            "Likelihood linear correlation parameter.")
+        ("rho", po::value<double>(&rho)->default_value(0),
+            "NLL correlation coefficient in the range (-1,+1).")
         ("alpha", po::value<double>(&alpha)->default_value(0),
-            "Likelihood non-linearity parameter.")
+            "Size of NLL non-parabolic effects.")
         ("radius", po::value<double>(&radius)->default_value(2),
             "Radius of the initial-parameter value sphere.")
         ;
@@ -70,7 +71,7 @@ int main(int argc, char **argv) {
         std::cout << cli << std::endl;
         return 1;
     }
-    bool verbose(vm.count("verbose")), trace(vm.count("trace"));
+    bool verbose(vm.count("verbose")), trace(vm.count("trace")),eval(vm.count("eval"));
 
     if(npar <= 0) {
         std::cerr << "Number of parameters (npar) must be > 0." << std::endl;
@@ -88,8 +89,16 @@ int main(int argc, char **argv) {
 
     try {
         // Create a likelihood function using the command-line parameters.
-        test::TestLikelihood tester(npar,1,rho,alpha);
-        if(trace) tester.setTrace(true);
+        test::TestLikelihood tester(npar,1,rho,alpha);        
+        if(eval) {
+            tester.setTrace(true);
+            lk::Parameters evalAt(npar,0);
+            evalAt[0] = radius;
+            tester.evaluate(evalAt);
+            lk::Gradient grad(npar);
+            tester.evaluateGradient(evalAt,grad);
+        }
+        tester.setTrace(trace);
 
         // Since our function object has internal state (call counters), we
         // want to ensure that the original object is passed around and

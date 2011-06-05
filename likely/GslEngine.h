@@ -8,9 +8,10 @@
 
 #include "gsl/gsl_multimin.h"
 
+#include "boost/tuple/tuple.hpp"
+
 #include <string>
 #include <stack>
-#include <utility>
 
 namespace likely {
 	class GslEngine : public AbsEngine {
@@ -18,11 +19,11 @@ namespace likely {
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters.
 		GslEngine(FunctionPtr f, int nPar, std::string const &algorithm);
+        GslEngine(FunctionPtr f, GradientCalculatorPtr g, int nPar,
+            std::string const &algorithm);
 		virtual ~GslEngine();
-		// Evaluates the engine's function for the specified input parameter values.
-        //double operator()(Parameters const& pValues) const;
-        // Runs a simplex minimization using the specified initial parameter values
-        // and error estimates.
+        // Performs a minimization without derivatives, using the specified initial
+        // parameter values and error estimates.
         typedef const gsl_multimin_fminimizer_type *Method;
         FunctionMinimumPtr minimize(Method method,
             Parameters const &initial, Parameters const &errors,
@@ -30,12 +31,21 @@ namespace likely {
 	private:
         int _nPar;
         FunctionPtr _f;
+        Parameters _params;
+        GradientCalculatorPtr _gc;
+        Gradient _grad;
         gsl_multimin_function _func;
-        // Global C-style callback that evaluates the top function on its stack.
-        static double _evaluate(const gsl_vector *v, void *params);
-        // Maintain a function stack.
-        typedef std::pair<FunctionPtr,Parameters> Binding;
-        static std::stack<Binding> &getFunctionStack();
+        gsl_multimin_function_fdf _funcWithGradient;
+        // Global C-style callbacks that evaluate the top function on the stack.
+        static double _evaluate(const gsl_vector *v, void *p);
+        static void _evaluateGradient(const gsl_vector *v, void *p, gsl_vector *g);
+        static void _evaluateBoth(const gsl_vector *v, void *p, double *f, gsl_vector *g);
+        // Maintains a function stack that the global callbacks use to determine with
+        // function to invoke when they are called.
+        typedef boost::tuple<
+            FunctionPtr, Parameters&, GradientCalculatorPtr, Gradient&> Binding;
+        static std::stack<Binding> &_getFunctionStack();
+        static Binding const& _useTopBinding(const gsl_vector *v);
         // Registers our named methods.
         static bool registerGslEngineMethods();
         static bool _registered;

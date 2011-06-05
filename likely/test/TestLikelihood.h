@@ -39,9 +39,11 @@ namespace test {
 	private:
         int _npar;
         mutable Counts _counts;
-        double _sigma, _rho, _alpha;
+        double _sigma, _rho, _alpha, _delta;
         double _inverseDiagonal, _inverseOffDiagonal;
         bool _trace;
+        // Applies the transformation y_i(x) = x_i - alpha*(|x|^2 - x_i^2)
+        Parameters _transform(Parameters const &x) const;
 	}; // TestLikelihood
 	
     inline void TestLikelihood::setTrace(bool value) { _trace = value; }

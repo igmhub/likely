@@ -7,6 +7,7 @@
 
 #include "boost/functional/factory.hpp"
 #include "boost/bind.hpp"
+#include "boost/ref.hpp"
 
 #include <cmath>
 
@@ -22,7 +23,8 @@ local::GslEngine::GslEngine(FunctionPtr f, int nPar, std::string const &algorith
     _func.n = nPar;
     _func.f = _evaluate;
     _func.params = 0;
-    getFunctionStack().push(Binding(f,Parameters(nPar)));
+    _params = Parameters(nPar);
+    _getFunctionStack().push(Binding(_f,boost::ref(_params),_gc,boost::ref(_grad)));
     // Select the requested algorithm.
     if(algorithm == "simplex2") {
         minimumFinder = boost::bind(&GslEngine::minimize,this,
@@ -37,8 +39,33 @@ local::GslEngine::GslEngine(FunctionPtr f, int nPar, std::string const &algorith
     }
 }
 
+local::GslEngine::GslEngine(FunctionPtr f, GradientCalculatorPtr gc, int nPar,
+std::string const &algorithm)
+: _nPar(nPar), _f(f), _gc(gc)
+{
+    if(_nPar <= 0) {
+        throw RuntimeError("GslEngine: number of parameters must be > 0.");
+    }
+    // Bind this function and its gradient calculator to our GSL global function
+    _funcWithGradient.n = nPar;
+    _funcWithGradient.f = _evaluate;
+    _funcWithGradient.df = _evaluateGradient;
+    _funcWithGradient.fdf = _evaluateBoth;
+    _funcWithGradient.params = 0;
+    _params = Parameters(nPar);
+    _grad = Gradient(nPar);
+    _getFunctionStack().push(Binding(_f,boost::ref(_params),_gc,boost::ref(_grad)));
+    // Select the requested algorithm.
+    if(algorithm == "conjugate_fr") {
+        // ...
+    }
+    else {
+        throw RuntimeError("GslEngine: unknown algorithm '" + algorithm + "'");
+    }
+}
+
 local::GslEngine::~GslEngine() {
-    getFunctionStack().pop();
+    _getFunctionStack().pop();
 }
 
 local::FunctionMinimumPtr local::GslEngine::minimize(Method method,
@@ -79,42 +106,70 @@ double prec, long maxIterations) {
     return fmin;
 }
 
-/*
-double local::GslEngine::operator()(Parameters const& pValues) const {
-    // This method is not intended to be a streamlined way to call our function,
-    // but rather a way to exercise and test the function stack machinery.
-    
+double local::GslEngine::_evaluate(const gsl_vector *v, void *p) {
     // Declare our error-handling context.
-    GslErrorHandler eh("GslEngine::operator()");
-    if(pValues.size() != _nPar) {
-        throw RuntimeError(
-            "GslEngine: function evaluated with wrong number of parameters.");
-    }
-    gsl_vector *v(gsl_vector_alloc(_nPar));
-    for(int i = 0; i < _nPar; ++i) {
-        gsl_vector_set(v,i,pValues[i]);
-    }
-    double result(_evaluate(v,0));
-    gsl_vector_free(v);
-    return result;
-}
-*/
-
-double local::GslEngine::_evaluate(const gsl_vector *v, void *params) {
-    Binding bound(getFunctionStack().top());
-    FunctionPtr f(bound.first);
-    Parameters &values(bound.second);
-    int nPar(values.size());
-    for(int i = 0; i < nPar; ++i) values[i] = gsl_vector_get(v,i);
+    GslErrorHandler eh("GslEngine::_evaluate");
+    // Get the top function on the stack.
+    Binding const& bound(_useTopBinding(v));
+    FunctionPtr f(bound.get<0>());
+    Parameters &values(bound.get<1>());
+    // Call the function and return its value.
     return (*f)(values);
 }
 
-std::stack<local::GslEngine::Binding> &local::GslEngine::getFunctionStack() {
+void local::GslEngine::_evaluateGradient(const gsl_vector *v, void *p, gsl_vector *g) {
+    // Declare our error-handling context.
+    GslErrorHandler eh("GslEngine::_evaluateGradient");
+    // Get the top function on the stack.
+    Binding const& bound(_useTopBinding(v));
+    Parameters &values(bound.get<1>());
+    GradientCalculatorPtr gc(bound.get<2>());
+    Gradient &grad(bound.get<3>());
+    // Fill our cached gradient object.
+    (*gc)(values,grad);
+    // Copy the gradient components to the GSL vector provided.
+    int nPar(values.size());
+    for(int i = 0; i < nPar; ++i) gsl_vector_set(g,i,grad[i]);
+}
+
+void local::GslEngine::_evaluateBoth(const gsl_vector *v, void *p,
+double *fval, gsl_vector *g) {
+    // Declare our error-handling context.
+    GslErrorHandler eh("GslEngine::_evaluateBoth");
+    // Use the top function on the stack.
+    Binding const& bound(_useTopBinding(v));
+    FunctionPtr f(bound.get<0>());
+    Parameters &values(bound.get<1>());
+    GradientCalculatorPtr gc(bound.get<2>());
+    Gradient &grad(bound.get<3>());
+    // Call the function and save the result.
+    *fval = (*f)(values);
+    // Fill our cached gradient object.
+    (*gc)(values,grad);
+    // Copy the gradient components to the GSL vector provided.
+    int nPar(values.size());
+    for(int i = 0; i < nPar; ++i) gsl_vector_set(g,i,grad[i]);    
+}
+
+local::GslEngine::Binding const& local::GslEngine::_useTopBinding(const gsl_vector *v) {
+    // Get the top function on the stack.
+    Binding &bound(_getFunctionStack().top());
+    // Lookup the cached parameter vector for this function.
+    Parameters &values(bound.get<1>());
+    // Copy the input GSL vector to our cached Parameters object.
+    int nPar(values.size());
+    for(int i = 0; i < nPar; ++i) values[i] = gsl_vector_get(v,i);
+    return bound;
+}
+
+std::stack<local::GslEngine::Binding> &local::GslEngine::_getFunctionStack() {
     static std::stack<Binding> *stack = new std::stack<Binding>();
     return *stack;
 }
 
 bool local::GslEngine::registerGslEngineMethods() {
+    // Declare our error-handling context.
+    GslErrorHandler eh("GslEngine::registerEngineMethods");
     // Create a function object that constructs a GslEngine with parameters
     // (Function f, int npar, std::string const &methodName).
     AbsEngine::Factory factory = boost::bind(boost::factory<GslEngine*>(),_1,_2,_3);
