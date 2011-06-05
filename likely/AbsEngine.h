@@ -17,6 +17,27 @@ namespace likely {
 	public:
 		AbsEngine();
 		virtual ~AbsEngine();
+		// Returns the number of function evaluations by this engine.
+        long getEvalCount() const;
+        // Returns the number of gradient evaluations by this engine.
+        long getGradCount() const;
+        
+        // The findMinimum functions can access our internals.
+        friend FunctionMinimumPtr findMinimum(FunctionPtr,
+    	    Parameters const &, Parameters const &, std::string const &, double, long);
+        friend FunctionMinimumPtr findMinimum(FunctionPtr, GradientCalculatorPtr,
+    	    Parameters const &, Parameters const &, std::string const &, double, long);
+
+    protected:
+        // Subclass API for managing evaluation counts.
+        void incrementEvalCount();
+        void incrementGradCount();
+
+		// Declares our dynamic entry point for findMinimum.
+		typedef boost::function<FunctionMinimumPtr
+		    (Parameters const &pInitial, Parameters const &pErrors, double, long)>
+		    MinimumFinder;
+        MinimumFinder minimumFinder;
 
 	    // Declares global registries for creating engines by name, with or without
 	    // a gradient calculator.
@@ -28,12 +49,6 @@ namespace likely {
         typedef std::map<std::string, FactoryWithGC> RegistryWithGC;
         static RegistryWithGC &getRegistryWithGC();
         
-		// Declares our dynamic entry point for findMinimum.
-		typedef boost::function<FunctionMinimumPtr
-		    (Parameters const &pInitial, Parameters const &pErrors, double, long)>
-		    MinimumFinder;
-        MinimumFinder minimumFinder;
-
         /*
         typedef boost::function<double (Parameters const &pInitial,
             Parameters const &pErrors,Parameters &pFinal, Covariance &covariance)>
@@ -42,7 +57,15 @@ namespace likely {
             FunctionGradientCalculator;
         */
         
+    private:        
+        long _evalCount, _gradCount;
+
 	}; // AbsEngine
+	
+    inline long AbsEngine::getEvalCount() const { return _evalCount; }
+    inline long AbsEngine::getGradCount() const { return _gradCount; }
+    inline void AbsEngine::incrementEvalCount() { _evalCount++; }
+    inline void AbsEngine::incrementGradCount() { _gradCount++; }
 	
 	// Parses a method name of the form <engine>::<algorithm> or throws a RuntimeError.
     typedef std::pair<std::string,std::string> ParsedMethodName;
