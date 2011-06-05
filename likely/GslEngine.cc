@@ -24,7 +24,7 @@ local::GslEngine::GslEngine(FunctionPtr f, int nPar, std::string const &algorith
     _func.f = _evaluate;
     _func.params = 0;
     _params = Parameters(nPar);
-    _getFunctionStack().push(Binding(_f,boost::ref(_params),_gc,boost::ref(_grad)));
+    _getEngineStack().push(this);
     // Select the requested algorithm.
     if(algorithm == "nmsimplex") {
         minimumFinder = boost::bind(&GslEngine::minimize,this,
@@ -58,7 +58,7 @@ std::string const &algorithm)
     _funcWithGradient.params = 0;
     _params = Parameters(nPar);
     _grad = Gradient(nPar);
-    _getFunctionStack().push(Binding(_f,boost::ref(_params),_gc,boost::ref(_grad)));
+    _getEngineStack().push(this);
     // Select the requested algorithm.
     if(algorithm == "conjugate_fr") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
@@ -86,7 +86,7 @@ std::string const &algorithm)
 }
 
 local::GslEngine::~GslEngine() {
-    _getFunctionStack().pop();
+    _getEngineStack().pop();
 }
 
 local::FunctionMinimumPtr local::GslEngine::minimizeWithGradient(fdfMethod method,
@@ -160,33 +160,28 @@ double prec, long maxIterations) {
 double local::GslEngine::_evaluate(const gsl_vector *v, void *p) {
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::_evaluate");
-    // Get the top function on the stack.
-    Binding const& bound(_useTopBinding(v));
-    FunctionPtr f(bound.get<0>());
-    Parameters &values(bound.get<1>());
+    // Get the top engine on the stack.
+    GslEngine *top(_useTopEngine(v));
     // Call the function and return its value.
-    return (*f)(values);
+    return (*(top->_f))(top->_params);
 }
 
 void local::GslEngine::_evaluateGradient(const gsl_vector *v, void *p, gsl_vector *g) {
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::_evaluateGradient");
-    // Get the top function on the stack.
-    Binding const& bound(_useTopBinding(v));
-    Parameters &values(bound.get<1>());
-    GradientCalculatorPtr gc(bound.get<2>());
-    Gradient &grad(bound.get<3>());
-    // Fill our cached gradient object.
-    (*gc)(values,grad);
+    // Get the top engine on the stack.
+    GslEngine *top(_useTopEngine(v));
+    // Fill the engine's gradient vector.
+    (*(top->_gc))(top->_params,top->_grad);
     // Copy the gradient components to the GSL vector provided.
-    int nPar(values.size());
-    for(int i = 0; i < nPar; ++i) gsl_vector_set(g,i,grad[i]);
+    for(int i = 0; i < top->_nPar; ++i) gsl_vector_set(g,i,top->_grad[i]);
 }
 
 void local::GslEngine::_evaluateBoth(const gsl_vector *v, void *p,
 double *fval, gsl_vector *g) {
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::_evaluateBoth");
+/*
     // Use the top function on the stack.
     Binding const& bound(_useTopBinding(v));
     FunctionPtr f(bound.get<0>());
@@ -199,22 +194,20 @@ double *fval, gsl_vector *g) {
     (*gc)(values,grad);
     // Copy the gradient components to the GSL vector provided.
     int nPar(values.size());
-    for(int i = 0; i < nPar; ++i) gsl_vector_set(g,i,grad[i]);    
+    for(int i = 0; i < nPar; ++i) gsl_vector_set(g,i,grad[i]);
+*/
 }
 
-local::GslEngine::Binding const& local::GslEngine::_useTopBinding(const gsl_vector *v) {
+local::GslEngine* local::GslEngine::_useTopEngine(const gsl_vector *v) {
     // Get the top function on the stack.
-    Binding &bound(_getFunctionStack().top());
-    // Lookup the cached parameter vector for this function.
-    Parameters &values(bound.get<1>());
-    // Copy the input GSL vector to our cached Parameters object.
-    int nPar(values.size());
-    for(int i = 0; i < nPar; ++i) values[i] = gsl_vector_get(v,i);
-    return bound;
+    GslEngine *top(_getEngineStack().top());
+    // Copy the input GSL vector to the top engine's _params.
+    for(int i = 0; i < top->_nPar; ++i) top->_params[i] = gsl_vector_get(v,i);
+    return top;
 }
 
-std::stack<local::GslEngine::Binding> &local::GslEngine::_getFunctionStack() {
-    static std::stack<Binding> *stack = new std::stack<Binding>();
+std::stack<local::GslEngine*> &local::GslEngine::_getEngineStack() {
+    static std::stack<GslEngine*> *stack = new std::stack<GslEngine*>();
     return *stack;
 }
 

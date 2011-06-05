@@ -8,8 +8,6 @@
 
 #include "gsl/gsl_multimin.h"
 
-#include "boost/tuple/tuple.hpp"
-
 #include <string>
 #include <stack>
 
@@ -42,16 +40,14 @@ namespace likely {
         Gradient _grad;
         gsl_multimin_function _func;
         gsl_multimin_function_fdf _funcWithGradient;
-        // Global C-style callbacks that evaluate the top function on the stack.
+        // Global C-style callbacks that evaluate the top engine on the stack.
         static double _evaluate(const gsl_vector *v, void *p);
         static void _evaluateGradient(const gsl_vector *v, void *p, gsl_vector *g);
         static void _evaluateBoth(const gsl_vector *v, void *p, double *f, gsl_vector *g);
         // Maintains a function stack that the global callbacks use to determine with
         // function to invoke when they are called.
-        typedef boost::tuple<
-            FunctionPtr, Parameters&, GradientCalculatorPtr, Gradient&> Binding;
-        static std::stack<Binding> &_getFunctionStack();
-        static Binding const& _useTopBinding(const gsl_vector *v);
+        static std::stack<GslEngine*> &_getEngineStack();
+        static GslEngine* _useTopEngine(const gsl_vector *v);
         // Registers our named methods.
         static bool registerGslEngineMethods();
         static bool _registered;
