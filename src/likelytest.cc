@@ -20,10 +20,17 @@ namespace test = likely::test;
 namespace po = boost::program_options;
 
 void useMethod(int methodId, std::string const &methodName,
-lk::FunctionPtr f, lk::Parameters const &initial,
+lk::FunctionPtr f, lk::GradientCalculatorPtr gc, lk::Parameters const &initial,
 lk::Parameters const &errors, double prec) {
+    lk::FunctionMinimumPtr fmin;
+    if(gc) {
+        // Use an algorithm that requires a gradient calculator.
+        fmin = lk::findMinimum(f,gc,initial,errors,methodName,prec);
+    }
+    else {
+        fmin = lk::findMinimum(f,initial,errors,methodName,prec);        
+    }
     boost::format fmt("%d %.4f %.4f %.4f\n");
-    lk::FunctionMinimumPtr fmin = lk::findMinimum(f,initial,errors,methodName,prec);
     std::cout << fmt % methodId % std::log10(lk::lastMinEvalCount)
         % (lk::lastMinGradCount ? std::log10(lk::lastMinGradCount) : 0.)
         % -std::log10(fmin->getMinValue());
@@ -86,11 +93,12 @@ int main(int argc, char **argv) {
 
     try {
         // Create a likelihood function using the command-line parameters.
-        test::TestLikelihood tester(npar,1,rho,alpha);        
+        test::TestLikelihood tester(npar,1,rho,alpha);
+        
+        // Trace a single function and gradient evaluation, if requested.
         if(eval) {
             tester.setTrace(true);
-            lk::Parameters evalAt(npar,0);
-            evalAt[0] = radius;
+            lk::Parameters evalAt(npar,radius);
             tester.evaluate(evalAt);
             lk::Gradient grad(npar);
             tester.evaluateGradient(evalAt,grad);
@@ -99,7 +107,7 @@ int main(int argc, char **argv) {
 
         // Since our function object has internal state (call counters), we
         // want to ensure that the original object is passed around and
-        // never copied. There are two ways to do this:
+        // never copied. Here are two ways to do this:
         lk::FunctionPtr f;
         if(true) {
             // First, using boost::ref with the tester operator() method
@@ -110,6 +118,11 @@ int main(int argc, char **argv) {
             f.reset(new lk::Function(
                 boost::bind(&test::TestLikelihood::evaluate,&tester,_1)));
         }
+        // Use boost::bind for the gradient calculator.
+        lk::GradientCalculatorPtr gc(new lk::GradientCalculator(
+            boost::bind(&test::TestLikelihood::evaluateGradient,&tester,_1,_2)));
+        // Initialize a null gradient calculator for methods that don't need one.
+        lk::GradientCalculatorPtr noGC;
 
         // Specify the different precision values to use for each trial.
         std::vector<double> precision;
@@ -132,17 +145,20 @@ int main(int argc, char **argv) {
                 double precValue(precision[precIndex]);
                 // Use methods that do not use the function gradient.
 #ifdef HAVE_LIBGSL
-                useMethod(1,"gsl::nmsimplex2",f,initial,errors,precValue);
-                useMethod(2,"gsl::nmsimplex2rand",f,initial,errors,precValue);
+                useMethod(1,"gsl::nmsimplex2",f,noGC,initial,errors,precValue);
+                useMethod(2,"gsl::nmsimplex2rand",f,noGC,initial,errors,precValue);
 #endif
 #ifdef HAVE_LIBMINUIT2
-                useMethod(3,"mn::simplex",f,initial,errors,precValue);
-                useMethod(4,"mn::vmetric",f,initial,errors,precValue);
-                useMethod(5,"mn::vmetric_fast",f,initial,errors,precValue);
+                useMethod(3,"mn::simplex",f,noGC,initial,errors,precValue);
+                useMethod(4,"mn::vmetric",f,noGC,initial,errors,precValue);
+                useMethod(5,"mn::vmetric_fast",f,noGC,initial,errors,precValue);
 #endif
                 // Use methods that require a gradient calculator.
 #ifdef HAVE_LIBGSL
-                //useMethod(6,"gsl::conjugate_fr",f,gc,initial,errors,precValue);
+                useMethod(6,"gsl::conjugate_fr",f,gc,initial,errors,precValue);
+                useMethod(7,"gsl::conjugate_pr",f,gc,initial,errors,precValue);
+                useMethod(8,"gsl::vector_bfgs2",f,gc,initial,errors,precValue);
+                useMethod(9,"gsl::steepest_descent",f,gc,initial,errors,precValue);
 #endif
             }
         }

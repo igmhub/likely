@@ -12,6 +12,8 @@
 #include <stack>
 
 namespace likely {
+    // Implements GSL multidimensional minimization algorithms. For details, see:
+    // http://www.gnu.org/software/gsl/manual/html_node/Multidimensional-Minimization.html
 	class GslEngine : public AbsEngine {
 	public:
 	    // Creates a new engine for the specified function of the specified number
@@ -31,7 +33,7 @@ namespace likely {
         typedef const gsl_multimin_fdfminimizer_type *fdfMethod;
         FunctionMinimumPtr minimizeWithGradient(fdfMethod method,
             Parameters const &initial, Parameters const &errors,
-            double prec, long maxIterations);        
+            double prec, long maxIterations, double lineMinTol);        
 	private:
         int _nPar;
         FunctionPtr _f;

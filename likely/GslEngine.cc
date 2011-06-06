@@ -59,26 +59,30 @@ std::string const &algorithm)
     _params = Parameters(nPar);
     _grad = Gradient(nPar);
     _getEngineStack().push(this);
+    // Use a fixed line minimization tolerance of 0.1. See:
+    // http://www.gnu.org/software/gsl/manual/html_node/
+    //   Initializing-the-Multidimensional-Minimizer.html
+    double lineMinTol(0.1);
     // Select the requested algorithm.
     if(algorithm == "conjugate_fr") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
-            gsl_multimin_fdfminimizer_conjugate_fr,_1,_2,_3,_4);
+            gsl_multimin_fdfminimizer_conjugate_fr,_1,_2,_3,_4,lineMinTol);
     }
     else if(algorithm == "conjugate_pr") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
-            gsl_multimin_fdfminimizer_conjugate_pr,_1,_2,_3,_4);
+            gsl_multimin_fdfminimizer_conjugate_pr,_1,_2,_3,_4,lineMinTol);
     }
     else if(algorithm == "vector_bfgs") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
-            gsl_multimin_fdfminimizer_vector_bfgs,_1,_2,_3,_4);
+            gsl_multimin_fdfminimizer_vector_bfgs,_1,_2,_3,_4,lineMinTol);
     }
     else if(algorithm == "vector_bfgs2") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
-            gsl_multimin_fdfminimizer_vector_bfgs2,_1,_2,_3,_4);
+            gsl_multimin_fdfminimizer_vector_bfgs2,_1,_2,_3,_4,lineMinTol);
     }
     else if(algorithm == "steepest_descent") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
-            gsl_multimin_fdfminimizer_steepest_descent,_1,_2,_3,_4);
+            gsl_multimin_fdfminimizer_steepest_descent,_1,_2,_3,_4,lineMinTol);
     }
     else {
         throw RuntimeError("GslEngine: unknown algorithm '" + algorithm + "'");
@@ -91,7 +95,7 @@ local::GslEngine::~GslEngine() {
 
 local::FunctionMinimumPtr local::GslEngine::minimizeWithGradient(fdfMethod method,
 Parameters const &initial, Parameters const &errors,
-double prec, long maxIterations) {
+double prec, long maxIterations, double lineMinTol) {
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::minimizeWithGradient");
     // Copy the input initial values to a GSL vector.
@@ -99,14 +103,30 @@ double prec, long maxIterations) {
     for(int i = 0; i < _nPar; ++i) {
         gsl_vector_set(gsl_initial,i,initial[i]);
     }
-    // Initialize the minimizer
+    // Initialize the minimizer.
     gsl_multimin_fdfminimizer *state(gsl_multimin_fdfminimizer_alloc(method,_nPar));
-
-    double stepSize(0.1), tol(0.01);
-    gsl_multimin_fdfminimizer_set(state, &_funcWithGradient, gsl_initial, stepSize, tol);
-
+    // Calculate the RMS of the error vector components.
+    double sumsq(0);
+    for(int i = 0; i < _nPar; ++i) {
+        double value(errors[i]);
+        sumsq += value*value;
+    }
+    double rmsError(std::sqrt(sumsq));
+    // Use an initial step size proportional to the RMS error.
+    double stepSize = rmsError > 0 ? 0.1*rmsError : 1e-2;
+    // Re-scale the requested precision by the initial step size so that it corresponds
+    // to a target maximum |gradient| value.
+    double maxGradient = prec > 0 ? prec/stepSize : 1e-3;
+    gsl_multimin_fdfminimizer_set(state, &_funcWithGradient, gsl_initial,
+        stepSize, lineMinTol);
     // Do the minimization...
-
+    long nIterations(0);
+    while(0 == maxIterations || nIterations < maxIterations) {
+        nIterations++;
+        if(gsl_multimin_fdfminimizer_iterate(state)) break;
+        // The input precision specifies the 
+        if(gsl_multimin_test_gradient(state->gradient, maxGradient) != GSL_CONTINUE) break;
+    }
     // Copy the results into our result object.
     Parameters final(_nPar);
     for(int i = 0; i < _nPar; ++i) {
