@@ -54,8 +54,12 @@ double precision, long maxIterations) {
     // Create a new engine for this function.
     AbsEngine::Factory factory = found->second;
     boost::scoped_ptr<AbsEngine> engine(factory(f,nPar,parsed.second));
-    // Run the algorithm and return its result.
-    return engine->minimumFinder(initial,errors,precision,maxIterations);
+    // Run the algorithm.
+    FunctionMinimumPtr fmin(engine->minimumFinder(initial,errors,precision,maxIterations));
+    // Save the evaluation counts.
+    lastMinEvalCount = engine->getEvalCount();
+    lastMinGradCount = 0;
+    return fmin;
 }
 
 local::FunctionMinimumPtr local::findMinimum(FunctionPtr f, GradientCalculatorPtr gc,
@@ -78,6 +82,13 @@ double precision, long maxIterations) {
     // Create a new engine for this function.
     AbsEngine::FactoryWithGC factory = found->second;
     boost::scoped_ptr<AbsEngine> engine(factory(f,gc,nPar,parsed.second));
-    // Run the algorithm and return its result.
-    return engine->minimumFinder(initial,errors,precision,maxIterations);
+    // Run the algorithm.
+    FunctionMinimumPtr fmin(engine->minimumFinder(initial,errors,precision,maxIterations));
+    // Save the evaluation counts.
+    lastMinEvalCount = engine->getEvalCount();
+    lastMinGradCount = engine->getGradCount();
+    return fmin;
 }
+
+// Initialize the global evaluation counters.
+long local::lastMinEvalCount = 0, local::lastMinGradCount = 0;

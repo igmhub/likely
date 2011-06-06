@@ -86,6 +86,10 @@ namespace likely {
 	FunctionMinimumPtr findMinimum(FunctionPtr f, GradientCalculatorPtr gc,
 	    Parameters const &initial, Parameters const &errors, std::string const &methodName,
         double precision = 1e-3, long maxIterations = 0);
+        
+    // Remembers the number of function and gradient evaluations from the last call
+    // to findMinimum.
+    extern long lastMinEvalCount, lastMinGradCount;
 	
 } // likely
 

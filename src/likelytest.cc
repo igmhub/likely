@@ -15,19 +15,19 @@
 
 #include <iostream>
 
+#include <cassert> //!!
+
 namespace lk = likely;
 namespace test = likely::test;
 namespace po = boost::program_options;
 
-void useMethod(int methodId, std::string const &methodName, test::TestLikelihood &tester,
+void useMethod(int methodId, std::string const &methodName,
 lk::FunctionPtr f, lk::Parameters const &initial,
 lk::Parameters const &errors, double prec) {
     boost::format fmt("%d %.4f %.4f %.4f\n");
-    tester.resetCounts();
     lk::FunctionMinimumPtr fmin = lk::findMinimum(f,initial,errors,methodName,prec);
-    test::TestLikelihood::Counts counts(tester.getCounts());
-    std::cout << fmt % methodId % std::log10(counts.first)
-        % (counts.second ? std::log10(counts.second) : 0.)
+    std::cout << fmt % methodId % std::log10(lk::lastMinEvalCount)
+        % (lk::lastMinGradCount ? std::log10(lk::lastMinGradCount) : 0.)
         % -std::log10(fmin->getMinValue());
 }
 
@@ -134,17 +134,17 @@ int main(int argc, char **argv) {
                 double precValue(precision[precIndex]);
                 // Use methods that do not use the function gradient.
 #ifdef HAVE_LIBGSL
-                useMethod(1,"gsl::nmsimplex2",tester,f,initial,errors,precValue);
-                useMethod(2,"gsl::nmsimplex2rand",tester,f,initial,errors,precValue);
+                useMethod(1,"gsl::nmsimplex2",f,initial,errors,precValue);
+                useMethod(2,"gsl::nmsimplex2rand",f,initial,errors,precValue);
 #endif
 #ifdef HAVE_LIBMINUIT2
-                useMethod(3,"mn::simplex",tester,f,initial,errors,precValue);
-                useMethod(4,"mn::vmetric",tester,f,initial,errors,precValue);
-                useMethod(5,"mn::vmetric_fast",tester,f,initial,errors,precValue);
+                useMethod(3,"mn::simplex",f,initial,errors,precValue);
+                useMethod(4,"mn::vmetric",f,initial,errors,precValue);
+                useMethod(5,"mn::vmetric_fast",f,initial,errors,precValue);
 #endif
                 // Use methods that require a gradient calculator.
 #ifdef HAVE_LIBGSL
-                //useMethod(6,"gsl::conjugate_fr",tester,f,gc,initial,errors,precValue);
+                //useMethod(6,"gsl::conjugate_fr",f,gc,initial,errors,precValue);
 #endif
             }
         }
