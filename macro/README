@@ -1,0 +1,3 @@
+This directory is for ROOT macros that are used interactively and not compiled.
+
+Only files with .cc extensions are tracked by git.

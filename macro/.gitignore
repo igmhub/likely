@@ -1,0 +1,9 @@
+# ignore almost everything here
+*
+
+# except this .gitignore file
+!.gitignore
+
+# any root macros
+!*.cc
+!README
