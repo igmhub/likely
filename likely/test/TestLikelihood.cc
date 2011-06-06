@@ -12,7 +12,7 @@
 namespace local = likely::test;
 
 local::TestLikelihood::TestLikelihood(int npar, double sigma, double rho, double alpha)
-: _npar(npar), _sigma(sigma), _rho(rho), _alpha(alpha), _trace(false), _counts(0,0)
+: _npar(npar), _sigma(sigma), _rho(rho), _alpha(alpha), _trace(false)
 {
     // Check for valid inputs.
     if(npar < 0) {
@@ -65,11 +65,10 @@ double local::TestLikelihood::evaluate(Parameters const &x) const {
     arg1 *= _inverseDiagonal/2;
     arg2 *= _inverseOffDiagonal;
     double result(arg1+arg2);
-    // Update our counts and print an optional trace.
-    _counts.first++;    
+    // Print an optional trace.
     if(_trace) {
         boost::format pFormat("%.5f");
-        std::cout << '[' << _counts.first << "] TestLikelihood(" << pFormat % x[0];
+        std::cout << "TestLikelihood(" << pFormat % x[0];
         for(int i = 1; i < _npar; ++i) {
             std::cout << ',' << pFormat % x[i];
         }
@@ -92,11 +91,10 @@ void local::TestLikelihood::evaluateGradient(Parameters const &x, Gradient &grad
     for(int i = 0; i < _npar; ++i) {
         grad[i] = 2*y[i]*(1 + 2*_alpha*x[i])/tmp - 2*(_rho + 2*_alpha*x[i])*ysum/delta;
     }
-    // Update our counts and print an optional trace.
-    _counts.second++;
+    // Print an optional trace.
     if(_trace) {
         boost::format pFormat("%.5f");
-        std::cout << '[' << _counts.second << "] TestLikelihood(" << pFormat % x[0];
+        std::cout << "TestLikelihood(" << pFormat % x[0];
         for(int i = 1; i < _npar; ++i) {
             std::cout << ',' << pFormat % x[i];
         }

@@ -15,8 +15,6 @@
 
 #include <iostream>
 
-#include <cassert> //!!
-
 namespace lk = likely;
 namespace test = likely::test;
 namespace po = boost::program_options;

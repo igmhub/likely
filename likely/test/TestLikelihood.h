@@ -8,7 +8,6 @@
 #include "boost/utility.hpp"
 
 #include <vector>
-#include <utility>
 
 namespace likely {
 namespace test {
@@ -30,15 +29,8 @@ namespace test {
         void evaluateGradient(Parameters const &params, Gradient &grad) const;
         // Turns evaluation tracing on/off.
         void setTrace(bool value);
-        // Returns the number of function and gradient evaluations since this object
-        // was created or resetCounts() was called.
-        typedef std::pair<long,long> Counts;
-        Counts getCounts() const;
-        // Resets the evaluation counter.
-        void resetCounts();
 	private:
         int _npar;
-        mutable Counts _counts;
         double _sigma, _rho, _alpha, _delta;
         double _inverseDiagonal, _inverseOffDiagonal;
         bool _trace;
@@ -47,8 +39,7 @@ namespace test {
 	}; // TestLikelihood
 	
     inline void TestLikelihood::setTrace(bool value) { _trace = value; }
-    inline TestLikelihood::Counts TestLikelihood::getCounts() const { return _counts; }
-    inline void TestLikelihood::resetCounts() { _counts.first = _counts.second = 0; }    
+
     inline double TestLikelihood::operator()(Parameters const &params) const {
         return evaluate(params);
     }
