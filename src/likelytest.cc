@@ -155,10 +155,14 @@ int main(int argc, char **argv) {
 #endif
                 // Use methods that require a gradient calculator.
 #ifdef HAVE_LIBGSL
-                useMethod(6,"gsl::conjugate_fr",f,gc,initial,errors,precValue);
-                useMethod(7,"gsl::conjugate_pr",f,gc,initial,errors,precValue);
-                useMethod(8,"gsl::vector_bfgs2",f,gc,initial,errors,precValue);
-                useMethod(9,"gsl::steepest_descent",f,gc,initial,errors,precValue);
+                useMethod(11,"gsl::conjugate_fr",f,gc,initial,errors,precValue);
+                useMethod(12,"gsl::conjugate_pr",f,gc,initial,errors,precValue);
+                useMethod(13,"gsl::vector_bfgs2",f,gc,initial,errors,precValue);
+                useMethod(14,"gsl::steepest_descent",f,gc,initial,errors,precValue);
+#endif
+#ifdef HAVE_LIBMINUIT2
+                useMethod(15,"mn::vmetric_grad",f,gc,initial,errors,precValue);
+                useMethod(16,"mn::vmetric_grad_fast",f,gc,initial,errors,precValue);
 #endif
             }
         }

@@ -53,6 +53,34 @@ local::MinuitEngine::MinuitEngine(FunctionPtr f, int nPar, std::string const &al
     }
 }
 
+local::MinuitEngine::MinuitEngine(FunctionPtr f, GradientCalculatorPtr gc,
+int nPar, std::string const &algorithm)
+: _nPar(nPar), _f(f), _gc(gc), _initialState(new mn::MnUserParameterState())
+{
+    if(_nPar <= 0) {
+        throw RuntimeError("MinuitEngine: number of parameters must be > 0.");
+    }
+    boost::format fmt("p%d");
+    // Minuit2 crashes during the fit if a parameter is initially defined fixed and
+    // then later released, so we always create the parameter as floating with
+    // zero error below.
+    for(int i = 0; i < _nPar; ++i) {
+        _initialState->Add(boost::str(fmt % i),0,0);
+    }
+    // Select the requested algorithm (last parameter is the MnStrategy value)
+    if(algorithm == "vmetric_grad") {
+        minimumFinder = boost::bind(
+            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,1);
+    }
+    else if(algorithm == "vmetric_grad_fast") {
+        minimumFinder = boost::bind(
+            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,0);
+    }
+    else {
+        throw RuntimeError("MinuitEngine: unknown algorithm '" + algorithm + "'");
+    }
+}
+
 local::MinuitEngine::~MinuitEngine() { }
 
 double local::MinuitEngine::operator()(Parameters const &pValues) const {
@@ -63,15 +91,12 @@ double local::MinuitEngine::operator()(Parameters const &pValues) const {
     return (*_f)(pValues);
 }
 
-/**
-double local::MinuitEngine::operator()(double const *pValues) const {
-    Parameters pVec(_nPar);
-    for(int i = 0; i < _nPar; ++i) {
-        pVec[i] = *pValues++;
-    }
-    return (*_f)(pVec);
+local::Gradient local::MinuitEngine::Gradient(Parameters const& pValues) const {
+    local::Gradient grad(_nPar);
+    incrementGradCount();
+    (*_gc)(pValues,grad);
+    return grad;
 }
-**/
 
 double local::MinuitEngine::Up() const {
     // Assumes that Fcn returns -logL(p) and that we are interested in 1-sigma errors.
@@ -109,8 +134,10 @@ Parameters const &errors, double prec, int maxfcn, int strategy) {
     // a default constructor and provide a Minimize method, e.g., a subclass
     // of ROOT::Minuit2::FunctionMinimizer.
     T algorithm;
-    mn::FunctionMinimum mnmin =
-        algorithm.Minimize(*this, *_initialState, mn::MnStrategy(strategy), maxfcn, prec);
+    mn::FunctionMinimum mnmin = _gc ?
+        algorithm.Minimize(*this, *_initialState, mn::MnStrategy(strategy), maxfcn, prec) :
+        algorithm.Minimize((ROOT::Minuit2::FCNBase const&)(*this),
+            *_initialState, mn::MnStrategy(strategy), maxfcn, prec);
     // Transfer the minimization results from the Minuit-specific return object
     // to our engine-neutral return object.
     FunctionMinimumPtr fmin(new FunctionMinimum(mnmin.Fval(),
@@ -130,8 +157,11 @@ bool local::MinuitEngine::registerMinuitEngineMethods() {
     // Create a function object that constructs a MinuitEngine with parameters
     // (Function f, int npar, std::string const &methodName).
     AbsEngine::Factory factory = boost::bind(boost::factory<MinuitEngine*>(),_1,_2,_3);
+    AbsEngine::FactoryWithGC factoryWithGC =
+        boost::bind(boost::factory<MinuitEngine*>(),_1,_2,_3,_4);
     // Register our minimization methods.
     AbsEngine::getRegistry()["mn"] = factory;
+    AbsEngine::getRegistryWithGC()["mn"] = factoryWithGC;
     // Return a dummy value so that we can be called at program startup.
     return true;
 }

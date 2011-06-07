@@ -6,7 +6,7 @@
 #include "likely/types.h"
 #include "likely/AbsEngine.h"
 
-#include "Minuit2/FCNBase.h"
+#include "Minuit2/FCNGradientBase.h"
 
 #include "boost/smart_ptr.hpp"
 
@@ -19,17 +19,20 @@ namespace Minuit2 {
 
 namespace likely {
     // Implements minimization and error analysis using the Minuit2 library.
-	class MinuitEngine : public ROOT::Minuit2::FCNBase, public AbsEngine {
+	class MinuitEngine : public ROOT::Minuit2::FCNGradientBase, public AbsEngine {
 	public:
 	    // Creates a new engine for the specified function of the specified number
-	    // of parameters. If names are not specified, they will be P0,P1,P2,...
+	    // of parameters.
 		MinuitEngine(FunctionPtr f, int nPar, std::string const &algorithm);
+		MinuitEngine(FunctionPtr f, GradientCalculatorPtr gc, int nPar,
+		    std::string const &algorithm);
 		virtual ~MinuitEngine();
 		// Evaluates the engine's function for the specified input parameter values.
         virtual double operator()(Parameters const& pValues) const;
-        /*
-        virtual double operator()(double const *pValues) const;
-        */
+        // Evaluates the function gradient for the specified input parameters.
+        // (Use likely::Gradient below to distinguish from the method name)
+        virtual likely::Gradient Gradient(Parameters const& pValues) const;
+        virtual bool CheckGradient() const;
         // Returns the change in function value corresponding to one unit of error.
         // Can be changed to calculate different confidence intervals. For 1-sigma errors,
         // this value should be 1 for both chi-square and -2log(L) functions.
@@ -45,6 +48,7 @@ namespace likely {
 	private:
         int _nPar;
         FunctionPtr _f;
+        GradientCalculatorPtr _gc;
         StatePtr _initialState;
         void _setInitialState(Parameters const &initial, Parameters const &errors);
         // Registers our named methods.
@@ -55,6 +59,7 @@ namespace likely {
 	inline MinuitEngine::StatePtr MinuitEngine::getInitialState() {
         return _initialState;
 	}
+    inline bool MinuitEngine::CheckGradient() const { return false; }
 	
 } // likely
 
