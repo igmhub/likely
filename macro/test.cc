@@ -20,10 +20,27 @@ void slicestats(TH2F *hist) {
     }
 }
 
+// Compares the performance of methods based on wether they use gradient info.
+void grad(int npar=100) {
+    TH2F *frame = new TH2F("frame","",1,0,15,1,0.5,4.5);
+    frame->SetXTitle("log10(Accuracy)");
+    frame->SetYTitle("log10(Cost)");
+    frame->Draw();
+    lt->SetMarkerColor(kRed);
+    lt->Draw("ncall:accuracy","method<=5","same");
+    lt->SetMarkerColor(kGreen);
+    lt->Draw("ncall:accuracy","method>5","same");
+    lt->SetMarkerColor(kBlue);
+    lt->Draw(Form("log10(pow(10,ncall)+2*%d*pow(10,ngrad)):accuracy",npar),"method>5","same");
+}
+
 void test() {
     // Initialize graphics options
     gROOT->SetStyle("Plain");
     gStyle->SetOptStat(0);
     gStyle->SetOptTitle(0);
     gStyle->SetOptFit(1);
+    TCanvas *c = new TCanvas("test","likelytest analysis",800,600);
+    c->SetGridx();
+    c->SetGridy();
 }
