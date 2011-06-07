@@ -14,13 +14,8 @@ local::AbsEngine::AbsEngine()
 
 local::AbsEngine::~AbsEngine() { }
 
-local::AbsEngine::Registry &local::AbsEngine::getRegistry() {
-    static Registry *registry = new Registry();
-    return *registry;
-}
-
-local::AbsEngine::RegistryWithGC &local::AbsEngine::getRegistryWithGC() {
-    static RegistryWithGC *registry = new RegistryWithGC();
+local::AbsEngine::EngineRegistry &local::AbsEngine::getEngineRegistry() {
+    static EngineRegistry *registry = new EngineRegistry();
     return *registry;
 }
 
@@ -35,33 +30,6 @@ local::ParsedMethodName local::parseMethodName(std::string const &methodName) {
     return ParsedMethodName(engine,algorithm);
 }
 
-local::FunctionMinimumPtr local::findMinimum(FunctionPtr f,
-Parameters const &initial, Parameters const &errors, std::string const &methodName,
-double precision, long maxIterations) {
-    // Check that the input vectors have the same length.
-    int nPar(initial.size());
-    if(errors.size() != nPar) {
-        throw RuntimeError(
-            "findMinimum: initial parameter and error vectors have different sizes.");
-    }
-    // Parse the method name, which should have the form <engine>::<algorithm>
-    ParsedMethodName parsed(parseMethodName(methodName));
-    // Lookup the factory that creates this type of engine.
-    AbsEngine::Registry::iterator found = AbsEngine::getRegistry().find(parsed.first);
-    if(found == AbsEngine::getRegistry().end()) {
-        throw RuntimeError("findMinimum: no such engine '" + methodName + "'");
-    }
-    // Create a new engine for this function.
-    AbsEngine::Factory factory = found->second;
-    boost::scoped_ptr<AbsEngine> engine(factory(f,nPar,parsed.second));
-    // Run the algorithm.
-    FunctionMinimumPtr fmin(engine->minimumFinder(initial,errors,precision,maxIterations));
-    // Save the evaluation counts.
-    lastMinEvalCount = engine->getEvalCount();
-    lastMinGradCount = 0;
-    return fmin;
-}
-
 local::FunctionMinimumPtr local::findMinimum(FunctionPtr f, GradientCalculatorPtr gc,
 Parameters const &initial, Parameters const &errors, std::string const &methodName,
 double precision, long maxIterations) {
@@ -74,13 +42,13 @@ double precision, long maxIterations) {
     // Parse the method name, which should have the form <engine>::<algorithm>
     ParsedMethodName parsed(parseMethodName(methodName));
     // Lookup the factory that creates this type of engine.
-    AbsEngine::RegistryWithGC::iterator found =
-        AbsEngine::getRegistryWithGC().find(parsed.first);
-    if(found == AbsEngine::getRegistryWithGC().end()) {
+    AbsEngine::EngineRegistry::iterator found =
+        AbsEngine::getEngineRegistry().find(parsed.first);
+    if(found == AbsEngine::getEngineRegistry().end()) {
         throw RuntimeError("findMinimum: no such engine '" + methodName + "'");
     }
     // Create a new engine for this function.
-    AbsEngine::FactoryWithGC factory = found->second;
+    AbsEngine::EngineFactory factory = found->second;
     boost::scoped_ptr<AbsEngine> engine(factory(f,gc,nPar,parsed.second));
     // Run the algorithm.
     FunctionMinimumPtr fmin(engine->minimumFinder(initial,errors,precision,maxIterations));
@@ -88,6 +56,14 @@ double precision, long maxIterations) {
     lastMinEvalCount = engine->getEvalCount();
     lastMinGradCount = engine->getGradCount();
     return fmin;
+}
+
+local::FunctionMinimumPtr local::findMinimum(FunctionPtr f,
+Parameters const &initial, Parameters const &errors, std::string const &methodName,
+double precision, long maxIterations) {
+    // Use a null gradient calculator.
+    GradientCalculatorPtr gc;
+    return findMinimum(f,gc,initial,errors,methodName,precision,maxIterations);
 }
 
 // Initialize the global evaluation counters.

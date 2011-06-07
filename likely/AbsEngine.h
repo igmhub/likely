@@ -39,15 +39,11 @@ namespace likely {
 		    MinimumFinder;
         MinimumFinder minimumFinder;
 
-	    // Declares global registries for creating engines by name, with or without
-	    // a gradient calculator.
-        typedef boost::function<AbsEngine* (FunctionPtr, int, std::string const&)> Factory;
-        typedef std::map<std::string, Factory> Registry;
-        static Registry &getRegistry();
+	    // Declares global registries for creating engines by name.
         typedef boost::function<AbsEngine* (FunctionPtr, GradientCalculatorPtr,
-            int, std::string const&)> FactoryWithGC;
-        typedef std::map<std::string, FactoryWithGC> RegistryWithGC;
-        static RegistryWithGC &getRegistryWithGC();
+            int, std::string const&)> EngineFactory;
+        typedef std::map<std::string, EngineFactory> EngineRegistry;
+        static EngineRegistry &getEngineRegistry();
         
         /*
         typedef boost::function<double (Parameters const &pInitial,

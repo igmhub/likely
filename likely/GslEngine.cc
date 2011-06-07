@@ -13,80 +13,84 @@
 
 namespace local = likely;
 
-local::GslEngine::GslEngine(FunctionPtr f, int nPar, std::string const &algorithm)
-: _nPar(nPar), _f(f)
-{
-    if(_nPar <= 0) {
-        throw RuntimeError("GslEngine: number of parameters must be > 0.");
-    }
-    // Bind this function to our GSL global function
-    _func.n = nPar;
-    _func.f = _evaluate;
-    _func.params = 0;
-    _params = Parameters(nPar);
-    _getEngineStack().push(this);
-    // Select the requested algorithm.
-    if(algorithm == "nmsimplex") {
-        minimumFinder = boost::bind(&GslEngine::minimize,this,
-            gsl_multimin_fminimizer_nmsimplex,_1,_2,_3,_4);
-    }
-    else if(algorithm == "nmsimplex2") {
-        minimumFinder = boost::bind(&GslEngine::minimize,this,
-            gsl_multimin_fminimizer_nmsimplex2,_1,_2,_3,_4);
-    }
-    else if(algorithm == "nmsimplex2rand") {
-        minimumFinder = boost::bind(&GslEngine::minimize,this,
-            gsl_multimin_fminimizer_nmsimplex2rand,_1,_2,_3,_4);
-    }
-    else {
-        throw RuntimeError("GslEngine: unknown algorithm '" + algorithm + "'");
-    }
-}
-
-local::GslEngine::GslEngine(FunctionPtr f, GradientCalculatorPtr gc, int nPar,
-std::string const &algorithm)
+local::GslEngine::GslEngine(FunctionPtr f, GradientCalculatorPtr gc,
+int nPar, std::string const &algorithm)
 : _nPar(nPar), _f(f), _gc(gc)
 {
     if(_nPar <= 0) {
         throw RuntimeError("GslEngine: number of parameters must be > 0.");
     }
-    // Bind this function and its gradient calculator to our GSL global function
-    _funcWithGradient.n = nPar;
-    _funcWithGradient.f = _evaluate;
-    _funcWithGradient.df = _evaluateGradient;
-    _funcWithGradient.fdf = _evaluateBoth;
-    _funcWithGradient.params = 0;
-    _params = Parameters(nPar);
-    _grad = Gradient(nPar);
-    _getEngineStack().push(this);
-    // Use a fixed line minimization tolerance of 0.1. See:
+    // Use a fixed line minimization tolerance of 0.1 for methods that use derivatives:
     // http://www.gnu.org/software/gsl/manual/html_node/
     //   Initializing-the-Multidimensional-Minimizer.html
     double lineMinTol(0.1);
     // Select the requested algorithm.
-    if(algorithm == "conjugate_fr") {
+    bool useGradient(true);
+    if(algorithm == "nmsimplex") {
+        minimumFinder = boost::bind(&GslEngine::minimize,this,
+            gsl_multimin_fminimizer_nmsimplex,_1,_2,_3,_4);
+        useGradient = false;
+    }
+    else if(algorithm == "nmsimplex2") {
+        minimumFinder = boost::bind(&GslEngine::minimize,this,
+            gsl_multimin_fminimizer_nmsimplex2,_1,_2,_3,_4);
+        useGradient = false;
+    }
+    else if(algorithm == "nmsimplex2rand") {
+        minimumFinder = boost::bind(&GslEngine::minimize,this,
+            gsl_multimin_fminimizer_nmsimplex2rand,_1,_2,_3,_4);
+        useGradient = false;
+    }
+    else if(algorithm == "conjugate_fr") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
             gsl_multimin_fdfminimizer_conjugate_fr,_1,_2,_3,_4,lineMinTol);
+        useGradient = true;
     }
     else if(algorithm == "conjugate_pr") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
             gsl_multimin_fdfminimizer_conjugate_pr,_1,_2,_3,_4,lineMinTol);
+        useGradient = true;
     }
     else if(algorithm == "vector_bfgs") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
             gsl_multimin_fdfminimizer_vector_bfgs,_1,_2,_3,_4,lineMinTol);
+        useGradient = true;
     }
     else if(algorithm == "vector_bfgs2") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
             gsl_multimin_fdfminimizer_vector_bfgs2,_1,_2,_3,_4,lineMinTol);
+        useGradient = true;
     }
     else if(algorithm == "steepest_descent") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
             gsl_multimin_fdfminimizer_steepest_descent,_1,_2,_3,_4,lineMinTol);
+        useGradient = true;
     }
     else {
         throw RuntimeError("GslEngine: unknown algorithm '" + algorithm + "'");
     }
+    if(useGradient) {
+        // Check that we have a gradient calculator to use.
+        if(!_gc) {
+            throw RuntimeError(
+                "GslEngine: selected algorithm needs a gradient calculator.");
+        }
+        // Bind this function and its gradient calculator to our GSL global function
+        _funcWithGradient.n = nPar;
+        _funcWithGradient.f = _evaluate;
+        _funcWithGradient.df = _evaluateGradient;
+        _funcWithGradient.fdf = _evaluateBoth;
+        _funcWithGradient.params = 0;
+        _grad = Gradient(nPar);        
+    }
+    else {
+        // Bind this function to our GSL global function
+        _func.n = nPar;
+        _func.f = _evaluate;
+        _func.params = 0;
+    }
+    _params = Parameters(nPar);
+    _getEngineStack().push(this);        
 }
 
 local::GslEngine::~GslEngine() {
@@ -232,15 +236,11 @@ bool local::GslEngine::registerGslEngineMethods() {
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::registerEngineMethods");
     // Create a function object that constructs a GslEngine with parameters
-    // (FunctionPtr f, int npar, std::string const &methodName).
-    AbsEngine::Factory factory = boost::bind(boost::factory<GslEngine*>(),_1,_2,_3);
-    // Create a function object that constructs a GslEngine with parameters
     // (FunctionPtr f, GradientCalculatorPtr gc, int npar, std::string const &methodName).
-    AbsEngine::FactoryWithGC factoryWithGC =
+    AbsEngine::EngineFactory factory =
         boost::bind(boost::factory<GslEngine*>(),_1,_2,_3,_4);
-    // Register our factory methods.
-    AbsEngine::getRegistry()["gsl"] = factory;
-    AbsEngine::getRegistryWithGC()["gsl"] = factoryWithGC;
+    // Register our factory method.
+    AbsEngine::getEngineRegistry()["gsl"] = factory;
     // Return a dummy value so that we can be called at program startup.
     return true;
 }

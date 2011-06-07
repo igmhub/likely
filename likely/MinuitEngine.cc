@@ -22,37 +22,6 @@
 namespace local = likely;
 namespace mn = ROOT::Minuit2;
 
-local::MinuitEngine::MinuitEngine(FunctionPtr f, int nPar, std::string const &algorithm)
-: _nPar(nPar), _f(f), _initialState(new mn::MnUserParameterState())
-{
-    if(_nPar <= 0) {
-        throw RuntimeError("MinuitEngine: number of parameters must be > 0.");
-    }
-    boost::format fmt("p%d");
-    // Minuit2 crashes during the fit if a parameter is initially defined fixed and
-    // then later released, so we always create the parameter as floating with
-    // zero error below.
-    for(int i = 0; i < _nPar; ++i) {
-        _initialState->Add(boost::str(fmt % i),0,0);
-    }
-    // Select the requested algorithm (last parameter is the MnStrategy value)
-    if(algorithm == "simplex") {
-        minimumFinder = boost::bind(
-            &MinuitEngine::minimize<mn::SimplexMinimizer>,this,_1,_2,_3,_4,1);
-    }
-    else if(algorithm == "vmetric") {
-        minimumFinder = boost::bind(
-            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,1);
-    }
-    else if(algorithm == "vmetric_fast") {
-        minimumFinder = boost::bind(
-            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,0);
-    }
-    else {
-        throw RuntimeError("MinuitEngine: unknown algorithm '" + algorithm + "'");
-    }
-}
-
 local::MinuitEngine::MinuitEngine(FunctionPtr f, GradientCalculatorPtr gc,
 int nPar, std::string const &algorithm)
 : _nPar(nPar), _f(f), _gc(gc), _initialState(new mn::MnUserParameterState())
@@ -68,16 +37,42 @@ int nPar, std::string const &algorithm)
         _initialState->Add(boost::str(fmt % i),0,0);
     }
     // Select the requested algorithm (last parameter is the MnStrategy value)
-    if(algorithm == "vmetric_grad") {
+    bool useGradient(false);
+    int fast(0), normal(1);
+    if(algorithm == "simplex") {
         minimumFinder = boost::bind(
-            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,1);
+            &MinuitEngine::minimize<mn::SimplexMinimizer>,this,_1,_2,_3,_4,normal);
+        useGradient = false;
+    }
+    else if(algorithm == "vmetric") {
+        minimumFinder = boost::bind(
+            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,normal);
+        useGradient = false;
+    }
+    else if(algorithm == "vmetric_fast") {
+        minimumFinder = boost::bind(
+            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,fast);
+        useGradient = false;
+    }
+    else if(algorithm == "vmetric_grad") {
+        minimumFinder = boost::bind(
+            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,normal);
+        useGradient = true;
     }
     else if(algorithm == "vmetric_grad_fast") {
         minimumFinder = boost::bind(
-            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,0);
+            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,fast);
+        useGradient = true;
     }
     else {
         throw RuntimeError("MinuitEngine: unknown algorithm '" + algorithm + "'");
+    }
+    if(useGradient) {
+        // Check that we have a gradient calculator to use.
+        if(!_gc) {
+            throw RuntimeError(
+                "MinuitEngine: selected algorithm needs a gradient calculator.");
+        }
     }
 }
 
@@ -85,7 +80,8 @@ local::MinuitEngine::~MinuitEngine() { }
 
 double local::MinuitEngine::operator()(Parameters const &pValues) const {
     if(pValues.size() != _nPar) {
-        throw RuntimeError("MinuitEngine: function evaluated with wrong number of parameters.");
+        throw RuntimeError(
+            "MinuitEngine: function evaluated with wrong number of parameters.");
     }
     incrementEvalCount();
     return (*_f)(pValues);
@@ -107,10 +103,12 @@ void local::MinuitEngine::_setInitialState(
 Parameters const &initial, Parameters const &errors) {
     // Check for the expected input vector sizes.
     if(initial.size() != _nPar) {
-        throw RuntimeError("MinuitEngine: got unexpected number of initial parameter values.");
+        throw RuntimeError(
+            "MinuitEngine: got unexpected number of initial parameter values.");
     }
     if(errors.size() != _nPar) {
-        throw RuntimeError("MinuitEngine: got unexpected number of initial parameter errors.");
+        throw RuntimeError(
+            "MinuitEngine: got unexpected number of initial parameter errors.");
     }
     // Set the parameter values and error estimates from the input vectors.
     for(int i = 0; i < _nPar; ++i) {
@@ -155,13 +153,11 @@ template local::FunctionMinimumPtr
 
 bool local::MinuitEngine::registerMinuitEngineMethods() {
     // Create a function object that constructs a MinuitEngine with parameters
-    // (Function f, int npar, std::string const &methodName).
-    AbsEngine::Factory factory = boost::bind(boost::factory<MinuitEngine*>(),_1,_2,_3);
-    AbsEngine::FactoryWithGC factoryWithGC =
+    // (FunctionPtr f, GradientCalculatorPtr gc, int npar, std::string const &methodName).
+    AbsEngine::EngineFactory factory =
         boost::bind(boost::factory<MinuitEngine*>(),_1,_2,_3,_4);
     // Register our minimization methods.
-    AbsEngine::getRegistry()["mn"] = factory;
-    AbsEngine::getRegistryWithGC()["mn"] = factoryWithGC;
+    AbsEngine::getEngineRegistry()["mn"] = factory;
     // Return a dummy value so that we can be called at program startup.
     return true;
 }
