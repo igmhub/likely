@@ -37,6 +37,7 @@ namespace likely {
         Parameters getErrors() const;
         // Returns parameter values that are randomly sampled from this minimum.
         Parameters getRandomParameters() const;
+        void setRandomParameters(Parameters &params) const;
         // Ouptuts a multiline description of this minimum to the specified stream using
         // the specified printf format for floating point values.
         void printToStream(std::ostream &os, std::string formatSpec = "%.6f") const;

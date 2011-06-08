@@ -48,6 +48,12 @@ local::Parameters local::FunctionMinimum::getErrors() const {
 }
 
 local::Parameters local::FunctionMinimum::getRandomParameters() const {
+    Parameters params(_where.size());
+    setRandomParameters(params);
+    return params;
+}
+
+void local::FunctionMinimum::setRandomParameters(Parameters &params) const {
     if(!haveCovariance()) {
         throw RuntimeError(
             "FunctionMinimum::getRandomParameters: no covariance matrix available.");
@@ -67,12 +73,9 @@ local::Parameters local::FunctionMinimum::getRandomParameters() const {
         }
         _haveCholesky = true;
     }
-    // Center the random parameters at the location of the minimum.
-    Parameters params(_where);
     // Fill a vector of random Gaussian variables.
     Parameters gauss(nPar);
     for(int i = 0; i < nPar; ++i) gauss[i] = 0;
-    return params;
 }
 
 void local::FunctionMinimum::printToStream(std::ostream &os, std::string formatSpec) const {

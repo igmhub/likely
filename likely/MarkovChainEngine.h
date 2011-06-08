@@ -6,29 +6,22 @@
 #include "likely/types.h"
 #include "likely/AbsEngine.h"
 
-#include "boost/random/mersenne_twister.hpp"
-
-#include "boost/function.hpp"
-
 namespace likely {
+    class Random;
 	class MarkovChainEngine : public AbsEngine {
 	public:
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters.
-		MarkovChainEngine(Function f, int nPar);
+		MarkovChainEngine(FunctionPtr f, int nPar);
 		virtual ~MarkovChainEngine();
-        Parameters advance(Parameters const &initial, Parameters const &errors,
-            int nSamples = 1);
-        // Sets the random seed for generating subsequent samples.
-        void setSeed(int seedValue);
+        Parameters advance(FunctionMinimumPtr fmin, int nSamples = 1);
         // Searches for a minimum by taking a sequence of random steps.
         FunctionMinimumPtr minimize(Parameters const &initial, Parameters const &errors,
             double prec, int maxSteps);
 	private:
         int _nPar;
-        Function _f;
-        boost::mt19937 _uniform;
-        boost::function<double ()> _gauss;
+        FunctionPtr _f;
+        Random &_random;
 	}; // MarkovChainEngine
 } // likely
 
