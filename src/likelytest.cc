@@ -34,6 +34,9 @@ lk::Parameters const &errors, double prec) {
     std::cout << fmt % methodId % std::log10(lk::lastMinEvalCount)
         % (lk::lastMinGradCount ? std::log10(lk::lastMinGradCount) : 0.)
         % (fmin->getMinValue() > 0 ? -std::log10(fmin->getMinValue()) : 0);
+    if(fmin->haveCovariance()) {
+        lk::Parameters random = fmin->getRandomParameters();
+    }
 }
 
 int main(int argc, char **argv) {

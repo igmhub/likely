@@ -8,6 +8,12 @@
 #include <iostream>
 #include <cmath>
 
+// Declare a binding to this LAPACK Cholesky decomposition routine:
+// http://www.netlib.org/lapack/double/dpptrf.f
+extern "C" {
+    void dpptrf_(char* uplo, int* n, double* ap, int *info);
+}
+
 namespace local = likely;
 
 local::FunctionMinimum::FunctionMinimum(double minValue, Parameters const& where)
@@ -39,6 +45,34 @@ local::Parameters local::FunctionMinimum::getErrors() const {
         errors[i] = sigsq > 0 ? std::sqrt(sigsq) : 0;
     }
     return errors;
+}
+
+local::Parameters local::FunctionMinimum::getRandomParameters() const {
+    if(!haveCovariance()) {
+        throw RuntimeError(
+            "FunctionMinimum::getRandomParameters: no covariance matrix available.");
+    }
+    int nPar(_where.size());
+    // Compute the Cholesky decomposition of our covariance matrix if necessary.
+    if(!_haveCholesky) {
+        // Copy our covariance matrix.
+        _cholesky = _covar;
+        // Use LAPACK to perform the decomposition.
+        char uplo('U');
+        int info(0);
+        dpptrf_(&uplo,&nPar,&_cholesky[0],&info);
+        std::cout << "info = " << info << std::endl;
+        for(int i = 0; i < _cholesky.size(); ++i) {
+            std::cout << i << ' ' << _cholesky[i] << std::endl;
+        }
+        _haveCholesky = true;
+    }
+    // Center the random parameters at the location of the minimum.
+    Parameters params(_where);
+    // Fill a vector of random Gaussian variables.
+    Parameters gauss(nPar);
+    for(int i = 0; i < nPar; ++i) gauss[i] = 0;
+    return params;
 }
 
 void local::FunctionMinimum::printToStream(std::ostream &os, std::string formatSpec) const {

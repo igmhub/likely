@@ -35,6 +35,8 @@ namespace likely {
         // Returns a vector of parameter error estimates or throws a RuntimeError if
         // no covariance matrix is available.
         Parameters getErrors() const;
+        // Returns parameter values that are randomly sampled from this minimum.
+        Parameters getRandomParameters() const;
         // Ouptuts a multiline description of this minimum to the specified stream using
         // the specified printf format for floating point values.
         void printToStream(std::ostream &os, std::string formatSpec = "%.6f") const;
@@ -43,6 +45,8 @@ namespace likely {
         Parameters _where;
         bool _haveCovariance;
         PackedCovariance _covar;
+        mutable bool _haveCholesky;
+        mutable PackedCovariance _cholesky;
 	}; // FunctionMinimum
 	
     inline double FunctionMinimum::getMinValue() const { return _minValue; }
