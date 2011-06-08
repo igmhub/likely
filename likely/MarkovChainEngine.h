@@ -21,6 +21,9 @@ namespace likely {
             int nSamples = 1);
         // Sets the random seed for generating subsequent samples.
         void setSeed(int seedValue);
+        // Searches for a minimum by taking a sequence of random steps.
+        FunctionMinimumPtr minimize(Parameters const &initial, Parameters const &errors,
+            double prec, int maxSteps);
 	private:
         int _nPar;
         Function _f;

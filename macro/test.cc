@@ -1,6 +1,15 @@
 // Created 6-Jun-2011 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 // ROOT macros to analyze the output of the likelytest program.
 
+/*
+Run benchmarks from ../build using:
+./likelytest --npar 100 --ntrial 50 --rho 0.5 --alpha -0.1 > ! test100r.dat
+./likelytest --npar 100 --ntrial 50 --rho 0.5 --alpha -1 > ! test100ra.dat
+./likelytest --npar 10 --ntrial 50 --rho 0.5 --alpha -0.1 > ! test10r.dat
+./likelytest --npar 10 --ntrial 50 --rho 0.5 --alpha -1 > ! test10ra.dat
+text2root -i test100r.dat -o '../macro/test100r.root[lt]'
+*/
+
 void slicestats(TH2F *hist) {
     // Lookup the 2D histogram's x binning info
     Int_t nx = hist->GetNbinsX();

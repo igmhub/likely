@@ -29,9 +29,9 @@ void local::MarkovChainEngine::setSeed(int seedValue) {
 local::Parameters local::MarkovChainEngine::advance(
 Parameters const &initial, Parameters const &errors,int nSamples) {
     Parameters current(initial),trial(_nPar);
+    double currentNLL(_f(current));
     while(nSamples--) {
         bool accepted(false);
-        double currentNLL(_f(current));
         while(!accepted) {
             // Take a trial step by adding Gaussian offsets (scaled by the input errors)
             // to the current parameter values.
@@ -44,9 +44,21 @@ Parameters const &initial, Parameters const &errors,int nSamples) {
             if(logProbRatio >= 0 || _uniform() < std::exp(logProbRatio)) {
                 // Accept the trial step.
                 current = trial;
+                currentNLL = trialNLL;
                 accepted = true;
             }
         }
     }
     return current;
+}
+
+local::FunctionMinimumPtr local::MarkovChainEngine::minimize(
+Parameters const &initial, Parameters const &errors, double prec, int maxSteps) {
+    /*
+    - initialize covar as diag of input errors
+    - advance should use covar matrix as input
+    - advance takes currentNLL value as input
+    - advance keeps track of min NLL value seen so far
+    - advance has options to update covar
+    */
 }
