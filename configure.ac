@@ -20,6 +20,8 @@ LT_INIT
 # the library, so we just check that the linker can find the library using 'main')
 AC_CHECK_LIB([m],[cos],,
 	AC_MSG_ERROR([Cannot find the math library.]))
+AC_CHECK_LIB([lapack],[main],,
+	AC_MSG_ERROR([Cannot find the lapack library.]))
 
 # Following http://www.gentoo.org/proj/en/qa/automagic.xml below...
 

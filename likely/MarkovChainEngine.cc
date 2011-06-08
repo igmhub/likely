@@ -10,6 +10,12 @@
 
 namespace local = likely;
 
+// Declare a binding to this LAPACK Cholesky decomposition routine:
+// http://www.netlib.org/lapack/double/dpptrf.f
+extern "C" {
+    void dpptrf_(char* uplo, int* n, double* ap, int *info);
+}
+
 local::MarkovChainEngine::MarkovChainEngine(Function f, int nPar)
 : _f(f), _nPar(nPar)
 {

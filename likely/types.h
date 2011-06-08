@@ -18,7 +18,9 @@ namespace likely {
     typedef std::vector<double> Gradient;
 
     // Represents a Function covariance matrix near a local minimum.
-    typedef boost::numeric::ublas::symmetric_matrix<double> Covariance;
+    // Use column-major storage for compatiblity with LAPACK algorithms.
+    typedef boost::numeric::ublas::symmetric_matrix<double,
+        boost::numeric::ublas::column_major> Covariance;
 
     // Encapsulates a minimization objective function.
     typedef boost::function<double (Parameters const &pValues)> Function;
