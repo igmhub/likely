@@ -5,7 +5,6 @@
 
 #include "boost/function.hpp"
 #include "boost/smart_ptr.hpp"
-#include "boost/numeric/ublas/symmetric.hpp"
 
 #include <vector>
 
@@ -17,10 +16,8 @@ namespace likely {
     // Represents a gradient vector of function partial derivatives.
     typedef std::vector<double> Gradient;
 
-    // Represents a Function covariance matrix near a local minimum.
-    // Use column-major storage for compatiblity with LAPACK algorithms.
-    typedef boost::numeric::ublas::symmetric_matrix<double,
-        boost::numeric::ublas::column_major> Covariance;
+    // Represents a column-wise packed covariance matrix near a local minimum.
+    typedef std::vector<double> PackedCovariance;
 
     // Encapsulates a minimization objective function.
     typedef boost::function<double (Parameters const &pValues)> Function;

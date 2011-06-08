@@ -17,6 +17,7 @@
 #include "boost/functional/factory.hpp"
 #include "boost/bind.hpp"
 
+#include <cmath>
 #include <iostream>
 
 namespace local = likely;
@@ -144,8 +145,21 @@ Parameters const &errors, double prec, int maxfcn, int strategy) {
             *_initialState, mn::MnStrategy(strategy), maxfcn, edmTolerance);
     // Transfer the minimization results from the Minuit-specific return object
     // to our engine-neutral return object.
-    FunctionMinimumPtr fmin(new FunctionMinimum(mnmin.Fval(),
-        mnmin.UserParameters().Params()));
+    FunctionMinimumPtr fmin;
+    if(mnmin.HasValidParameters()) {
+        if(mnmin.HasValidCovariance()) {
+            // The Minuit packing of covariance matrix elements is directly
+            // compatible with what the FunctionMinimum ctor expects.
+            fmin.reset(new FunctionMinimum(mnmin.Fval(),
+                mnmin.UserParameters().Params(),mnmin.UserCovariance().Data()));
+            std::cout << mnmin.UserCovariance() << std::endl;
+            fmin->printToStream(std::cout);
+        }
+        else {
+            fmin.reset(new FunctionMinimum(mnmin.Fval(),
+                mnmin.UserParameters().Params()));
+        }
+    }
     return fmin;
 }
 
