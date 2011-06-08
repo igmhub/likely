@@ -12,6 +12,7 @@ liblikely_la_SOURCES = \
 	likely/FunctionMinimum.cc \
 	likely/AbsEngine.cc \
 	likely/MarkovChainEngine.cc \
+	likely/Random.cc \
 	likely/test/TestLikelihood.cc
 
 # library headers to install (nobase prefix preserves directories under bosslya)
@@ -22,6 +23,7 @@ nobase_include_HEADERS = \
 	likely/FunctionMinimum.h \
 	likely/AbsEngine.h \
 	likely/MarkovChainEngine.h \
+	likely/Random.h \
 	likely/test/TestLikelihood.h
 
 # add GSL features when libgsl is available

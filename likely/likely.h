@@ -4,6 +4,8 @@
 
 #include "likely/RuntimeError.h"
 
+#include "likely/Random.h"
+
 #include "likely/AbsEngine.h"
 #include "likely/FunctionMinimum.h"
 
