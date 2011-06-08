@@ -33,7 +33,7 @@ lk::Parameters const &errors, double prec) {
     boost::format fmt("%d %.4f %.4f %.4f\n");
     std::cout << fmt % methodId % std::log10(lk::lastMinEvalCount)
         % (lk::lastMinGradCount ? std::log10(lk::lastMinGradCount) : 0.)
-        % -std::log10(fmin->getMinValue());
+        % (fmin->getMinValue() > 0 ? -std::log10(fmin->getMinValue()) : 0);
 }
 
 int main(int argc, char **argv) {

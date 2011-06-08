@@ -128,14 +128,20 @@ template <class T>
 local::FunctionMinimumPtr local::MinuitEngine::minimize(Parameters const &initial,
 Parameters const &errors, double prec, int maxfcn, int strategy) {
     _setInitialState(initial,errors);
+    // Minuit converts maxfcn = 0 to 200 + 100*npar + 5*npar*npar, but we want to
+    // interpret zero as effectively unlimited calls.
+    if(maxfcn == 0) maxfcn = 100*_nPar*_nPar;
+    // Downscale the requested precision to convert it to an EDM tolerance value.
+    double edmTolerance(1e-2*std::sqrt(prec));
     // Do the minimization using the templated class, which is assumed to have
     // a default constructor and provide a Minimize method, e.g., a subclass
     // of ROOT::Minuit2::FunctionMinimizer.
     T algorithm;
     mn::FunctionMinimum mnmin = _gc ?
-        algorithm.Minimize(*this, *_initialState, mn::MnStrategy(strategy), maxfcn, prec) :
+        algorithm.Minimize(*this,
+            *_initialState, mn::MnStrategy(strategy), maxfcn, edmTolerance) :
         algorithm.Minimize((ROOT::Minuit2::FCNBase const&)(*this),
-            *_initialState, mn::MnStrategy(strategy), maxfcn, prec);
+            *_initialState, mn::MnStrategy(strategy), maxfcn, edmTolerance);
     // Transfer the minimization results from the Minuit-specific return object
     // to our engine-neutral return object.
     FunctionMinimumPtr fmin(new FunctionMinimum(mnmin.Fval(),
