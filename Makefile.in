@@ -36,7 +36,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = likelytest$(EXEEXT)
+bin_PROGRAMS = likelytest$(EXEEXT) likelymc$(EXEEXT)
 
 # add GSL features when libgsl is available
 @USE_GSL_TRUE@am__append_1 = likely/GslEngine.cc likely/GslErrorHandler.cc
@@ -97,9 +97,11 @@ am_liblikely_la_OBJECTS = FunctionMinimum.lo AbsEngine.lo \
 	$(am__objects_1) $(am__objects_2)
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS)
+am_likelymc_OBJECTS = likelymc.$(OBJEXT)
+likelymc_OBJECTS = $(am_likelymc_OBJECTS)
+am__DEPENDENCIES_1 =
 am_likelytest_OBJECTS = likelytest.$(OBJEXT)
 likelytest_OBJECTS = $(am_likelytest_OBJECTS)
-am__DEPENDENCIES_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -113,8 +115,10 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(liblikely_la_SOURCES) $(likelytest_SOURCES)
-DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(likelytest_SOURCES)
+SOURCES = $(liblikely_la_SOURCES) $(likelymc_SOURCES) \
+	$(likelytest_SOURCES)
+DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(likelymc_SOURCES) \
+	$(likelytest_SOURCES)
 am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/RuntimeError.h likely/FunctionMinimum.h \
 	likely/AbsEngine.h likely/MarkovChainEngine.h likely/Random.h \
@@ -288,6 +292,13 @@ likelytest_LDADD = \
 	$(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS) \
 	-L. -llikely
 
+likelymc_SOURCES = src/likelymc.cc
+likelymc_DEPENDENCIES = $(lib_LIBRARIES)
+likelymc_LDADD = \
+	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) \
+	$(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS) \
+	-L. -llikely
+
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -420,6 +431,9 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+likelymc$(EXEEXT): $(likelymc_OBJECTS) $(likelymc_DEPENDENCIES) 
+	@rm -f likelymc$(EXEEXT)
+	$(CXXLINK) $(likelymc_OBJECTS) $(likelymc_LDADD) $(LIBS)
 likelytest$(EXEEXT): $(likelytest_OBJECTS) $(likelytest_DEPENDENCIES) 
 	@rm -f likelytest$(EXEEXT)
 	$(CXXLINK) $(likelytest_OBJECTS) $(likelytest_LDADD) $(LIBS)
@@ -438,6 +452,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MinuitEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Random.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestLikelihood.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelymc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytest.Po@am__quote@
 
 .cc.o:
@@ -516,6 +531,20 @@ MinuitEngine.lo: likely/MinuitEngine.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/MinuitEngine.cc' object='MinuitEngine.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o MinuitEngine.lo `test -f 'likely/MinuitEngine.cc' || echo '$(srcdir)/'`likely/MinuitEngine.cc
+
+likelymc.o: src/likelymc.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelymc.o -MD -MP -MF $(DEPDIR)/likelymc.Tpo -c -o likelymc.o `test -f 'src/likelymc.cc' || echo '$(srcdir)/'`src/likelymc.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelymc.Tpo $(DEPDIR)/likelymc.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelymc.cc' object='likelymc.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelymc.o `test -f 'src/likelymc.cc' || echo '$(srcdir)/'`src/likelymc.cc
+
+likelymc.obj: src/likelymc.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelymc.obj -MD -MP -MF $(DEPDIR)/likelymc.Tpo -c -o likelymc.obj `if test -f 'src/likelymc.cc'; then $(CYGPATH_W) 'src/likelymc.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelymc.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelymc.Tpo $(DEPDIR)/likelymc.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelymc.cc' object='likelymc.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelymc.obj `if test -f 'src/likelymc.cc'; then $(CYGPATH_W) 'src/likelymc.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelymc.cc'; fi`
 
 likelytest.o: src/likelytest.cc
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelytest.o -MD -MP -MF $(DEPDIR)/likelytest.Tpo -c -o likelytest.o `test -f 'src/likelytest.cc' || echo '$(srcdir)/'`src/likelytest.cc

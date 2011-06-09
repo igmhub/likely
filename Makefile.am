@@ -6,7 +6,7 @@ lib_LTLIBRARIES = liblikely.la
 
 # extra targets that should not be installed
 # noinst_PROGRAMS = likelytest
-bin_PROGRAMS = likelytest
+bin_PROGRAMS = likelytest likelymc
 
 # instructions for building the library
 liblikely_la_SOURCES = \
@@ -44,6 +44,13 @@ endif
 likelytest_SOURCES = src/likelytest.cc
 likelytest_DEPENDENCIES = $(lib_LIBRARIES)
 likelytest_LDADD = \
+	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) \
+	$(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS) \
+	-L. -llikely
+
+likelymc_SOURCES = src/likelymc.cc
+likelymc_DEPENDENCIES = $(lib_LIBRARIES)
+likelymc_LDADD = \
 	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) \
 	$(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS) \
 	-L. -llikely
