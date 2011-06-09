@@ -10,7 +10,7 @@
 namespace local = likely;
 
 local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, int nPar)
-: _f(f), _nPar(nPar), _random(Random::instance())
+: _f(f), _nPar(nPar), _current(nPar), _trial(nPar), _random(Random::instance())
 {
     if(_nPar <= 0) {
         throw RuntimeError("MarkovChainEngine: number of parameters must be > 0.");
@@ -19,24 +19,24 @@ local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, int nPar)
 
 local::MarkovChainEngine::~MarkovChainEngine() { }
 
-double local::MarkovChainEngine::_advance(FunctionMinimumPtr fmin,
-Parameters &current, double fVal, int nSamples) {
-    Parameters trial(_nPar);
+double local::MarkovChainEngine::generate(FunctionMinimum &fmin,
+Parameters &current, double fVal, Callback callback, int nSamples) {
     double currentNLL(fVal);
     while(nSamples--) {
         bool accepted(false);
         while(!accepted) {
             // Take a trial step sampled from the input minimum's covariance.
-            fmin->setRandomParameters(trial);
-            double trialNLL((*_f)(trial));
+            fmin.setRandomParameters(_trial);
+            double trialNLL((*_f)(_trial));
             // calculate log( L(trial)/L(current) )
             double logProbRatio(currentNLL-trialNLL);
             if(logProbRatio >= 0 || _random.getUniform() < std::exp(logProbRatio)) {
                 // Accept the trial step (use swap here?)
-                current = trial;
+                current = _trial;
                 currentNLL = trialNLL;
                 accepted = true;
             }
+            callback(_trial, trialNLL, accepted);
         }
     }
     return currentNLL;

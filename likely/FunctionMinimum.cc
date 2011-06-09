@@ -24,15 +24,27 @@ _random(Random::instance())
 }
 
 local::FunctionMinimum::FunctionMinimum(double minValue, Parameters const& where,
-PackedCovariance const &covar)
+PackedCovariance const &covar, bool errorsOnly)
 : _minValue(minValue), _where(where), _haveCovariance(true), _haveCholesky(false),
 _covar(covar), _random(Random::instance())
 {
-    int nPar(_where.size());
-    if(_covar.size() != nPar*(nPar+1)/2) {
+    int nPar(_where.size()),nCovar(nPar*(nPar+1)/2);
+    if(errorsOnly && _covar.size() == nPar) {
+        // We have a vector of errors, instead of a full covariance matrix.
+        _covar = PackedCovariance(nCovar,0);
+        for(int i = 0; i < nPar; ++i) {
+            double error(covar[i]);
+            if(error <= 0) {
+                throw RuntimeError("FunctionMinimum: errors must be > 0.");
+            }
+            _covar[i*(i+3)/2] = error*error;
+        }
+    }
+    if(_covar.size() != nCovar) {
         throw RuntimeError(
             "FunctionMinimum: parameter and covariance vectors have incompatible sizes.");
     }
+    // Should check that covariance is positive definite here...
 }
 
 local::FunctionMinimum::~FunctionMinimum() { }

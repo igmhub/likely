@@ -16,7 +16,7 @@ namespace likely {
 	public:
 	    // Represents the information known about an approximate function minimum.
 		FunctionMinimum(double minValue, Parameters const &where);
-		// The second form of the constructor adds an estimate of the convariance matrix
+		// The next form of the constructor adds an estimate of the convariance matrix
 		// at the function minimum, which must be provided as a column-wise packed vector:
 		//
 		// m00 m01 m02 ... 
@@ -25,9 +25,10 @@ namespace likely {
 		//             ...
 		//
 		// The corresponding index calculation is m(i,j) = array[i+j*(j+1)/2] for i<=j.
-		// If j>i, then use m(i,j) = m(j,i).
+		// If j>i, then use m(i,j) = m(j,i). Set errorsOnly = true if the input covariance
+		// vector should be interpreted as a list of diagonal errors.
         FunctionMinimum(double minValue, Parameters const &where,
-            PackedCovariance const &covar);
+            PackedCovariance const &covar, bool errorsOnly = false);
 		virtual ~FunctionMinimum();
 		// Returns the function value at the minimum.
         double getMinValue() const;

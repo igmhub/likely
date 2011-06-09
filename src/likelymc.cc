@@ -19,27 +19,36 @@ namespace lk = likely;
 namespace test = likely::test;
 namespace po = boost::program_options;
 
+void saveSample(lk::Parameters const &params, double fVal, bool accepted) {
+    boost::format real(" %.5f");
+    std::cout << (accepted ? 1 : 0) << real % fVal;
+    for(int i = 0; i < params.size(); ++i) std::cout << real % params[i];
+    std::cout << std::endl;
+}
+
 int main(int argc, char **argv) {
     
     // Configure command-line option processing
-    int npar,ntrial,seed;
-    double rho,alpha,radius;
+    int npar,ncycle,nstep,seed;
+    double rho,alpha,initial;
     po::options_description cli("Markov-chain Monte Carlo test program");
     cli.add_options()
         ("help,h", "Prints this info and exits.")
         ("verbose", "Prints additional information.")
-        ("ntrial", po::value<int>(&ntrial)->default_value(100),
-            "Number of minimization trials to perform.")
         ("seed", po::value<int>(&seed)->default_value(123),
             "Random seed for generating initial parameter values.")
+        ("ncycle", po::value<int>(&ncycle)->default_value(10),
+            "Number of MCMC cycles to perform.")
+        ("nstep", po::value<int>(&nstep)->default_value(10),
+            "Number of MCMC steps to take per parameter in each cycle.")
         ("npar", po::value<int>(&npar)->default_value(3),
             "Number of floating parameters to use.")
         ("rho", po::value<double>(&rho)->default_value(0),
             "NLL correlation coefficient in the range (-1,+1).")
         ("alpha", po::value<double>(&alpha)->default_value(0),
             "Size of NLL non-parabolic effects.")
-        ("radius", po::value<double>(&radius)->default_value(2),
-            "Radius of the initial-parameter value sphere.")
+        ("initial", po::value<double>(&initial)->default_value(2),
+            "Initial value of all parameters.")
         ;
 
     // do the command line parsing now
@@ -72,19 +81,23 @@ int main(int argc, char **argv) {
 
     try {
         // Create a likelihood function using the command-line parameters.
-        test::TestLikelihood tester(npar,1,rho,alpha);        
-
-        // Since our function object has internal state (call counters), we
-        // want to ensure that the original object is passed around and
-        // never copied. Here are two ways to do this:
+        test::TestLikelihood tester(npar,1,rho,alpha);
         lk::FunctionPtr f(new lk::Function(boost::ref(tester)));
 
-        // Use boost::bind for the gradient calculator.
-        lk::GradientCalculatorPtr gc(new lk::GradientCalculator(
-            boost::bind(&test::TestLikelihood::evaluateGradient,&tester,_1,_2)));
+        // Set the initial parameters and errors.
+        lk::Parameters params(npar,initial);
+        lk::PackedCovariance errors(npar,1);
+        
+        // Set the initial function minimum to use.
+        double fval((*f)(params));
+        lk::FunctionMinimum fmin(fval,params,errors,true);
+        
+        // Create an MCMC engine to use.
+        lk::MarkovChainEngine mcmc(f,npar);
 
         // Loop over minimization trials.
-        for(int trial = 0; trial < ntrial; ++trial) {
+        for(int cycle = 0; cycle < ncycle; ++cycle) {
+            fval = mcmc.generate(fmin,params,fval,saveSample,nstep);
         }
     }
     catch(lk::RuntimeError const &e) {
