@@ -152,8 +152,6 @@ Parameters const &errors, double prec, int maxfcn, int strategy) {
             // compatible with what the FunctionMinimum ctor expects.
             fmin.reset(new FunctionMinimum(mnmin.Fval(),
                 mnmin.UserParameters().Params(),mnmin.UserCovariance().Data()));
-            std::cout << mnmin.UserCovariance() << std::endl;
-            fmin->printToStream(std::cout);
         }
         else {
             fmin.reset(new FunctionMinimum(mnmin.Fval(),

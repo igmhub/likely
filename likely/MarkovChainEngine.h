@@ -14,11 +14,15 @@ namespace likely {
 	    // of parameters.
 		MarkovChainEngine(FunctionPtr f, int nPar);
 		virtual ~MarkovChainEngine();
-        Parameters advance(FunctionMinimumPtr fmin, int nSamples = 1);
         // Searches for a minimum by taking a sequence of random steps.
         FunctionMinimumPtr minimize(Parameters const &initial, Parameters const &errors,
             double prec, int maxSteps);
 	private:
+	    // Generates the specified number of samples using a FunctionMinimum's
+	    // covariance to specify the trial function. Stores the final sample in the
+	    // parameter vector provided and returns the function value at this point.
+        double _advance(FunctionMinimumPtr fmin, Parameters &params, double fVal,
+            int nSamples = 1);
         int _nPar;
         FunctionPtr _f;
         Random &_random;

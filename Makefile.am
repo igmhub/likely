@@ -5,7 +5,8 @@ AM_CPPFLAGS = $(BOOST_CPPFLAGS)
 lib_LTLIBRARIES = liblikely.la
 
 # extra targets that should not be installed
-noinst_PROGRAMS = likelytest
+# noinst_PROGRAMS = likelytest
+bin_PROGRAMS = likelytest
 
 # instructions for building the library
 liblikely_la_SOURCES = \

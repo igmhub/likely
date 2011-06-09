@@ -36,7 +36,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-noinst_PROGRAMS = likelytest$(EXEEXT)
+bin_PROGRAMS = likelytest$(EXEEXT)
 
 # add GSL features when libgsl is available
 @USE_GSL_TRUE@am__append_1 = likely/GslEngine.cc likely/GslErrorHandler.cc
@@ -81,7 +81,8 @@ am__nobase_list = $(am__nobase_strip_setup); \
 am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
+	"$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 liblikely_la_LIBADD =
 am__liblikely_la_SOURCES_DIST = likely/FunctionMinimum.cc \
@@ -95,7 +96,7 @@ am_liblikely_la_OBJECTS = FunctionMinimum.lo AbsEngine.lo \
 	MarkovChainEngine.lo Random.lo TestLikelihood.lo \
 	$(am__objects_1) $(am__objects_2)
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
-PROGRAMS = $(noinst_PROGRAMS)
+PROGRAMS = $(bin_PROGRAMS)
 am_likelytest_OBJECTS = likelytest.$(OBJEXT)
 likelytest_OBJECTS = $(am_likelytest_OBJECTS)
 am__DEPENDENCIES_1 =
@@ -376,9 +377,43 @@ clean-libLTLIBRARIES:
 	done
 liblikely.la: $(liblikely_la_OBJECTS) $(liblikely_la_DEPENDENCIES) 
 	$(CXXLINK) -rpath $(libdir) $(liblikely_la_OBJECTS) $(liblikely_la_LIBADD) $(LIBS)
+install-binPROGRAMS: $(bin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
+	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
+	for p in $$list; do echo "$$p $$p"; done | \
+	sed 's/$(EXEEXT)$$//' | \
+	while read p p1; do if test -f $$p || test -f $$p1; \
+	  then echo "$$p"; echo "$$p"; else :; fi; \
+	done | \
+	sed -e 'p;s,.*/,,;n;h' -e 's|.*|.|' \
+	    -e 'p;x;s,.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/' | \
+	sed 'N;N;N;s,\n, ,g' | \
+	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1 } \
+	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
+	    if ($$2 == $$4) files[d] = files[d] " " $$1; \
+	    else { print "f", $$3 "/" $$4, $$1; } } \
+	  END { for (d in files) print "f", d, files[d] }' | \
+	while read type dir files; do \
+	    if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
+	    test -z "$$files" || { \
+	    echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(bindir)$$dir'"; \
+	    $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(bindir)$$dir" || exit $$?; \
+	    } \
+	; done
 
-clean-noinstPROGRAMS:
-	@list='$(noinst_PROGRAMS)'; test -n "$$list" || exit 0; \
+uninstall-binPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
+	files=`for p in $$list; do echo "$$p"; done | \
+	  sed -e 'h;s,^.*/,,;s/$(EXEEXT)$$//;$(transform)' \
+	      -e 's/$$/$(EXEEXT)/' `; \
+	test -n "$$list" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(bindir)" && rm -f $$files
+
+clean-binPROGRAMS:
+	@list='$(bin_PROGRAMS)'; test -n "$$list" || exit 0; \
 	echo " rm -f" $$list; \
 	rm -f $$list || exit $$?; \
 	test -n "$(EXEEXT)" || exit 0; \
@@ -729,8 +764,10 @@ distcleancheck: distclean
 check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(HEADERS) config.h
+install-binPROGRAMS: install-libLTLIBRARIES
+
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -760,8 +797,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
-	clean-noinstPROGRAMS mostlyclean-am
+clean-am: clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
+	clean-libtool mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -788,7 +825,7 @@ install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-libLTLIBRARIES
+install-exec-am: install-binPROGRAMS install-libLTLIBRARIES
 
 install-html: install-html-am
 
@@ -830,28 +867,29 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-libLTLIBRARIES uninstall-nobase_includeHEADERS
+uninstall-am: uninstall-binPROGRAMS uninstall-libLTLIBRARIES \
+	uninstall-nobase_includeHEADERS
 
 .MAKE: all install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am am--refresh check check-am clean \
-	clean-generic clean-libLTLIBRARIES clean-libtool \
-	clean-noinstPROGRAMS ctags dist dist-all dist-bzip2 dist-gzip \
+	clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
+	clean-libtool ctags dist dist-all dist-bzip2 dist-gzip \
 	dist-lzma dist-shar dist-tarZ dist-xz dist-zip distcheck \
 	distclean distclean-compile distclean-generic distclean-hdr \
 	distclean-libtool distclean-tags distcleancheck distdir \
 	distuninstallcheck dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am \
-	install-libLTLIBRARIES install-man \
+	install install-am install-binPROGRAMS install-data \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-libLTLIBRARIES install-man \
 	install-nobase_includeHEADERS install-pdf install-pdf-am \
 	install-ps install-ps-am install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-libLTLIBRARIES \
-	uninstall-nobase_includeHEADERS
+	tags uninstall uninstall-am uninstall-binPROGRAMS \
+	uninstall-libLTLIBRARIES uninstall-nobase_includeHEADERS
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

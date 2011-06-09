@@ -1,6 +1,7 @@
 // Created 30-May-2011 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 
 #include "likely/FunctionMinimum.h"
+#include "likely/Random.h"
 #include "likely/RuntimeError.h"
 
 #include "boost/format.hpp"
@@ -17,13 +18,15 @@ extern "C" {
 namespace local = likely;
 
 local::FunctionMinimum::FunctionMinimum(double minValue, Parameters const& where)
-: _minValue(minValue), _where(where), _haveCovariance(false)
+: _minValue(minValue), _where(where), _haveCovariance(false), _haveCholesky(false),
+_random(Random::instance())
 {
 }
 
 local::FunctionMinimum::FunctionMinimum(double minValue, Parameters const& where,
 PackedCovariance const &covar)
-: _minValue(minValue), _where(where), _haveCovariance(true), _covar(covar)
+: _minValue(minValue), _where(where), _haveCovariance(true), _haveCholesky(false),
+_covar(covar), _random(Random::instance())
 {
     int nPar(_where.size());
     if(_covar.size() != nPar*(nPar+1)/2) {
@@ -67,18 +70,30 @@ void local::FunctionMinimum::setRandomParameters(Parameters &params) const {
         char uplo('U');
         int info(0);
         dpptrf_(&uplo,&nPar,&_cholesky[0],&info);
-        std::cout << "info = " << info << std::endl;
-        for(int i = 0; i < _cholesky.size(); ++i) {
-            std::cout << i << ' ' << _cholesky[i] << std::endl;
+        if(0 != info) {
+            throw RuntimeError(
+                "FunctionMinimum::setRandomParameters: Cholesky decomposition failed.");
         }
         _haveCholesky = true;
     }
-    // Fill a vector of random Gaussian variables.
     Parameters gauss(nPar);
-    for(int i = 0; i < nPar; ++i) gauss[i] = 0;
+    for(int i = 0; i < nPar; ++i) {
+        // Initialize the generated parameters to the function minimum.
+        params[i] = _where[i];
+        // Fill a vector of random Gaussian variables.
+        gauss[i] = _random.getNormal();
+    }
+    // Multiply by the Cholesky decomposition matrix.
+    PackedCovariance::const_iterator next(_cholesky.begin());
+    for(int i = 0; i < nPar; ++i) {
+        for(int j = 0; j <= i; ++j) {
+            params[i] += (*next++)*gauss[j];
+        }
+    }
 }
 
-void local::FunctionMinimum::printToStream(std::ostream &os, std::string formatSpec) const {
+void local::FunctionMinimum::printToStream(std::ostream &os,
+std::string formatSpec) const {
     boost::format formatter(formatSpec);
     os << "F(" << formatter % _where[0];
     int nPar(_where.size());

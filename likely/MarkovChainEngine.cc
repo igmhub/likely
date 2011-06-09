@@ -19,9 +19,10 @@ local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, int nPar)
 
 local::MarkovChainEngine::~MarkovChainEngine() { }
 
-local::Parameters local::MarkovChainEngine::advance(FunctionMinimumPtr fmin, int nSamples) {
-    Parameters current(fmin->getParameters()),trial(_nPar);
-    double currentNLL((*_f)(current));
+double local::MarkovChainEngine::_advance(FunctionMinimumPtr fmin,
+Parameters &current, double fVal, int nSamples) {
+    Parameters trial(_nPar);
+    double currentNLL(fVal);
     while(nSamples--) {
         bool accepted(false);
         while(!accepted) {
@@ -31,14 +32,14 @@ local::Parameters local::MarkovChainEngine::advance(FunctionMinimumPtr fmin, int
             // calculate log( L(trial)/L(current) )
             double logProbRatio(currentNLL-trialNLL);
             if(logProbRatio >= 0 || _random.getUniform() < std::exp(logProbRatio)) {
-                // Accept the trial step.
+                // Accept the trial step (use swap here?)
                 current = trial;
                 currentNLL = trialNLL;
                 accepted = true;
             }
         }
     }
-    return current;
+    return currentNLL;
 }
 
 local::FunctionMinimumPtr local::MarkovChainEngine::minimize(

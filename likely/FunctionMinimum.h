@@ -5,11 +5,14 @@
 
 #include "likely/types.h"
 
+#include "boost/utility.hpp"
+
 #include <string>
 #include <iosfwd>
 
 namespace likely {
-	class FunctionMinimum {
+    class Random;
+	class FunctionMinimum : public boost::noncopyable {
 	public:
 	    // Represents the information known about an approximate function minimum.
 		FunctionMinimum(double minValue, Parameters const &where);
@@ -48,6 +51,7 @@ namespace likely {
         PackedCovariance _covar;
         mutable bool _haveCholesky;
         mutable PackedCovariance _cholesky;
+        mutable Random &_random;
 	}; // FunctionMinimum
 	
     inline double FunctionMinimum::getMinValue() const { return _minValue; }
