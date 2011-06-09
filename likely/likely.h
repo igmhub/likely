@@ -6,7 +6,15 @@
 
 #include "likely/Random.h"
 
-#include "likely/AbsEngine.h"
 #include "likely/FunctionMinimum.h"
+#include "likely/MarkovChainEngine.h"
+
+#ifdef HAVE_LIBGSL
+#include "likely/GslEngine.h"
+#endif
+
+#ifdef HAVE_LIBMINUIT
+#include "likely/MinuitEngine.h"
+#endif
 
 #include "likely/test/TestLikelihood.h"
