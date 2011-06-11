@@ -19,11 +19,12 @@ namespace likely {
         // Searches for a minimum by taking a sequence of random steps.
         FunctionMinimumPtr minimize(Parameters const &initial, Parameters const &errors,
             double prec, int maxSteps);
-	    // Generates the specified number of samples using a FunctionMinimum's
-	    // covariance to specify the trial function. Updates the function minimum with
-	    // an improved estimate, if possible, and returns the number of samples accepted.
+	    // Generates samples using a FunctionMinimum's covariance to specify the proposal
+	    // function until the specified number of trials have been accepted. Updates the
+	    // function minimum with an improved estimate and returns the total number of
+	    // samples generated (including duplicates after a trial is rejected).
         typedef boost::function<void (Parameters const&, double, bool)> Callback;
-        int generate(FunctionMinimumPtr fmin, Callback callback, int nSamples = 1);
+        int generate(FunctionMinimumPtr fmin, int nAccepts, Callback callback = Callback());
 	private:
         int _nPar;
         FunctionPtr _f;

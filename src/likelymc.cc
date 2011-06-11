@@ -29,7 +29,7 @@ void saveSample(lk::Parameters const &params, double fVal, bool accepted) {
 int main(int argc, char **argv) {
     
     // Configure command-line option processing
-    int npar,ncycle,nstep,seed;
+    int npar,ncycle,naccept,seed;
     double rho,alpha,initial;
     po::options_description cli("Markov-chain Monte Carlo test program");
     cli.add_options()
@@ -39,8 +39,8 @@ int main(int argc, char **argv) {
             "Random seed for generating initial parameter values.")
         ("ncycle", po::value<int>(&ncycle)->default_value(10),
             "Number of MCMC cycles to perform.")
-        ("nstep", po::value<int>(&nstep)->default_value(10),
-            "Number of MCMC steps to take per parameter in each cycle.")
+        ("naccept", po::value<int>(&naccept)->default_value(1000),
+            "Number of MCMC trial steps to accept in each cycle.")
         ("npar", po::value<int>(&npar)->default_value(3),
             "Number of floating parameters to use.")
         ("rho", po::value<double>(&rho)->default_value(0),
@@ -98,11 +98,11 @@ int main(int argc, char **argv) {
             // Open a file to save this cycle's steps to.
             cycleOut.open(boost::str(cycleOutName % cycle).c_str());
             // Run the MCMC generator.
-            int naccept = mcmc.generate(fmin,saveSample,nstep);
+            int nsample = mcmc.generate(fmin,naccept,saveSample);
             cycleOut.close();
             // Print a summary of this cycle.
             std::cout << boost::format("cycle %d accepted %d / %d\n")
-                % cycle % naccept % nstep;
+                % cycle % naccept % nsample;
             lk::Parameters where(fmin->getParameters());
             std::cout << "where = {" << valueFmt % where[0];
             for(int i = 1; i < npar; ++i) std::cout << ',' << valueFmt % where[i];
