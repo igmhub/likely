@@ -18,36 +18,49 @@ extern "C" {
 namespace local = likely;
 
 local::FunctionMinimum::FunctionMinimum(double minValue, Parameters const& where)
-: _minValue(minValue), _where(where), _haveCovariance(false), _haveCholesky(false),
-_random(Random::instance())
+: _minValue(minValue), _where(where), _random(Random::instance())
 {
 }
 
 local::FunctionMinimum::FunctionMinimum(double minValue, Parameters const& where,
 PackedCovariance const &covar, bool errorsOnly)
-: _minValue(minValue), _where(where), _haveCovariance(true), _haveCholesky(false),
-_covar(covar), _random(Random::instance())
+: _minValue(minValue), _where(where), _random(Random::instance())
 {
+    updateCovariance(covar,errorsOnly);
+}
+
+local::FunctionMinimum::~FunctionMinimum() { }
+
+void local::FunctionMinimum::updateParameters(Parameters const &params, double fval) {
+    _minValue = fval;
+    _where = params;
+}
+
+void local::FunctionMinimum::updateCovariance(PackedCovariance const &covar,
+bool errorsOnly) {
     int nPar(_where.size()),nCovar(nPar*(nPar+1)/2);
-    if(errorsOnly && _covar.size() == nPar) {
+    if(errorsOnly) {
+        if(covar.size() != nPar) throw RuntimeError(
+            "FunctionMinimum: parameter and error vectors have incompatible sizes.");
         // We have a vector of errors, instead of a full covariance matrix.
-        _covar = PackedCovariance(nCovar,0);
+        _covar.reset(new PackedCovariance(nCovar,0));
         for(int i = 0; i < nPar; ++i) {
             double error(covar[i]);
             if(error <= 0) {
                 throw RuntimeError("FunctionMinimum: errors must be > 0.");
             }
-            _covar[i*(i+3)/2] = error*error;
+            (*_covar)[i*(i+3)/2] = error*error;
         }
     }
-    if(_covar.size() != nCovar) {
-        throw RuntimeError(
+    else {
+        if(covar.size() != nCovar) throw RuntimeError(
             "FunctionMinimum: parameter and covariance vectors have incompatible sizes.");
+        _covar.reset(new PackedCovariance(covar));
     }
-    // Should check that covariance is positive definite here...
+    // Forget any previously calculated Cholesky decomposition.
+    _cholesky.reset();
+    // Should check that covariance is positive definite here...    
 }
-
-local::FunctionMinimum::~FunctionMinimum() { }
 
 local::Parameters local::FunctionMinimum::getErrors() const {
     if(!haveCovariance()) {
@@ -56,52 +69,52 @@ local::Parameters local::FunctionMinimum::getErrors() const {
     int nPar(_where.size());
     Parameters errors(nPar);
     for(int i = 0; i < nPar; ++i) {
-        double sigsq(_covar[i*(i+3)/2]);
+        double sigsq((*_covar)[i*(i+3)/2]);
         errors[i] = sigsq > 0 ? std::sqrt(sigsq) : 0;
     }
     return errors;
 }
 
-local::Parameters local::FunctionMinimum::getRandomParameters() const {
-    Parameters params(_where.size());
-    setRandomParameters(params);
-    return params;
+local::PackedCovariancePtr local::FunctionMinimum::getCholesky() const {
+    if(!_cholesky) {
+        // Copy our covariance matrix.
+        _cholesky.reset(new PackedCovariance(*_covar));
+        // Use LAPACK to perform the decomposition.
+        char uplo('U');
+        int info(0),nPar(_where.size());
+        dpptrf_(&uplo,&nPar,&(*_cholesky)[0],&info);
+        if(0 != info) {
+            throw RuntimeError(
+                "FunctionMinimum::setRandomParameters: Cholesky decomposition failed.");
+        }        
+    }
+    return _cholesky;
 }
 
-void local::FunctionMinimum::setRandomParameters(Parameters &params) const {
+double local::FunctionMinimum::setRandomParameters(Parameters &params) const {
     if(!haveCovariance()) {
         throw RuntimeError(
             "FunctionMinimum::getRandomParameters: no covariance matrix available.");
     }
     int nPar(_where.size());
-    // Compute the Cholesky decomposition of our covariance matrix if necessary.
-    if(!_haveCholesky) {
-        // Copy our covariance matrix.
-        _cholesky = _covar;
-        // Use LAPACK to perform the decomposition.
-        char uplo('U');
-        int info(0);
-        dpptrf_(&uplo,&nPar,&_cholesky[0],&info);
-        if(0 != info) {
-            throw RuntimeError(
-                "FunctionMinimum::setRandomParameters: Cholesky decomposition failed.");
-        }
-        _haveCholesky = true;
-    }
     Parameters gauss(nPar);
+    double nlWeight(0);
     for(int i = 0; i < nPar; ++i) {
         // Initialize the generated parameters to the function minimum.
         params[i] = _where[i];
         // Fill a vector of random Gaussian variables.
-        gauss[i] = _random.getNormal();
+        double r(_random.getNormal());
+        gauss[i] = r;
+        nlWeight += r*r;
     }
     // Multiply by the Cholesky decomposition matrix.
-    PackedCovariance::const_iterator next(_cholesky.begin());
-    for(int i = 0; i < nPar; ++i) {
-        for(int j = 0; j <= i; ++j) {
-            params[i] += (*next++)*gauss[j];
+    PackedCovariance::const_iterator next(getCholesky()->begin());
+    for(int j = 0; j < nPar; ++j) {
+        for(int i = 0; i <= j; ++i) {
+            params[j] += (*next++)*gauss[i];
         }
     }
+    return nlWeight/2;
 }
 
 void local::FunctionMinimum::printToStream(std::ostream &os,
@@ -123,7 +136,7 @@ std::string formatSpec) const {
         for(int i = 0; i < nPar; ++i) {
             for(int j = 0; j < nPar; ++j) {
                 int index = (i <= j) ? i + j*(j+1)/2 : j + i*(i+1)/2;
-                os << ' ' << formatter % _covar[index];
+                os << ' ' << formatter % (*_covar)[index];
             }
             os << std::endl;
         }

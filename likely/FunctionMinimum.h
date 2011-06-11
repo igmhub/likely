@@ -17,7 +17,8 @@ namespace likely {
 	    // Represents the information known about an approximate function minimum.
 		FunctionMinimum(double minValue, Parameters const &where);
 		// The next form of the constructor adds an estimate of the convariance matrix
-		// at the function minimum, which must be provided as a column-wise packed vector:
+		// at the function minimum, which must be provided as a column-wise packed vector
+		// of length npar*(npar+1)/2:
 		//
 		// m00 m01 m02 ... 
 		//     m11 m12 ...  ==> { m00, m01, m11, m02, m12, m22, ... }
@@ -26,7 +27,7 @@ namespace likely {
 		//
 		// The corresponding index calculation is m(i,j) = array[i+j*(j+1)/2] for i<=j.
 		// If j>i, then use m(i,j) = m(j,i). Set errorsOnly = true if the input covariance
-		// vector should be interpreted as a list of diagonal errors.
+		// vector should be interpreted as a list of diagonal errors of length npar.
         FunctionMinimum(double minValue, Parameters const &where,
             PackedCovariance const &covar, bool errorsOnly = false);
 		virtual ~FunctionMinimum();
@@ -34,30 +35,40 @@ namespace likely {
         double getMinValue() const;
 		// Returns a copy of the parameter values at this minimum.
         Parameters getParameters() const;
+        // Updates the location of the minimum and the function value at that point.
+        void updateParameters(Parameters const &updatedParams, double updatedMinValue);
         // Returns true if a covariance matrix is available.
         bool haveCovariance() const;
         // Returns a vector of parameter error estimates or throws a RuntimeError if
         // no covariance matrix is available.
         Parameters getErrors() const;
-        // Returns parameter values that are randomly sampled from this minimum.
-        Parameters getRandomParameters() const;
-        void setRandomParameters(Parameters &params) const;
+        // Returns a smart pointer to the packed covariance matrix at this minimum.
+        PackedCovariancePtr getCovariance() const;
+        // Updates the covariance matrix associated with this minimum. Refer to the
+        // constructor for details. This method can be used to add a covariance
+        // matrix to a minimum that did not originally have one.
+        void updateCovariance(PackedCovariance const &covar, bool errorsOnly = false);
+        // Returns a smart pointer to the Cholesky decomposition of the covariance
+        // matrix at this minimum.
+        PackedCovariancePtr getCholesky() const;
+        // Sets parameter values that are randomly sampled from this minimum and
+        // returns the -log(weight) associated with the chosen parameters.
+        double setRandomParameters(Parameters &params) const;
         // Ouptuts a multiline description of this minimum to the specified stream using
         // the specified printf format for floating point values.
         void printToStream(std::ostream &os, std::string formatSpec = "%.6f") const;
 	private:
         double _minValue;
         Parameters _where;
-        bool _haveCovariance;
-        PackedCovariance _covar;
-        mutable bool _haveCholesky;
-        mutable PackedCovariance _cholesky;
+        PackedCovariancePtr _covar;
+        mutable PackedCovariancePtr _cholesky;
         mutable Random &_random;
 	}; // FunctionMinimum
 	
     inline double FunctionMinimum::getMinValue() const { return _minValue; }
     inline Parameters FunctionMinimum::getParameters() const { return Parameters(_where); }
-    inline bool FunctionMinimum::haveCovariance() const { return _haveCovariance; }
+    inline bool FunctionMinimum::haveCovariance() const { return bool(_covar); }
+    inline PackedCovariancePtr FunctionMinimum::getCovariance() const { return _covar; }    
 	
 } // likely
 

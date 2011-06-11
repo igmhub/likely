@@ -18,6 +18,9 @@ namespace likely {
 
     // Represents a column-wise packed covariance matrix near a local minimum.
     typedef std::vector<double> PackedCovariance;
+    
+    // Declares a smart pointer to a packed covariance matrix.
+    typedef boost::shared_ptr<PackedCovariance> PackedCovariancePtr;
 
     // Encapsulates a minimization objective function.
     typedef boost::function<double (Parameters const &pValues)> Function;

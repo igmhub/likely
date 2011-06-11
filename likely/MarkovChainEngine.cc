@@ -5,12 +5,17 @@
 #include "likely/Random.h"
 #include "likely/RuntimeError.h"
 
+#include "boost/lambda/lambda.hpp"
+#include "boost/lambda/bind.hpp"
+
+#include <algorithm>
 #include <cmath>
 
 namespace local = likely;
 
 local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, int nPar)
-: _f(f), _nPar(nPar), _current(nPar), _trial(nPar), _random(Random::instance())
+: _f(f), _nPar(nPar), _current(nPar), _trial(nPar), _minParams(nPar), _haveMinimum(false),
+_genSum(nPar), _genPairSum(nPar*(nPar+1)/2), _random(Random::instance())
 {
     if(_nPar <= 0) {
         throw RuntimeError("MarkovChainEngine: number of parameters must be > 0.");
@@ -19,27 +24,78 @@ local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, int nPar)
 
 local::MarkovChainEngine::~MarkovChainEngine() { }
 
-double local::MarkovChainEngine::generate(FunctionMinimum &fmin,
-Parameters &current, double fVal, Callback callback, int nSamples) {
-    double currentNLL(fVal);
-    while(nSamples--) {
-        bool accepted(false);
-        while(!accepted) {
-            // Take a trial step sampled from the input minimum's covariance.
-            fmin.setRandomParameters(_trial);
-            double trialNLL((*_f)(_trial));
-            // calculate log( L(trial)/L(current) )
-            double logProbRatio(currentNLL-trialNLL);
-            if(logProbRatio >= 0 || _random.getUniform() < std::exp(logProbRatio)) {
-                // Accept the trial step (use swap here?)
-                current = _trial;
-                currentNLL = trialNLL;
-                accepted = true;
+int local::MarkovChainEngine::generate(FunctionMinimumPtr fmin,
+Callback callback, int nSamples) {
+    using namespace boost::lambda;
+    // Set our initial parameters to the estimated function minimum, where the
+    // NLW = -log(weight) is zero, by definition.
+    _current = fmin->getParameters();
+    double currentNLL((*_f)(_current)), currentNLW(0);
+    // Initialize our minimum tracker, if necessary.
+    if(!_haveMinimum) {
+        _minParams = _current;
+        _minNLL = currentNLL;
+        _haveMinimum = true;
+    }
+    // Zero our statistics.
+    std::fill(_genSum.begin(),_genSum.end(),0);
+    std::fill(_genPairSum.begin(),_genPairSum.end(),0);
+    // Loop over the requested samples.
+    int nAccepted(0),samplesRemaining(nSamples);
+    while(samplesRemaining--) {
+        // Take a trial step sampled from the estimated function minimum's covariance.
+        double trialNLW(fmin->setRandomParameters(_trial));
+        // Evaluate the true NLL at this trial point.
+        double trialNLL((*_f)(_trial));
+        // Is this a new minimum?
+        if(trialNLL < _minNLL) {
+            _minParams = _trial;
+            _minNLL = trialNLL;
+        }
+        // Calculate log( L(trial)/L(current) W(current)/W(trial) )
+        double logProbRatio(currentNLL-trialNLL-currentNLW+trialNLW);
+        // Do we accept this trial step?
+        if(logProbRatio >= 0 || _random.getUniform() < std::exp(logProbRatio)) {
+            std::swap(_current,_trial);
+            currentNLL = trialNLL;
+            currentNLW = trialNLW;
+            callback(_trial, trialNLL, true);
+            nAccepted++;
+        }
+        else {
+            callback(_trial, trialNLL, false);
+        }
+        // Accumulate covariance statistics.
+        //std::transform(
+        //    _genSum.begin(),_genSum.end(),_current.begin(),_genSum.begin(), _1 + _2);
+        int index(0);
+        for(int j = 0; j < _nPar; ++j) {
+            double jCurrent(_current[j]);
+            _genSum[j] += jCurrent;
+            for(int i = 0; i <= j; ++i) {
+                _genPairSum[index++] += _current[i]*jCurrent;
             }
-            callback(_trial, trialNLL, accepted);
         }
     }
-    return currentNLL;
+    // Record the best minimum found so far (rather than the sample mean).
+    fmin->updateParameters(_minParams, _minNLL);
+    // Do we have enough accepted samples to calculate an updated covariance?
+    if(nAccepted > _nPar) {
+        // Calculate the covariance of the samples we have generated.
+        int index(0);
+        double nSamplesSq(nSamples*nSamples);
+        for(int j = 0; j < _nPar; ++j) {
+            for(int i = 0; i <= j; ++i) {
+                _genPairSum[index] = _genPairSum[index]/nSamples -
+                    _genSum[i]*_genSum[j]/nSamplesSq;
+                index++;
+            }
+        }
+        // Update our guess at the function minimum. 
+        fmin->updateCovariance(_genPairSum);
+    }
+    // Return the number of samples accepted.
+    return nAccepted;
 }
 
 local::FunctionMinimumPtr local::MarkovChainEngine::minimize(

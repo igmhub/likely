@@ -20,15 +20,17 @@ namespace likely {
         FunctionMinimumPtr minimize(Parameters const &initial, Parameters const &errors,
             double prec, int maxSteps);
 	    // Generates the specified number of samples using a FunctionMinimum's
-	    // covariance to specify the trial function. Stores the final sample in the
-	    // parameter vector provided and returns the function value at this point.
+	    // covariance to specify the trial function. Updates the function minimum with
+	    // an improved estimate, if possible, and returns the number of samples accepted.
         typedef boost::function<void (Parameters const&, double, bool)> Callback;
-        double generate(FunctionMinimum &fmin, Parameters &params, double fVal,
-            Callback callback, int nSamples = 1);
+        int generate(FunctionMinimumPtr fmin, Callback callback, int nSamples = 1);
 	private:
         int _nPar;
         FunctionPtr _f;
-        Parameters _current, _trial;
+        bool _haveMinimum;
+        double _minNLL;
+        Parameters _current, _trial, _genSum, _minParams;
+        PackedCovariance _genPairSum;
         Random &_random;
 	}; // MarkovChainEngine
 } // likely

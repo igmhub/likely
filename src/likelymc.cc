@@ -6,24 +6,24 @@
 #include "likely/likely.h"
 
 #include "boost/program_options.hpp"
-#include "boost/random/mersenne_twister.hpp"
-#include "boost/random/uniform_on_sphere.hpp"
-#include "boost/random/variate_generator.hpp"
 #include "boost/format.hpp"
 #include "boost/bind.hpp"
 #include "boost/ref.hpp"
 
 #include <iostream>
+#include <fstream>
 
 namespace lk = likely;
 namespace test = likely::test;
 namespace po = boost::program_options;
 
+std::ofstream cycleOut;
+
 void saveSample(lk::Parameters const &params, double fVal, bool accepted) {
     boost::format real(" %.5f");
-    std::cout << (accepted ? 1 : 0) << real % fVal;
-    for(int i = 0; i < params.size(); ++i) std::cout << real % params[i];
-    std::cout << std::endl;
+    cycleOut << (accepted ? 1 : 0) << real % fVal;
+    for(int i = 0; i < params.size(); ++i) cycleOut << real % params[i];
+    cycleOut << std::endl;
 }
 
 int main(int argc, char **argv) {
@@ -76,9 +76,6 @@ int main(int argc, char **argv) {
     lk::Random &random(lk::Random::instance());
     random.setSeed(seed);
     
-    // Print out column headings for the output we generate below.
-    //std::cout << "method ncall ngrad accuracy" << std::endl;
-
     try {
         // Create a likelihood function using the command-line parameters.
         test::TestLikelihood tester(npar,1,rho,alpha);
@@ -89,15 +86,39 @@ int main(int argc, char **argv) {
         lk::PackedCovariance errors(npar,1);
         
         // Set the initial function minimum to use.
-        double fval((*f)(params));
-        lk::FunctionMinimum fmin(fval,params,errors,true);
+        lk::FunctionMinimumPtr fmin(new lk::FunctionMinimum(
+            (*f)(params),params,errors,true));
         
         // Create an MCMC engine to use.
         lk::MarkovChainEngine mcmc(f,npar);
 
-        // Loop over minimization trials.
+        // Loop over MCMC cycles.
+        boost::format cycleOutName("cycle-%d.dat"),valueFmt(" %.5f");
         for(int cycle = 0; cycle < ncycle; ++cycle) {
-            fval = mcmc.generate(fmin,params,fval,saveSample,nstep);
+            // Open a file to save this cycle's steps to.
+            cycleOut.open(boost::str(cycleOutName % cycle).c_str());
+            // Run the MCMC generator.
+            int naccept = mcmc.generate(fmin,saveSample,nstep);
+            cycleOut.close();
+            // Print a summary of this cycle.
+            std::cout << boost::format("cycle %d accepted %d / %d\n")
+                % cycle % naccept % nstep;
+            lk::Parameters where(fmin->getParameters());
+            std::cout << "where = {" << valueFmt % where[0];
+            for(int i = 1; i < npar; ++i) std::cout << ',' << valueFmt % where[i];
+            std::cout << " };" << std::endl;
+            lk::PackedCovariancePtr covar(fmin->getCovariance());
+            std::cout << "covar = {" << std::endl;
+            for(int i = 0; i < npar; ++i) {
+                int index = i*(i+1)/2;
+                std::cout << "  {" << valueFmt % (*covar)[index];
+                for(int j = 1; j < npar; ++j) {
+                    index = (i <= j) ? i+j*(j+1)/2 : j+i*(i+1)/2;
+                    std::cout << ',' << valueFmt % (*covar)[index];
+                }
+                std::cout << " }" << (i == npar-1 ? ' ':',') << std::endl;
+            }
+            std::cout << "};" << std::endl;
         }
     }
     catch(lk::RuntimeError const &e) {
