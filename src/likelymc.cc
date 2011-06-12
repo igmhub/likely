@@ -17,7 +17,7 @@ namespace lk = likely;
 namespace test = likely::test;
 namespace po = boost::program_options;
 
-std::ofstream cycleOut;
+std::ofstream cycleOut,resultsOut;
 
 void saveSample(lk::Parameters const &params, double fVal, bool accepted) {
     boost::format real(" %.5f");
@@ -26,9 +26,31 @@ void saveSample(lk::Parameters const &params, double fVal, bool accepted) {
     cycleOut << std::endl;
 }
 
+void printSummary(lk::FunctionMinimumPtr fmin, int index, std::string const &tag) {
+    boost::format valueFmt(" %.5f");
+    lk::Parameters where(fmin->getParameters());
+    int npar(where.size());
+    resultsOut << boost::format("min%d[\"%s\"] = { %.5f") % index % tag % where[0];
+    for(int i = 1; i < npar; ++i) resultsOut << ',' << valueFmt % where[i];
+    resultsOut << " };" << std::endl;
+    lk::PackedCovariancePtr covar(fmin->getCovariance());
+    resultsOut << boost::format("covar%d[\"%s\"] = {\n") % index % tag;
+    for(int i = 0; i < npar; ++i) {
+        int index = i*(i+1)/2;
+        resultsOut << "  {" << valueFmt % (*covar)[index];
+        for(int j = 1; j < npar; ++j) {
+            index = (i <= j) ? i+j*(j+1)/2 : j+i*(i+1)/2;
+            resultsOut << ',' << valueFmt % (*covar)[index];
+        }
+        resultsOut << " }" << (i == npar-1 ? ' ':',') << std::endl;
+    }
+    resultsOut << "};" << std::endl;
+}
+
 int main(int argc, char **argv) {
     
     // Configure command-line option processing
+    std::string tag;
     int npar,ncycle,naccept,seed;
     double rho,alpha,initial;
     po::options_description cli("Markov-chain Monte Carlo test program");
@@ -37,6 +59,8 @@ int main(int argc, char **argv) {
         ("verbose", "Prints additional information.")
         ("seed", po::value<int>(&seed)->default_value(123),
             "Random seed for generating initial parameter values.")
+        ("tag", po::value<std::string>(&tag)->default_value("mc"),
+            "Tag to identify the program output.")
         ("ncycle", po::value<int>(&ncycle)->default_value(10),
             "Number of MCMC cycles to perform.")
         ("naccept", po::value<int>(&naccept)->default_value(1000),
@@ -88,38 +112,31 @@ int main(int argc, char **argv) {
         // Set the initial function minimum to use.
         lk::FunctionMinimumPtr fmin(new lk::FunctionMinimum(
             (*f)(params),params,errors,true));
+        printSummary(fmin,0,tag);
         
         // Create an MCMC engine to use.
         lk::MarkovChainEngine mcmc(f,npar);
+        
+        // Open the summary output file.
+        std::string resultsName = tag + "/results.m";
+        resultsOut.open(resultsName.c_str());
 
         // Loop over MCMC cycles.
-        boost::format cycleOutName("cycle-%d.dat"),valueFmt(" %.5f");
+        boost::format cycleOutName("%s/cycle-%d.dat"),valueFmt(" %.5f");
         for(int cycle = 0; cycle < ncycle; ++cycle) {
             // Open a file to save this cycle's steps to.
-            cycleOut.open(boost::str(cycleOutName % cycle).c_str());
+            cycleOut.open(boost::str(cycleOutName % tag % cycle).c_str());
             // Run the MCMC generator.
             int nsample = mcmc.generate(fmin,naccept,saveSample);
             cycleOut.close();
             // Print a summary of this cycle.
             std::cout << boost::format("cycle %d accepted %d / %d\n")
                 % cycle % naccept % nsample;
-            lk::Parameters where(fmin->getParameters());
-            std::cout << "where = {" << valueFmt % where[0];
-            for(int i = 1; i < npar; ++i) std::cout << ',' << valueFmt % where[i];
-            std::cout << " };" << std::endl;
-            lk::PackedCovariancePtr covar(fmin->getCovariance());
-            std::cout << "covar = {" << std::endl;
-            for(int i = 0; i < npar; ++i) {
-                int index = i*(i+1)/2;
-                std::cout << "  {" << valueFmt % (*covar)[index];
-                for(int j = 1; j < npar; ++j) {
-                    index = (i <= j) ? i+j*(j+1)/2 : j+i*(i+1)/2;
-                    std::cout << ',' << valueFmt % (*covar)[index];
-                }
-                std::cout << " }" << (i == npar-1 ? ' ':',') << std::endl;
-            }
-            std::cout << "};" << std::endl;
+            printSummary(fmin,cycle+1,tag);
         }
+        resultsOut << boost::format("trueNLL[\"%s\"] = nonlinearNLL[1,%f,%f,%d];\n")
+            % tag % rho % alpha % npar;
+        resultsOut.close();
     }
     catch(lk::RuntimeError const &e) {
         std::cerr << e.what() << std::endl;
