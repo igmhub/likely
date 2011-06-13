@@ -28,6 +28,9 @@ namespace likely {
 		// The corresponding index calculation is m(i,j) = array[i+j*(j+1)/2] for i<=j.
 		// If j>i, then use m(i,j) = m(j,i). Set errorsOnly = true if the input covariance
 		// vector should be interpreted as a list of diagonal errors of length npar.
+		// Throws a RuntimeError if the input covariance is not (numerically) positive
+		// definite. Use the updateCovariance method for more flexibility in handling
+		// this error condition.
         FunctionMinimum(double minValue, Parameters const &where,
             PackedCovariance const &covar, bool errorsOnly = false);
 		virtual ~FunctionMinimum();
@@ -44,13 +47,15 @@ namespace likely {
         Parameters getErrors() const;
         // Returns a smart pointer to the packed covariance matrix at this minimum.
         PackedCovariancePtr getCovariance() const;
-        // Updates the covariance matrix associated with this minimum. Refer to the
-        // constructor for details. This method can be used to add a covariance
-        // matrix to a minimum that did not originally have one.
-        void updateCovariance(PackedCovariance const &covar, bool errorsOnly = false);
+        // Updates the covariance matrix associated with this minimum, if possible.
+        // Refer to the constructor for details on the parameters. This method can be
+        // used to add a covariance matrix to a minimum that did not originally have one.
+        // Returns true if the covariance provided is (numerically) positive definite,
+        // otherwise the covariance associated with this minimum is not changed.
+        bool updateCovariance(PackedCovariance const &covar, bool errorsOnly = false);
         // Returns a smart pointer to the Cholesky decomposition of the covariance
         // matrix at this minimum.
-        PackedCovariancePtr getCholesky() const;
+        //!!PackedCovariancePtr getCholesky() const;
         // Sets parameter values that are randomly sampled from this minimum and
         // returns the -log(weight) associated with the chosen parameters.
         double setRandomParameters(Parameters &params) const;
@@ -69,6 +74,11 @@ namespace likely {
     inline Parameters FunctionMinimum::getParameters() const { return Parameters(_where); }
     inline bool FunctionMinimum::haveCovariance() const { return bool(_covar); }
     inline PackedCovariancePtr FunctionMinimum::getCovariance() const { return _covar; }    
+	
+	// Returns a smart pointer to the Cholesky decomposition of a covariance matrix.
+	// The return value will be null if the input covariance is not (numerically)
+	// positive definite.
+    PackedCovariancePtr choleskyDecomposition(PackedCovariance const &covar);
 	
 } // likely
 

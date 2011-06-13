@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
     
     // Configure command-line option processing
     std::string tag;
-    int npar,ncycle,naccept,seed;
+    int npar,ncycle,naccept,maxtrials,seed;
     double rho,alpha,initial;
     po::options_description cli("Markov-chain Monte Carlo test program");
     cli.add_options()
@@ -65,6 +65,8 @@ int main(int argc, char **argv) {
             "Number of MCMC cycles to perform.")
         ("naccept", po::value<int>(&naccept)->default_value(1000),
             "Number of MCMC trial steps to accept in each cycle.")
+        ("maxtrials", po::value<int>(&maxtrials)->default_value(0),
+            "Maximum number of MCMC trials to generate in each cycle (0=unlimited).")
         ("npar", po::value<int>(&npar)->default_value(3),
             "Number of floating parameters to use.")
         ("rho", po::value<double>(&rho)->default_value(0),
@@ -127,7 +129,7 @@ int main(int argc, char **argv) {
             // Open a file to save this cycle's steps to.
             cycleOut.open(boost::str(cycleOutName % tag % cycle).c_str());
             // Run the MCMC generator.
-            int nsample = mcmc.generate(fmin,naccept,saveSample);
+            int nsample = mcmc.generate(fmin,naccept,maxtrials,saveSample);
             cycleOut.close();
             // Print a summary of this cycle.
             std::cout << boost::format("cycle %d accepted %d / %d\n")

@@ -35,7 +35,7 @@ _covariance(nPar*(nPar+1)/2), _random(Random::instance())
 local::MarkovChainEngine::~MarkovChainEngine() { }
 
 int local::MarkovChainEngine::generate(FunctionMinimumPtr fmin, int nAccepts,
-Callback callback) {
+int maxTrials, Callback callback) {
     //!!using namespace boost::lambda;
     // Set our initial parameters to the estimated function minimum, where the
     // NLW = -log(weight) is zero, by definition.
@@ -53,8 +53,8 @@ Callback callback) {
     Accumulators accumulators(nCov);
     Parameters residual(_nPar);
     // Loop over the requested samples.
-    int nSamples(0),remaining(nAccepts);
-    while(remaining > 0) {
+    int nTrials(0),remaining(nAccepts);
+    while(remaining > 0 && (maxTrials == 0 || nTrials < maxTrials)) {
         // Take a trial step sampled from the estimated function minimum's covariance.
         double trialNLW(fmin->setRandomParameters(_trial));
         // Evaluate the true NLL at this trial point.
@@ -77,33 +77,26 @@ Callback callback) {
         else {
             if(callback) callback(_trial, trialNLL, false);
         }
-        // Accumulate covariance statistics using the "on-line algorithm" described at:
-        // http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-        nSamples++;
+        // Accumulate covariance statistics...
+        nTrials++;
         // Use the initial guess at the minimum for caculating residuals that are
         // hopefully small, to minimize round-off error.
-        //std::transform(_current.begin(),_current.end(),initial.begin(),residual.begin(),
-        //    _1 - _2);
         Accumulators::iterator accumulate(accumulators.begin());
         for(int j = 0; j < _nPar; ++j) {
             double jResidual(_current[j]-initial[j]);
             residual[j] = jResidual; // save for the inner loop
             for(int i = 0; i <= j; ++i) {
-                (*accumulate)(jResidual, covariate1 = residual[i]);
-                accumulate++;
+                (*accumulate++)(jResidual, covariate1 = residual[i]);
             }
         }
     }
     // Record the best minimum found so far (rather than the sample mean).
     fmin->updateParameters(_minParams, _minNLL);
-    // Calculate the covariance of the samples we have generated.
-    for(int k = 0; k < nCov; ++k) {
-        _covariance[k] = covariance(accumulators[k]);
-    }
-    // Update our guess at the function minimum. 
+    // Calculate and record the covariance of the samples we have generated.
+    for(int k = 0; k < nCov; ++k) _covariance[k] = covariance(accumulators[k]);
     fmin->updateCovariance(_covariance);
-    // Return the number of samples accepted.
-    return nSamples;
+    // Return the number of samples generated.
+    return nTrials;
 }
 
 local::FunctionMinimumPtr local::MarkovChainEngine::minimize(
