@@ -85,7 +85,8 @@ local::PackedCovariancePtr local::FunctionMinimum::getCholesky() const {
         dpptrf_(&uplo,&nPar,&(*_cholesky)[0],&info);
         if(0 != info) {
             throw RuntimeError(
-                "FunctionMinimum::setRandomParameters: Cholesky decomposition failed.");
+                "FunctionMinimum::setRandomParameters: Cholesky decomposition failed" +
+                boost::str(boost::format(" (info=%d)") % info));
         }        
     }
     return _cholesky;

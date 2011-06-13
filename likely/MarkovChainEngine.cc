@@ -5,14 +5,27 @@
 #include "likely/Random.h"
 #include "likely/RuntimeError.h"
 
+//!!#include "boost/lambda/lambda.hpp"
+#include "boost/accumulators/accumulators.hpp"
+#include "boost/accumulators/statistics/covariance.hpp"
+#include "boost/accumulators/statistics/stats.hpp"
+#include "boost/accumulators/statistics/variates/covariate.hpp"
+
+#include <vector>
 #include <algorithm>
 #include <cmath>
+
+using namespace boost::accumulators;
+
+typedef accumulator_set<double, stats<
+    tag::covariance<double, tag::covariate1> > > Accumulator;
+typedef std::vector<Accumulator> Accumulators;
 
 namespace local = likely;
 
 local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, int nPar)
 : _f(f), _nPar(nPar), _current(nPar), _trial(nPar), _minParams(nPar), _haveMinimum(false),
-_genSum(nPar), _genPairSum(nPar*(nPar+1)/2), _random(Random::instance())
+_covariance(nPar*(nPar+1)/2), _random(Random::instance())
 {
     if(_nPar <= 0) {
         throw RuntimeError("MarkovChainEngine: number of parameters must be > 0.");
@@ -23,9 +36,11 @@ local::MarkovChainEngine::~MarkovChainEngine() { }
 
 int local::MarkovChainEngine::generate(FunctionMinimumPtr fmin, int nAccepts,
 Callback callback) {
+    //!!using namespace boost::lambda;
     // Set our initial parameters to the estimated function minimum, where the
     // NLW = -log(weight) is zero, by definition.
-    _current = fmin->getParameters();
+    Parameters const &initial(fmin->getParameters());
+    _current = initial;
     double currentNLL((*_f)(_current)), currentNLW(0);
     // Initialize our minimum tracker, if necessary.
     if(!_haveMinimum) {
@@ -33,9 +48,10 @@ Callback callback) {
         _minNLL = currentNLL;
         _haveMinimum = true;
     }
-    // Zero our statistics.
-    std::fill(_genSum.begin(),_genSum.end(),0);
-    std::fill(_genPairSum.begin(),_genPairSum.end(),0);
+    // Initialize our statistics accumulators.
+    int nCov(_nPar*(_nPar+1)/2);
+    Accumulators accumulators(nCov);
+    Parameters residual(_nPar);
     // Loop over the requested samples.
     int nSamples(0),remaining(nAccepts);
     while(remaining > 0) {
@@ -61,31 +77,31 @@ Callback callback) {
         else {
             if(callback) callback(_trial, trialNLL, false);
         }
-        // Accumulate covariance statistics.
+        // Accumulate covariance statistics using the "on-line algorithm" described at:
+        // http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
         nSamples++;
-        PackedCovariance::iterator pairSum(_genPairSum.begin());
+        // Use the initial guess at the minimum for caculating residuals that are
+        // hopefully small, to minimize round-off error.
+        //std::transform(_current.begin(),_current.end(),initial.begin(),residual.begin(),
+        //    _1 - _2);
+        Accumulators::iterator accumulate(accumulators.begin());
         for(int j = 0; j < _nPar; ++j) {
-            double jCurrent(_current[j]);
-            _genSum[j] += jCurrent;
+            double jResidual(_current[j]-initial[j]);
+            residual[j] = jResidual; // save for the inner loop
             for(int i = 0; i <= j; ++i) {
-                *pairSum++ += _current[i]*jCurrent;
+                (*accumulate)(jResidual, covariate1 = residual[i]);
+                accumulate++;
             }
         }
     }
     // Record the best minimum found so far (rather than the sample mean).
     fmin->updateParameters(_minParams, _minNLL);
     // Calculate the covariance of the samples we have generated.
-    //int index(0);
-    double nSamplesSq(nSamples*nSamples);
-    PackedCovariance::iterator pairSum(_genPairSum.begin());
-    for(int j = 0; j < _nPar; ++j) {
-        for(int i = 0; i <= j; ++i) {
-            *pairSum/= nSamples;
-            *pairSum++ -= _genSum[i]*_genSum[j]/nSamplesSq;
-        }
+    for(int k = 0; k < nCov; ++k) {
+        _covariance[k] = covariance(accumulators[k]);
     }
     // Update our guess at the function minimum. 
-    fmin->updateCovariance(_genPairSum);
+    fmin->updateCovariance(_covariance);
     // Return the number of samples accepted.
     return nSamples;
 }

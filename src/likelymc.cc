@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
             "Random seed for generating initial parameter values.")
         ("tag", po::value<std::string>(&tag)->default_value("mc"),
             "Tag to identify the program output.")
-        ("ncycle", po::value<int>(&ncycle)->default_value(10),
+        ("ncycle", po::value<int>(&ncycle)->default_value(4),
             "Number of MCMC cycles to perform.")
         ("naccept", po::value<int>(&naccept)->default_value(1000),
             "Number of MCMC trial steps to accept in each cycle.")
@@ -101,6 +101,10 @@ int main(int argc, char **argv) {
     random.setSeed(seed);
     
     try {
+        // Open the summary output file.
+        std::string resultsName = tag + "/results.m";
+        resultsOut.open(resultsName.c_str());
+
         // Create a likelihood function using the command-line parameters.
         test::TestLikelihood tester(npar,1,rho,alpha);
         lk::FunctionPtr f(new lk::Function(boost::ref(tester)));
@@ -117,10 +121,6 @@ int main(int argc, char **argv) {
         // Create an MCMC engine to use.
         lk::MarkovChainEngine mcmc(f,npar);
         
-        // Open the summary output file.
-        std::string resultsName = tag + "/results.m";
-        resultsOut.open(resultsName.c_str());
-
         // Loop over MCMC cycles.
         boost::format cycleOutName("%s/cycle-%d.dat"),valueFmt(" %.5f");
         for(int cycle = 0; cycle < ncycle; ++cycle) {

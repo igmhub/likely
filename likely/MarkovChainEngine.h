@@ -30,8 +30,8 @@ namespace likely {
         FunctionPtr _f;
         bool _haveMinimum;
         double _minNLL;
-        Parameters _current, _trial, _genSum, _minParams;
-        PackedCovariance _genPairSum;
+        Parameters _current, _trial, _minParams;
+        PackedCovariance _covariance;
         Random &_random;
 	}; // MarkovChainEngine
 } // likely
