@@ -5,12 +5,14 @@
 #include "likely/Random.h"
 #include "likely/RuntimeError.h"
 
-//!!#include "boost/lambda/lambda.hpp"
 #include "boost/accumulators/accumulators.hpp"
 #include "boost/accumulators/statistics/covariance.hpp"
 #include "boost/accumulators/statistics/stats.hpp"
 #include "boost/accumulators/statistics/variates/covariate.hpp"
+#include "boost/functional/factory.hpp"
+#include "boost/bind.hpp"
 
+#include <string>
 #include <vector>
 #include <algorithm>
 #include <cmath>
@@ -23,12 +25,19 @@ typedef std::vector<Accumulator> Accumulators;
 
 namespace local = likely;
 
-local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, int nPar)
+local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, GradientCalculatorPtr gc,
+int nPar, std::string const &algorithm)
 : _f(f), _nPar(nPar), _current(nPar), _trial(nPar), _minParams(nPar), _haveMinimum(false),
 _covariance(nPar*(nPar+1)/2), _random(Random::instance())
 {
     if(_nPar <= 0) {
         throw RuntimeError("MarkovChainEngine: number of parameters must be > 0.");
+    }
+    if(algorithm == "walkabout") {
+        minimumFinder = boost::bind(&MarkovChainEngine::minimize,this,_1,_2,_3,_4);
+    }
+    else {
+        throw RuntimeError("MarkovChainEngine: unknown algorithm '" + algorithm + "'");
     }
 }
 
@@ -41,7 +50,7 @@ int maxTrials, Callback callback) {
     // NLW = -log(weight) is zero, by definition.
     Parameters const &initial(fmin->getParameters());
     _current = initial;
-    double currentNLL((*_f)(_current)), currentNLW(0);
+    double currentNLL(fmin->getMinValue()), currentNLW(0);
     // Initialize our minimum tracker, if necessary.
     if(!_haveMinimum) {
         _minParams = _current;
@@ -59,6 +68,7 @@ int maxTrials, Callback callback) {
         double trialNLW(fmin->setRandomParameters(_trial));
         // Evaluate the true NLL at this trial point.
         double trialNLL((*_f)(_trial));
+        incrementEvalCount();
         // Is this a new minimum?
         if(trialNLL < _minNLL) {
             _minParams = _trial;
@@ -101,11 +111,30 @@ int maxTrials, Callback callback) {
 
 local::FunctionMinimumPtr local::MarkovChainEngine::minimize(
 Parameters const &initial, Parameters const &errors, double prec, int maxSteps) {
-    /*
-    - initialize covar as diag of input errors
-    - advance should use covar matrix as input
-    - advance takes currentNLL value as input
-    - advance keeps track of min NLL value seen so far
-    - advance has options to update covar
-    */
+    // Build an initial diagonal convariance using the errors provided.
+    double fval((*_f)(initial));
+    incrementEvalCount();
+    FunctionMinimumPtr fmin(new FunctionMinimum(fval,initial,errors,true));
+    // We don't have an error metric, so always use the maximum iterations allowed.
+    // If we don't have a maximum specified, set it to 1/prec.
+    if(maxSteps <= 0) maxSteps = std::ceil(1/prec);
+    int nAccepts(10*_nPar), maxTrials(100*_nPar), trials(0);
+    while(trials < maxSteps) {
+        trials += generate(fmin, nAccepts, maxTrials);
+    }
+    return fmin;
 }
+
+bool local::MarkovChainEngine::registerMarkovChainEngineMethods() {
+    // Create a function object that constructs a MarkovChainEngine with parameters
+    // (FunctionPtr f, GradientCalculatorPtr gc, int npar, std::string const &methodName).
+    AbsEngine::EngineFactory factory =
+        boost::bind(boost::factory<MarkovChainEngine*>(),_1,_2,_3,_4);
+    // Register our minimization methods.
+    AbsEngine::getEngineRegistry()["mc"] = factory;
+    // Return a dummy value so that we can be called at program startup.
+    return true;
+}
+
+bool local::MarkovChainEngine::_registered =
+    local::MarkovChainEngine::registerMarkovChainEngineMethods();

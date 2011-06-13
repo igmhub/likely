@@ -175,7 +175,7 @@ bool local::MinuitEngine::registerMinuitEngineMethods() {
     AbsEngine::EngineFactory factory =
         boost::bind(boost::factory<MinuitEngine*>(),_1,_2,_3,_4);
     // Register our minimization methods.
-    AbsEngine::getEngineRegistry()["mn"] = factory;
+    AbsEngine::getEngineRegistry()["mn2"] = factory;
     // Return a dummy value so that we can be called at program startup.
     return true;
 }

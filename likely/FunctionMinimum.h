@@ -53,9 +53,6 @@ namespace likely {
         // Returns true if the covariance provided is (numerically) positive definite,
         // otherwise the covariance associated with this minimum is not changed.
         bool updateCovariance(PackedCovariance const &covar, bool errorsOnly = false);
-        // Returns a smart pointer to the Cholesky decomposition of the covariance
-        // matrix at this minimum.
-        //!!PackedCovariancePtr getCholesky() const;
         // Sets parameter values that are randomly sampled from this minimum and
         // returns the -log(weight) associated with the chosen parameters.
         double setRandomParameters(Parameters &params) const;

@@ -14,7 +14,8 @@ namespace likely {
 	public:
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters.
-		MarkovChainEngine(FunctionPtr f, int nPar);
+		MarkovChainEngine(FunctionPtr f, GradientCalculatorPtr gc, int nPar,
+            std::string const &algorithm);
 		virtual ~MarkovChainEngine();
         // Searches for a minimum by taking a sequence of random steps.
         FunctionMinimumPtr minimize(Parameters const &initial, Parameters const &errors,
@@ -38,6 +39,9 @@ namespace likely {
         Parameters _current, _trial, _minParams;
         PackedCovariance _covariance;
         Random &_random;
+        // Registers our named methods.
+        static bool registerMarkovChainEngineMethods();
+        static bool _registered;
 	}; // MarkovChainEngine
 } // likely
 

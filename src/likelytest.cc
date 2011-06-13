@@ -150,10 +150,11 @@ int main(int argc, char **argv) {
                 useMethod(2,"gsl::nmsimplex2rand",f,noGC,initial,errors,precValue);
 #endif
 #ifdef HAVE_LIBMINUIT2
-                useMethod(3,"mn::simplex",f,noGC,initial,errors,precValue);
-                useMethod(4,"mn::vmetric",f,noGC,initial,errors,precValue);
-                useMethod(5,"mn::vmetric_fast",f,noGC,initial,errors,precValue);
+                useMethod(3,"mn2::simplex",f,noGC,initial,errors,precValue);
+                useMethod(4,"mn2::vmetric",f,noGC,initial,errors,precValue);
+                useMethod(5,"mn2::vmetric_fast",f,noGC,initial,errors,precValue);
 #endif
+                useMethod(6,"mc::walkabout",f,noGC,initial,errors,precValue);
                 // Use methods that require a gradient calculator.
 #ifdef HAVE_LIBGSL
                 useMethod(11,"gsl::conjugate_fr",f,gc,initial,errors,precValue);
@@ -162,8 +163,8 @@ int main(int argc, char **argv) {
                 useMethod(14,"gsl::steepest_descent",f,gc,initial,errors,precValue);
 #endif
 #ifdef HAVE_LIBMINUIT2
-                useMethod(15,"mn::vmetric_grad",f,gc,initial,errors,precValue);
-                useMethod(16,"mn::vmetric_grad_fast",f,gc,initial,errors,precValue);
+                useMethod(15,"mn2::vmetric_grad",f,gc,initial,errors,precValue);
+                useMethod(16,"mn2::vmetric_grad_fast",f,gc,initial,errors,precValue);
 #endif
             }
         }
