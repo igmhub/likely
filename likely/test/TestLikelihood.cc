@@ -89,7 +89,7 @@ void local::TestLikelihood::evaluateGradient(Parameters const &x, Gradient &grad
     // Calculate the gradient components.
     double tmp((1-_rho)*_sigma*_sigma),delta(tmp*(1+(_npar-1)*_rho));
     for(int i = 0; i < _npar; ++i) {
-        grad[i] = 2*y[i]*(1 + 2*_alpha*x[i])/tmp - 2*(_rho + 2*_alpha*x[i])*ysum/delta;
+        grad[i] = y[i]*(1 + 2*_alpha*x[i])/tmp - (_rho + 2*_alpha*x[i])*ysum/delta;
     }
     // Print an optional trace.
     if(_trace) {
