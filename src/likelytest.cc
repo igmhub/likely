@@ -154,7 +154,8 @@ int main(int argc, char **argv) {
                 useMethod(4,"mn2::vmetric",f,noGC,initial,errors,precValue);
                 useMethod(5,"mn2::vmetric_fast",f,noGC,initial,errors,precValue);
 #endif
-                useMethod(6,"mc::walkabout",f,noGC,initial,errors,precValue);
+                useMethod(6,"mc::saunter",f,noGC,initial,errors,precValue);
+                useMethod(7,"mc::stroll",f,noGC,initial,errors,precValue);
                 // Use methods that require a gradient calculator.
 #ifdef HAVE_LIBGSL
                 useMethod(11,"gsl::conjugate_fr",f,gc,initial,errors,precValue);

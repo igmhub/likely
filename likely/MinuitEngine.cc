@@ -133,7 +133,7 @@ Parameters const &errors, double prec, int maxfcn, int strategy) {
     // interpret zero as effectively unlimited calls.
     if(maxfcn == 0) maxfcn = 100*_nPar*_nPar;
     // Downscale the requested precision to convert it to an EDM tolerance value.
-    double edmTolerance(1e-2*std::sqrt(prec));
+    double edmTolerance(1*std::sqrt(prec));
     // Do the minimization using the templated class, which is assumed to have
     // a default constructor and provide a Minimize method, e.g., a subclass
     // of ROOT::Minuit2::FunctionMinimizer.

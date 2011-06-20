@@ -19,7 +19,7 @@ namespace likely {
 		virtual ~MarkovChainEngine();
         // Searches for a minimum by taking a sequence of random steps.
         FunctionMinimumPtr minimize(Parameters const &initial, Parameters const &errors,
-            double prec, int maxSteps);
+            double prec, int maxSteps, int acceptsPerParam, int maxTrialsPerParam);
 	    // Generates samples using a FunctionMinimum's covariance to specify the proposal
 	    // function until the specified number of trials have been accepted or the specified
 	    // maximum number of trials has been generated. Use maxTrials=0 for unlimited trials.

@@ -33,8 +33,13 @@ _covariance(nPar*(nPar+1)/2), _random(Random::instance())
     if(_nPar <= 0) {
         throw RuntimeError("MarkovChainEngine: number of parameters must be > 0.");
     }
-    if(algorithm == "walkabout") {
-        minimumFinder = boost::bind(&MarkovChainEngine::minimize,this,_1,_2,_3,_4);
+    if(algorithm == "saunter") {
+        minimumFinder = boost::bind(&MarkovChainEngine::minimize,this,
+            _1,_2,_3,_4,2,100);
+    }
+    else if(algorithm == "stroll") {
+        minimumFinder = boost::bind(&MarkovChainEngine::minimize,this,
+            _1,_2,_3,_4,20,1000);
     }
     else {
         throw RuntimeError("MarkovChainEngine: unknown algorithm '" + algorithm + "'");
@@ -110,17 +115,20 @@ int maxTrials, Callback callback) {
 }
 
 local::FunctionMinimumPtr local::MarkovChainEngine::minimize(
-Parameters const &initial, Parameters const &errors, double prec, int maxSteps) {
+Parameters const &initial, Parameters const &errors, double prec, int maxSteps,
+int acceptsPerParam, int maxTrialsPerParam) {
     // Build an initial diagonal convariance using the errors provided.
     double fval((*_f)(initial));
     incrementEvalCount();
     FunctionMinimumPtr fmin(new FunctionMinimum(fval,initial,errors,true));
-    // We don't have an error metric, so always use the maximum iterations allowed.
-    // If we don't have a maximum specified, set it to 1/prec.
-    if(maxSteps <= 0) maxSteps = std::ceil(1/prec);
-    int nAccepts(10*_nPar), maxTrials(100*_nPar), trials(0);
-    while(trials < maxSteps) {
+    // Configure our cycles.
+    int nAccepts(acceptsPerParam*_nPar), maxTrials(maxTrialsPerParam*_nPar), trials(0);
+    while(maxSteps == 0 || trials < maxSteps) {
+        double initialFval(fmin->getMinValue());
         trials += generate(fmin, nAccepts, maxTrials);
+        // Check if we have reached the requested "precision"
+        fval = fmin->getMinValue();
+        if(trials > maxTrials && initialFval - fval < 1e-3*prec) break;
     }
     return fmin;
 }

@@ -32,9 +32,9 @@ void slicestats(TH2F *hist) {
 // Overall comparison of method costs.
 void cmp(int npar=100) {
     // Draw a frame with axis labels.
-    TH2F *frame = new TH2F("frame","",1,0,14,1,1,5);
+    TH2F *frame = new TH2F("frame","",1,-1,10,1,1,5);
     frame->SetXTitle("log10(Accuracy)");
-    frame->SetYTitle("log10(Cost)");
+    frame->SetYTitle("log10(Evaluations)");
     frame->Draw();
     // Add a legend in the bottom right corner.
     TLegend *legend = new TLegend(0.7,0.12,0.88,0.37);
@@ -59,9 +59,12 @@ void cmp(int npar=100) {
     lt->Draw("ncall:accuracy>>h5","method==5","same");
     legend->AddEntry(h5,"mn2::vmetric_fast","P");
     lt->SetMarkerColor(kGreen);
-    lt->SetMarkerStyle(27);
+    lt->SetMarkerStyle(2);
     lt->Draw("ncall:accuracy>>h6","method==6","same");
-    legend->AddEntry(h6,"mc::walkabout","P");
+    legend->AddEntry(h6,"mc::saunter","P");
+    lt->SetMarkerStyle(4);
+    lt->Draw("ncall:accuracy>>h7","method==7","same");
+    legend->AddEntry(h7,"mc::stroll","P");
     // Plot results in blue for methods that use a gradient calculator, with a combined
     // cost equal to ncall + 2*npar*ngrad.
     TString what;
