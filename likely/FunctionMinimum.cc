@@ -99,7 +99,6 @@ int *infoPtr) {
     int info(0);
     dpptrf_(&uplo,&nPar,&(*cholesky)[0],&info);
     if(0 != info) {
-        std::cout << "info = " << info << std::endl;
         // Reset our return value so that it tests false using, e.g. if(cholesky) ...
         cholesky.reset();
     }
