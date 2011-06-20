@@ -5,6 +5,7 @@
 #include "likely/RuntimeError.h"
 
 #include "boost/format.hpp"
+#include "boost/lexical_cast.hpp"
 #include "boost/lambda/lambda.hpp"
 
 #include <iostream>
@@ -28,8 +29,10 @@ local::FunctionMinimum::FunctionMinimum(double minValue, Parameters const& where
 PackedCovariance const &covar, bool errorsOnly)
 : _minValue(minValue), _where(where), _random(Random::instance())
 {
-    if(!updateCovariance(covar,errorsOnly)) {
-        throw RuntimeError("FunctionMinimum: covariance is not positive definite.");
+    int info(0);
+    if(!updateCovariance(covar,errorsOnly,&info)) {
+        throw RuntimeError("FunctionMinimum: covariance is not positive definite (info = "
+            + boost::lexical_cast<std::string>(info) + ")");
     }
 }
 
@@ -41,7 +44,7 @@ void local::FunctionMinimum::updateParameters(Parameters const &params, double f
 }
 
 bool local::FunctionMinimum::updateCovariance(PackedCovariance const &covar,
-bool errorsOnly) {
+bool errorsOnly, int *info) {
     int nPar(_where.size()),nCovar(nPar*(nPar+1)/2);
     if(errorsOnly) {
         // We have a vector of errors, instead of a full covariance matrix.
@@ -83,7 +86,8 @@ local::Parameters local::FunctionMinimum::getErrors() const {
     return errors;
 }
 
-local::PackedCovariancePtr local::choleskyDecomposition(PackedCovariance const &covar) {
+local::PackedCovariancePtr local::choleskyDecomposition(PackedCovariance const &covar,
+int *infoPtr) {
     // Copy the covariance matrix provided.
     PackedCovariancePtr cholesky(new PackedCovariance(covar));
     // Calculate the number of parameters corresponding to this packed covariance size.
@@ -100,6 +104,7 @@ local::PackedCovariancePtr local::choleskyDecomposition(PackedCovariance const &
         // Reset our return value so that it tests false using, e.g. if(cholesky) ...
         cholesky.reset();
     }
+    if(infoPtr) *infoPtr = info;
     return cholesky;
 }
 

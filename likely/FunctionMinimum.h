@@ -52,7 +52,11 @@ namespace likely {
         // used to add a covariance matrix to a minimum that did not originally have one.
         // Returns true if the covariance provided is (numerically) positive definite,
         // otherwise the covariance associated with this minimum is not changed.
-        bool updateCovariance(PackedCovariance const &covar, bool errorsOnly = false);
+        // If the optional info pointer is provided, it will be filled
+    	// with the info value returned by the LAPACK dpptrf routine:
+    	//   http://www.netlib.org/lapack/double/dpptrf.f    
+        bool updateCovariance(PackedCovariance const &covar, bool errorsOnly = false,
+            int *info = 0);
         // Sets parameter values that are randomly sampled from this minimum and
         // returns the -log(weight) associated with the chosen parameters.
         double setRandomParameters(Parameters &params) const;
@@ -74,8 +78,10 @@ namespace likely {
 	
 	// Returns a smart pointer to the Cholesky decomposition of a covariance matrix.
 	// The return value will be null if the input covariance is not (numerically)
-	// positive definite.
-    PackedCovariancePtr choleskyDecomposition(PackedCovariance const &covar);
+	// positive definite. If the optional info pointer is provided, it will be filled
+	// with the info value returned by the LAPACK dpptrf routine:
+	//   http://www.netlib.org/lapack/double/dpptrf.f
+    PackedCovariancePtr choleskyDecomposition(PackedCovariance const &covar, int *info = 0);
 	
 } // likely
 
