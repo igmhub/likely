@@ -60,13 +60,13 @@ bool errorsOnly, int *info) {
             (*_covar)[i*(i+3)/2] = error*error;
         }
         // (should probably fill this directly from the input errors instead)
-        _cholesky = choleskyDecomposition(*_covar);
+        _cholesky = choleskyDecomposition(*_covar,info);
     }
     else {
         if(covar.size() != nCovar) throw RuntimeError(
             "FunctionMinimum: parameter and covariance vectors have incompatible sizes.");
         // Use a Cholesky decomposition to test for positive definiteness.
-        PackedCovariancePtr cholesky(choleskyDecomposition(covar));
+        PackedCovariancePtr cholesky(choleskyDecomposition(covar,info));
         if(!cholesky) return false;
         _cholesky = cholesky;
         _covar.reset(new PackedCovariance(covar));
