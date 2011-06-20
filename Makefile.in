@@ -37,6 +37,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = likelytest$(EXEEXT) likelymc$(EXEEXT)
+noinst_PROGRAMS = demo1$(EXEEXT) demo2$(EXEEXT)
 
 # add GSL features when libgsl is available
 @USE_GSL_TRUE@am__append_1 = likely/GslEngine.cc likely/GslErrorHandler.cc
@@ -96,7 +97,11 @@ am_liblikely_la_OBJECTS = FunctionMinimum.lo AbsEngine.lo \
 	MarkovChainEngine.lo Random.lo TestLikelihood.lo \
 	$(am__objects_1) $(am__objects_2)
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
-PROGRAMS = $(bin_PROGRAMS)
+PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
+am_demo1_OBJECTS = demo1.$(OBJEXT)
+demo1_OBJECTS = $(am_demo1_OBJECTS)
+am_demo2_OBJECTS = demo2.$(OBJEXT)
+demo2_OBJECTS = $(am_demo2_OBJECTS)
 am_likelymc_OBJECTS = likelymc.$(OBJEXT)
 likelymc_OBJECTS = $(am_likelymc_OBJECTS)
 am__DEPENDENCIES_1 =
@@ -115,10 +120,10 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-SOURCES = $(liblikely_la_SOURCES) $(likelymc_SOURCES) \
-	$(likelytest_SOURCES)
-DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(likelymc_SOURCES) \
-	$(likelytest_SOURCES)
+SOURCES = $(liblikely_la_SOURCES) $(demo1_SOURCES) $(demo2_SOURCES) \
+	$(likelymc_SOURCES) $(likelytest_SOURCES)
+DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(demo1_SOURCES) \
+	$(demo2_SOURCES) $(likelymc_SOURCES) $(likelytest_SOURCES)
 am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/RuntimeError.h likely/FunctionMinimum.h \
 	likely/AbsEngine.h likely/MarkovChainEngine.h likely/Random.h \
@@ -269,6 +274,7 @@ top_srcdir = @top_srcdir@
 
 # global compile and link options
 AM_CPPFLAGS = $(BOOST_CPPFLAGS)
+AM_LDFLAGS = $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 # targets to build and install
 lib_LTLIBRARIES = liblikely.la
@@ -288,17 +294,19 @@ nobase_include_HEADERS = likely/likely.h likely/types.h \
 likelytest_SOURCES = src/likelytest.cc
 likelytest_DEPENDENCIES = $(lib_LIBRARIES)
 likelytest_LDADD = \
-	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) \
-	$(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS) \
-	-L. -llikely
+	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) -L. -llikely
 
 likelymc_SOURCES = src/likelymc.cc
 likelymc_DEPENDENCIES = $(lib_LIBRARIES)
 likelymc_LDADD = \
-	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) \
-	$(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS) \
-	-L. -llikely
+	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) -L. -llikely
 
+demo1_SOURCES = src/demo1.cc
+demo1_DEPENDENCIES = $(lib_LIBRARIES)
+demo1_LDADD = -L. -llikely
+demo2_SOURCES = src/demo2.cc
+demo2_DEPENDENCIES = $(lib_LIBRARIES)
+demo2_LDADD = -L. -llikely
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -431,6 +439,21 @@ clean-binPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
+
+clean-noinstPROGRAMS:
+	@list='$(noinst_PROGRAMS)'; test -n "$$list" || exit 0; \
+	echo " rm -f" $$list; \
+	rm -f $$list || exit $$?; \
+	test -n "$(EXEEXT)" || exit 0; \
+	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
+	echo " rm -f" $$list; \
+	rm -f $$list
+demo1$(EXEEXT): $(demo1_OBJECTS) $(demo1_DEPENDENCIES) 
+	@rm -f demo1$(EXEEXT)
+	$(CXXLINK) $(demo1_OBJECTS) $(demo1_LDADD) $(LIBS)
+demo2$(EXEEXT): $(demo2_OBJECTS) $(demo2_DEPENDENCIES) 
+	@rm -f demo2$(EXEEXT)
+	$(CXXLINK) $(demo2_OBJECTS) $(demo2_LDADD) $(LIBS)
 likelymc$(EXEEXT): $(likelymc_OBJECTS) $(likelymc_DEPENDENCIES) 
 	@rm -f likelymc$(EXEEXT)
 	$(CXXLINK) $(likelymc_OBJECTS) $(likelymc_LDADD) $(LIBS)
@@ -452,6 +475,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MinuitEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Random.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestLikelihood.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelymc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytest.Po@am__quote@
 
@@ -531,6 +556,34 @@ MinuitEngine.lo: likely/MinuitEngine.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/MinuitEngine.cc' object='MinuitEngine.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o MinuitEngine.lo `test -f 'likely/MinuitEngine.cc' || echo '$(srcdir)/'`likely/MinuitEngine.cc
+
+demo1.o: src/demo1.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT demo1.o -MD -MP -MF $(DEPDIR)/demo1.Tpo -c -o demo1.o `test -f 'src/demo1.cc' || echo '$(srcdir)/'`src/demo1.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/demo1.Tpo $(DEPDIR)/demo1.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/demo1.cc' object='demo1.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o demo1.o `test -f 'src/demo1.cc' || echo '$(srcdir)/'`src/demo1.cc
+
+demo1.obj: src/demo1.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT demo1.obj -MD -MP -MF $(DEPDIR)/demo1.Tpo -c -o demo1.obj `if test -f 'src/demo1.cc'; then $(CYGPATH_W) 'src/demo1.cc'; else $(CYGPATH_W) '$(srcdir)/src/demo1.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/demo1.Tpo $(DEPDIR)/demo1.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/demo1.cc' object='demo1.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o demo1.obj `if test -f 'src/demo1.cc'; then $(CYGPATH_W) 'src/demo1.cc'; else $(CYGPATH_W) '$(srcdir)/src/demo1.cc'; fi`
+
+demo2.o: src/demo2.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT demo2.o -MD -MP -MF $(DEPDIR)/demo2.Tpo -c -o demo2.o `test -f 'src/demo2.cc' || echo '$(srcdir)/'`src/demo2.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/demo2.Tpo $(DEPDIR)/demo2.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/demo2.cc' object='demo2.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o demo2.o `test -f 'src/demo2.cc' || echo '$(srcdir)/'`src/demo2.cc
+
+demo2.obj: src/demo2.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT demo2.obj -MD -MP -MF $(DEPDIR)/demo2.Tpo -c -o demo2.obj `if test -f 'src/demo2.cc'; then $(CYGPATH_W) 'src/demo2.cc'; else $(CYGPATH_W) '$(srcdir)/src/demo2.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/demo2.Tpo $(DEPDIR)/demo2.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/demo2.cc' object='demo2.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o demo2.obj `if test -f 'src/demo2.cc'; then $(CYGPATH_W) 'src/demo2.cc'; else $(CYGPATH_W) '$(srcdir)/src/demo2.cc'; fi`
 
 likelymc.o: src/likelymc.cc
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelymc.o -MD -MP -MF $(DEPDIR)/likelymc.Tpo -c -o likelymc.o `test -f 'src/likelymc.cc' || echo '$(srcdir)/'`src/likelymc.cc
@@ -827,7 +880,7 @@ maintainer-clean-generic:
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool mostlyclean-am
+	clean-libtool clean-noinstPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -903,15 +956,16 @@ uninstall-am: uninstall-binPROGRAMS uninstall-libLTLIBRARIES \
 
 .PHONY: CTAGS GTAGS all all-am am--refresh check check-am clean \
 	clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool ctags dist dist-all dist-bzip2 dist-gzip \
-	dist-lzma dist-shar dist-tarZ dist-xz dist-zip distcheck \
-	distclean distclean-compile distclean-generic distclean-hdr \
-	distclean-libtool distclean-tags distcleancheck distdir \
-	distuninstallcheck dvi dvi-am html html-am info info-am \
-	install install-am install-binPROGRAMS install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-libLTLIBRARIES install-man \
+	clean-libtool clean-noinstPROGRAMS ctags dist dist-all \
+	dist-bzip2 dist-gzip dist-lzma dist-shar dist-tarZ dist-xz \
+	dist-zip distcheck distclean distclean-compile \
+	distclean-generic distclean-hdr distclean-libtool \
+	distclean-tags distcleancheck distdir distuninstallcheck dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-binPROGRAMS install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am \
+	install-libLTLIBRARIES install-man \
 	install-nobase_includeHEADERS install-pdf install-pdf-am \
 	install-ps install-ps-am install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \

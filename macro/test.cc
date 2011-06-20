@@ -30,11 +30,11 @@ void slicestats(TH2F *hist) {
 }
 
 // Overall comparison of method costs.
-void cmp(int npar=100) {
+void cmp(int npar=10) {
     // Draw a frame with axis labels.
-    TH2F *frame = new TH2F("frame","",1,-1,10,1,1,5);
-    frame->SetXTitle("log10(Accuracy)");
-    frame->SetYTitle("log10(Evaluations)");
+    TH2F *frame = new TH2F("frame","",1,-1,10,1,1,5.1);
+    frame->SetXTitle("log_{10}(Fmin Accuracy)");
+    frame->SetYTitle("log_{10}(Evaluations)");
     frame->Draw();
     // Add a legend in the bottom right corner.
     TLegend *legend = new TLegend(0.7,0.12,0.88,0.37);
@@ -44,10 +44,10 @@ void cmp(int npar=100) {
     lt->SetMarkerColor(2);
     lt->SetMarkerStyle(2);
     lt->Draw("ncall:accuracy>>h1","method==1","same");
-    legend->AddEntry(h1,"gsl::simplex2","P");
+    legend->AddEntry(h1,"gsl::nmsimplex2","P");
     lt->SetMarkerStyle(4);
     lt->Draw("ncall:accuracy>>h2","method==2","same");
-    legend->AddEntry(h2,"gsl::simplex2rand","P");
+    legend->AddEntry(h2,"gsl::nmsimplex2rand","P");
     lt->SetMarkerColor(6);
     lt->SetMarkerStyle(5);
     lt->Draw("ncall:accuracy>>h3","method==3","same");
@@ -94,6 +94,47 @@ void cmp(int npar=100) {
     what = Form("log10(pow(10,ncall)+2*%d*pow(10,ngrad)):accuracy>>h%d",npar,16);
     lt->Draw(what,"method==16","same");
     legend->AddEntry(h16,"mn2::vmetric_grad_fast","P");
+    legend->Draw();
+}
+
+// Overall comparison of method costs.
+void cov(int npar=10) {
+    // Draw a frame with axis labels.
+    TH2F *frame = new TH2F("frame","",1,0,2,1,1,5.1);
+    frame->SetXTitle("Parameter Error Estimate");
+    frame->SetYTitle("log_{10}(Evaluations)");
+    frame->Draw();
+    // Add a legend in the bottom right corner.
+    TLegend *legend = new TLegend(0.7,0.12,0.88,0.37);
+    legend->SetTextSize(0.016);
+    legend->SetFillColor(kWhite);
+    // Plot results in red for methods that do not use a gradient calculator.
+    lt->SetMarkerColor(6);
+    lt->SetMarkerStyle(25);
+    lt->Draw("ncall:error>>e4","method==4","same");
+    legend->AddEntry(e4,"mn2::vmetric","P");
+    lt->SetMarkerStyle(26);
+    lt->Draw("ncall:error>>e5","method==5","same");
+    legend->AddEntry(e5,"mn2::vmetric_fast","P");
+    lt->SetMarkerColor(kGreen);
+    lt->SetMarkerStyle(2);
+    lt->Draw("ncall:error>>e6","method==6","same");
+    legend->AddEntry(e6,"mc::saunter","P");
+    lt->SetMarkerStyle(4);
+    lt->Draw("ncall:error>>e7","method==7","same");
+    legend->AddEntry(e7,"mc::stroll","P");
+    // Plot results in blue for methods that use a gradient calculator, with a combined
+    // cost equal to ncall + 2*npar*ngrad.
+    TString what;
+    lt->SetMarkerColor(7);
+    lt->SetMarkerStyle(26);
+    what = Form("log10(pow(10,ncall)+2*%d*pow(10,ngrad)):error>>e%d",npar,15);
+    lt->Draw(what,"method==15","same");
+    legend->AddEntry(e15,"mn2::vmetric_grad","P");
+    lt->SetMarkerStyle(27);
+    what = Form("log10(pow(10,ncall)+2*%d*pow(10,ngrad)):error>>e%d",npar,16);
+    lt->Draw(what,"method==16","same");
+    legend->AddEntry(e16,"mn2::vmetric_grad_fast","P");
     legend->Draw();
 }
 

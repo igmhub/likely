@@ -23,17 +23,20 @@ void useMethod(int methodId, std::string const &methodName,
 lk::FunctionPtr f, lk::GradientCalculatorPtr gc, lk::Parameters const &initial,
 lk::Parameters const &errors, double prec) {
     lk::FunctionMinimumPtr fmin;
+    long maxIterations(100000); //1e5
     if(gc) {
         // Use an algorithm that requires a gradient calculator.
-        fmin = lk::findMinimum(f,gc,initial,errors,methodName,prec);
+        fmin = lk::findMinimum(f,gc,initial,errors,methodName,prec,maxIterations);
     }
     else {
-        fmin = lk::findMinimum(f,initial,errors,methodName,prec);
+        fmin = lk::findMinimum(f,initial,errors,methodName,prec,maxIterations);
     }
-    boost::format fmt("%d %.4f %.4f %.4f\n");
+    double error(0);
+    if(fmin->haveCovariance()) error = fmin->getErrors()[0];
+    boost::format fmt("%d %.4f %.4f %.4f %.4f\n");
     std::cout << fmt % methodId % std::log10(lk::lastMinEvalCount)
         % (lk::lastMinGradCount ? std::log10(lk::lastMinGradCount) : 0.)
-        % (fmin->getMinValue() > 0 ? -std::log10(fmin->getMinValue()) : 0);
+        % (fmin->getMinValue() > 0 ? -std::log10(fmin->getMinValue()) : 0) % error;
 }
 
 int main(int argc, char **argv) {
@@ -47,7 +50,7 @@ int main(int argc, char **argv) {
         ("verbose", "Prints additional information.")
         ("eval", "Prints the NLL and its gradient at a fixed point.")
         ("trace", "Traces all calls to the NLL function.")
-        ("ntrial", po::value<int>(&ntrial)->default_value(100),
+        ("ntrial", po::value<int>(&ntrial)->default_value(20),
             "Number of minimization trials to perform.")
         ("seed", po::value<int>(&seed)->default_value(123),
             "Random seed for generating initial parameter values.")
@@ -90,7 +93,7 @@ int main(int argc, char **argv) {
         randomOnSphere(random.getGenerator(),spherical);
     
     // Print out column headings for the output we generate below.
-    std::cout << "method ncall ngrad accuracy" << std::endl;
+    std::cout << "method ncall ngrad accuracy error" << std::endl;
 
     try {
         // Create a likelihood function using the command-line parameters.
@@ -132,8 +135,9 @@ int main(int argc, char **argv) {
         precision.push_back(1e-3);
         precision.push_back(1e-4);
 
-        // Use fixed initial error estimates.
-        lk::Parameters errors(npar,1);
+        // Use fixed initial error estimates of 1.3 for each parameter, which
+        // overestimate the true error, which is exactly 1 for alpha = 0.
+        lk::Parameters errors(npar,1.3);
 
         // Loop over minimization trials.
         for(int trial = 0; trial < ntrial; ++trial) {

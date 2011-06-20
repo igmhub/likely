@@ -35,11 +35,11 @@ _covariance(nPar*(nPar+1)/2), _random(Random::instance())
     }
     if(algorithm == "saunter") {
         minimumFinder = boost::bind(&MarkovChainEngine::minimize,this,
-            _1,_2,_3,_4,2,100);
+            _1,_2,_3,_4,20,100);
     }
     else if(algorithm == "stroll") {
         minimumFinder = boost::bind(&MarkovChainEngine::minimize,this,
-            _1,_2,_3,_4,20,1000);
+            _1,_2,_3,_4,10,2000);
     }
     else {
         throw RuntimeError("MarkovChainEngine: unknown algorithm '" + algorithm + "'");
@@ -128,7 +128,7 @@ int acceptsPerParam, int maxTrialsPerParam) {
         trials += generate(fmin, nAccepts, maxTrials);
         // Check if we have reached the requested "precision"
         fval = fmin->getMinValue();
-        if(trials > maxTrials && initialFval - fval < 1e-3*prec) break;
+        if(fval < initialFval && initialFval - fval < prec) break;
     }
     return fmin;
 }
