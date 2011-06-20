@@ -619,6 +619,9 @@ USE_MINUIT2_FALSE
 USE_MINUIT2_TRUE
 USE_GSL_FALSE
 USE_GSL_TRUE
+MAINT
+MAINTAINER_MODE_FALSE
+MAINTAINER_MODE_TRUE
 am__fastdepCXX_FALSE
 am__fastdepCXX_TRUE
 CXXDEPMODE
@@ -758,6 +761,7 @@ with_minuit2
 with_boost
 enable_static_boost
 enable_dependency_tracking
+enable_maintainer_mode
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1402,6 +1406,8 @@ Optional Features:
                           ones [no]
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
+  --enable-maintainer-mode  enable make rules and dependencies not useful
+			  (and sometimes confusing) to the casual installer
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -16143,6 +16149,30 @@ fi
 
 
 
+# See http://www.gnu.org/s/hello/manual/automake/maintainer_002dmode.html
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable maintainer-specific portions of Makefiles" >&5
+$as_echo_n "checking whether to enable maintainer-specific portions of Makefiles... " >&6; }
+    # Check whether --enable-maintainer-mode was given.
+if test "${enable_maintainer_mode+set}" = set; then :
+  enableval=$enable_maintainer_mode; USE_MAINTAINER_MODE=$enableval
+else
+  USE_MAINTAINER_MODE=no
+fi
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $USE_MAINTAINER_MODE" >&5
+$as_echo "$USE_MAINTAINER_MODE" >&6; }
+   if test $USE_MAINTAINER_MODE = yes; then
+  MAINTAINER_MODE_TRUE=
+  MAINTAINER_MODE_FALSE='#'
+else
+  MAINTAINER_MODE_TRUE='#'
+  MAINTAINER_MODE_FALSE=
+fi
+
+  MAINT=$MAINTAINER_MODE_TRUE
+
+
 ac_config_headers="$ac_config_headers config.h"
 
 
@@ -16293,6 +16323,10 @@ else
   am__EXEEXT_FALSE=
 fi
 
+if test -z "${MAINTAINER_MODE_TRUE}" && test -z "${MAINTAINER_MODE_FALSE}"; then
+  as_fn_error $? "conditional \"MAINTAINER_MODE\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${USE_GSL_TRUE}" && test -z "${USE_GSL_FALSE}"; then
   as_fn_error $? "conditional \"USE_GSL\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5

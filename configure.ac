@@ -62,6 +62,8 @@ BOOST_REGEX
 # Configure automake
 AC_CONFIG_FILES([Makefile])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+# See http://www.gnu.org/s/hello/manual/automake/maintainer_002dmode.html
+AM_MAINTAINER_MODE
 AC_CONFIG_HEADERS([config.h])
 
 # Define automake variables that flag whether optional libraries should be used.
