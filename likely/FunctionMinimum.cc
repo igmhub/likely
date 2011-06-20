@@ -5,7 +5,6 @@
 #include "likely/RuntimeError.h"
 
 #include "boost/format.hpp"
-#include "boost/lexical_cast.hpp"
 #include "boost/lambda/lambda.hpp"
 
 #include <iostream>
@@ -29,10 +28,8 @@ local::FunctionMinimum::FunctionMinimum(double minValue, Parameters const& where
 PackedCovariance const &covar, bool errorsOnly)
 : _minValue(minValue), _where(where), _random(Random::instance())
 {
-    int info(0);
-    if(!updateCovariance(covar,errorsOnly,&info)) {
-        throw RuntimeError("FunctionMinimum: covariance is not positive definite (info = "
-            + boost::lexical_cast<std::string>(info) + ")");
+    if(!updateCovariance(covar,errorsOnly)) {
+        throw RuntimeError("FunctionMinimum: covariance is not positive definite.");
     }
 }
 
@@ -44,7 +41,7 @@ void local::FunctionMinimum::updateParameters(Parameters const &params, double f
 }
 
 bool local::FunctionMinimum::updateCovariance(PackedCovariance const &covar,
-bool errorsOnly, int *info) {
+bool errorsOnly) {
     int nPar(_where.size()),nCovar(nPar*(nPar+1)/2);
     if(errorsOnly) {
         // We have a vector of errors, instead of a full covariance matrix.
@@ -60,17 +57,18 @@ bool errorsOnly, int *info) {
             (*_covar)[i*(i+3)/2] = error*error;
         }
         // (should probably fill this directly from the input errors instead)
-        _cholesky = choleskyDecomposition(*_covar,info);
+        _cholesky = choleskyDecomposition(*_covar);
     }
     else {
         if(covar.size() != nCovar) throw RuntimeError(
             "FunctionMinimum: parameter and covariance vectors have incompatible sizes.");
         // Use a Cholesky decomposition to test for positive definiteness.
-        PackedCovariancePtr cholesky(choleskyDecomposition(covar,info));
+        PackedCovariancePtr cholesky(choleskyDecomposition(covar));
         if(!cholesky) return false;
         _cholesky = cholesky;
         _covar.reset(new PackedCovariance(covar));
     }
+    return true;
 }
 
 local::Parameters local::FunctionMinimum::getErrors() const {

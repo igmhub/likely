@@ -52,11 +52,7 @@ namespace likely {
         // used to add a covariance matrix to a minimum that did not originally have one.
         // Returns true if the covariance provided is (numerically) positive definite,
         // otherwise the covariance associated with this minimum is not changed.
-        // If the optional info pointer is provided, it will be filled
-    	// with the info value returned by the LAPACK dpptrf routine:
-    	//   http://www.netlib.org/lapack/double/dpptrf.f    
-        bool updateCovariance(PackedCovariance const &covar, bool errorsOnly = false,
-            int *info = 0);
+        bool updateCovariance(PackedCovariance const &covar, bool errorsOnly = false);
         // Sets parameter values that are randomly sampled from this minimum and
         // returns the -log(weight) associated with the chosen parameters.
         double setRandomParameters(Parameters &params) const;
