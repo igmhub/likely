@@ -36,7 +36,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = likelytest$(EXEEXT) likelymc$(EXEEXT)
+bin_PROGRAMS = likelytest$(EXEEXT) likelymc$(EXEEXT) \
+	likelyinterp$(EXEEXT)
 noinst_PROGRAMS = demo1$(EXEEXT) demo2$(EXEEXT)
 
 # add GSL features when libgsl is available
@@ -102,9 +103,11 @@ am_demo1_OBJECTS = demo1.$(OBJEXT)
 demo1_OBJECTS = $(am_demo1_OBJECTS)
 am_demo2_OBJECTS = demo2.$(OBJEXT)
 demo2_OBJECTS = $(am_demo2_OBJECTS)
+am_likelyinterp_OBJECTS = likelyinterp.$(OBJEXT)
+likelyinterp_OBJECTS = $(am_likelyinterp_OBJECTS)
+am__DEPENDENCIES_1 =
 am_likelymc_OBJECTS = likelymc.$(OBJEXT)
 likelymc_OBJECTS = $(am_likelymc_OBJECTS)
-am__DEPENDENCIES_1 =
 am_likelytest_OBJECTS = likelytest.$(OBJEXT)
 likelytest_OBJECTS = $(am_likelytest_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -121,9 +124,11 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(liblikely_la_SOURCES) $(demo1_SOURCES) $(demo2_SOURCES) \
-	$(likelymc_SOURCES) $(likelytest_SOURCES)
+	$(likelyinterp_SOURCES) $(likelymc_SOURCES) \
+	$(likelytest_SOURCES)
 DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(demo1_SOURCES) \
-	$(demo2_SOURCES) $(likelymc_SOURCES) $(likelytest_SOURCES)
+	$(demo2_SOURCES) $(likelyinterp_SOURCES) $(likelymc_SOURCES) \
+	$(likelytest_SOURCES)
 am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/RuntimeError.h likely/FunctionMinimum.h \
 	likely/AbsEngine.h likely/MarkovChainEngine.h \
@@ -305,6 +310,11 @@ likelymc_DEPENDENCIES = $(lib_LIBRARIES)
 likelymc_LDADD = \
 	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) -L. -llikely
 
+likelyinterp_SOURCES = src/likelyinterp.cc
+likelyinterp_DEPENDENCIES = $(lib_LIBRARIES)
+likelyinterp_LDADD = \
+	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) -L. -llikely
+
 demo1_SOURCES = src/demo1.cc
 demo1_DEPENDENCIES = $(lib_LIBRARIES)
 demo1_LDADD = -L. -llikely
@@ -458,6 +468,9 @@ demo1$(EXEEXT): $(demo1_OBJECTS) $(demo1_DEPENDENCIES)
 demo2$(EXEEXT): $(demo2_OBJECTS) $(demo2_DEPENDENCIES) 
 	@rm -f demo2$(EXEEXT)
 	$(CXXLINK) $(demo2_OBJECTS) $(demo2_LDADD) $(LIBS)
+likelyinterp$(EXEEXT): $(likelyinterp_OBJECTS) $(likelyinterp_DEPENDENCIES) 
+	@rm -f likelyinterp$(EXEEXT)
+	$(CXXLINK) $(likelyinterp_OBJECTS) $(likelyinterp_LDADD) $(LIBS)
 likelymc$(EXEEXT): $(likelymc_OBJECTS) $(likelymc_DEPENDENCIES) 
 	@rm -f likelymc$(EXEEXT)
 	$(CXXLINK) $(likelymc_OBJECTS) $(likelymc_LDADD) $(LIBS)
@@ -482,6 +495,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestLikelihood.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyinterp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelymc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytest.Po@am__quote@
 
@@ -596,6 +610,20 @@ demo2.obj: src/demo2.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/demo2.cc' object='demo2.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o demo2.obj `if test -f 'src/demo2.cc'; then $(CYGPATH_W) 'src/demo2.cc'; else $(CYGPATH_W) '$(srcdir)/src/demo2.cc'; fi`
+
+likelyinterp.o: src/likelyinterp.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelyinterp.o -MD -MP -MF $(DEPDIR)/likelyinterp.Tpo -c -o likelyinterp.o `test -f 'src/likelyinterp.cc' || echo '$(srcdir)/'`src/likelyinterp.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelyinterp.Tpo $(DEPDIR)/likelyinterp.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelyinterp.cc' object='likelyinterp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelyinterp.o `test -f 'src/likelyinterp.cc' || echo '$(srcdir)/'`src/likelyinterp.cc
+
+likelyinterp.obj: src/likelyinterp.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelyinterp.obj -MD -MP -MF $(DEPDIR)/likelyinterp.Tpo -c -o likelyinterp.obj `if test -f 'src/likelyinterp.cc'; then $(CYGPATH_W) 'src/likelyinterp.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelyinterp.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelyinterp.Tpo $(DEPDIR)/likelyinterp.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelyinterp.cc' object='likelyinterp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelyinterp.obj `if test -f 'src/likelyinterp.cc'; then $(CYGPATH_W) 'src/likelyinterp.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelyinterp.cc'; fi`
 
 likelymc.o: src/likelymc.cc
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelymc.o -MD -MP -MF $(DEPDIR)/likelymc.Tpo -c -o likelymc.o `test -f 'src/likelymc.cc' || echo '$(srcdir)/'`src/likelymc.cc
