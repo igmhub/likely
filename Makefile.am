@@ -14,6 +14,7 @@ liblikely_la_SOURCES = \
 	likely/FunctionMinimum.cc \
 	likely/AbsEngine.cc \
 	likely/MarkovChainEngine.cc \
+	likely/Interpolator.cc \
 	likely/Random.cc \
 	likely/test/TestLikelihood.cc
 
@@ -25,6 +26,7 @@ nobase_include_HEADERS = \
 	likely/FunctionMinimum.h \
 	likely/AbsEngine.h \
 	likely/MarkovChainEngine.h \
+	likely/Interpolator.h \
 	likely/Random.h \
 	likely/test/TestLikelihood.h
 

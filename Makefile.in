@@ -88,14 +88,14 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 liblikely_la_LIBADD =
 am__liblikely_la_SOURCES_DIST = likely/FunctionMinimum.cc \
 	likely/AbsEngine.cc likely/MarkovChainEngine.cc \
-	likely/Random.cc likely/test/TestLikelihood.cc \
-	likely/GslEngine.cc likely/GslErrorHandler.cc \
-	likely/MinuitEngine.cc
+	likely/Interpolator.cc likely/Random.cc \
+	likely/test/TestLikelihood.cc likely/GslEngine.cc \
+	likely/GslErrorHandler.cc likely/MinuitEngine.cc
 @USE_GSL_TRUE@am__objects_1 = GslEngine.lo GslErrorHandler.lo
 @USE_MINUIT2_TRUE@am__objects_2 = MinuitEngine.lo
 am_liblikely_la_OBJECTS = FunctionMinimum.lo AbsEngine.lo \
-	MarkovChainEngine.lo Random.lo TestLikelihood.lo \
-	$(am__objects_1) $(am__objects_2)
+	MarkovChainEngine.lo Interpolator.lo Random.lo \
+	TestLikelihood.lo $(am__objects_1) $(am__objects_2)
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am_demo1_OBJECTS = demo1.$(OBJEXT)
@@ -126,7 +126,8 @@ DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(demo1_SOURCES) \
 	$(demo2_SOURCES) $(likelymc_SOURCES) $(likelytest_SOURCES)
 am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/RuntimeError.h likely/FunctionMinimum.h \
-	likely/AbsEngine.h likely/MarkovChainEngine.h likely/Random.h \
+	likely/AbsEngine.h likely/MarkovChainEngine.h \
+	likely/Interpolator.h likely/Random.h \
 	likely/test/TestLikelihood.h likely/GslEngine.h \
 	likely/GslErrorHandler.h likely/MinuitEngine.h
 HEADERS = $(nobase_include_HEADERS)
@@ -282,13 +283,15 @@ lib_LTLIBRARIES = liblikely.la
 
 # instructions for building the library
 liblikely_la_SOURCES = likely/FunctionMinimum.cc likely/AbsEngine.cc \
-	likely/MarkovChainEngine.cc likely/Random.cc \
-	likely/test/TestLikelihood.cc $(am__append_1) $(am__append_3)
+	likely/MarkovChainEngine.cc likely/Interpolator.cc \
+	likely/Random.cc likely/test/TestLikelihood.cc $(am__append_1) \
+	$(am__append_3)
 
 # library headers to install (nobase prefix preserves directories under bosslya)
 nobase_include_HEADERS = likely/likely.h likely/types.h \
 	likely/RuntimeError.h likely/FunctionMinimum.h \
-	likely/AbsEngine.h likely/MarkovChainEngine.h likely/Random.h \
+	likely/AbsEngine.h likely/MarkovChainEngine.h \
+	likely/Interpolator.h likely/Random.h \
 	likely/test/TestLikelihood.h $(am__append_2) $(am__append_4)
 
 # instructions for building each program
@@ -472,6 +475,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FunctionMinimum.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslErrorHandler.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Interpolator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MarkovChainEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MinuitEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Random.Plo@am__quote@
@@ -522,6 +526,13 @@ MarkovChainEngine.lo: likely/MarkovChainEngine.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/MarkovChainEngine.cc' object='MarkovChainEngine.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o MarkovChainEngine.lo `test -f 'likely/MarkovChainEngine.cc' || echo '$(srcdir)/'`likely/MarkovChainEngine.cc
+
+Interpolator.lo: likely/Interpolator.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Interpolator.lo -MD -MP -MF $(DEPDIR)/Interpolator.Tpo -c -o Interpolator.lo `test -f 'likely/Interpolator.cc' || echo '$(srcdir)/'`likely/Interpolator.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/Interpolator.Tpo $(DEPDIR)/Interpolator.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/Interpolator.cc' object='Interpolator.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Interpolator.lo `test -f 'likely/Interpolator.cc' || echo '$(srcdir)/'`likely/Interpolator.cc
 
 Random.lo: likely/Random.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT Random.lo -MD -MP -MF $(DEPDIR)/Random.Tpo -c -o Random.lo `test -f 'likely/Random.cc' || echo '$(srcdir)/'`likely/Random.cc
