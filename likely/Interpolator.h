@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <string>
+#include <iosfwd>
 
 namespace likely {
     // Implements interpolation algorithms.
@@ -32,6 +33,20 @@ namespace likely {
         gsl_interp *_interpolator;
 #endif
 	}; // Interpolator
+	
+    // Returns a smart pointer to an interpolator based on control points read
+    // from the specified file name.
+/*
+	InterpolatorPtr createInterpolator(std::string const &filename,
+        std::string const &algorithm);
+*/
+    // Fills the vectors provided from the columns of the specified input stream.
+    // Returns the number of rows successfully read or throws a RuntimeError.
+    // Any input beyond the required column values is silently ignore if ignoreExtra
+    // is set or, otherwise, generates a RuntimeError.
+    int readVectors(std::istream &input, std::vector<std::vector<double> > &vectors,
+        bool ignoreExtra = false);
+	
 } // likely
 
 #endif // LIKELY_INTERPOLATOR

@@ -5,6 +5,7 @@
 #include "likely/RuntimeError.h"
 
 #include "likely/Random.h"
+#include "likely/Interpolator.h"
 
 #include "likely/FunctionMinimum.h"
 #include "likely/MarkovChainEngine.h"

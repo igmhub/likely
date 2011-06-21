@@ -1,6 +1,7 @@
 // Created 24-May-2011 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 
 #include "likely/GslErrorHandler.h"
+#include "likely/RuntimeError.h"
 
 #include "boost/format.hpp"
 
@@ -22,7 +23,8 @@ local::GslErrorHandler::~GslErrorHandler() {
 void local::GslErrorHandler::_handle(
 const char *reason,const char *file,int line,int gsl_errno) {
     static boost::format messageFormat("%s <GSL error at line %d of %s> %s\n");
-    std::cerr << boost::str(messageFormat % getContextStack().top() % line % file % reason);
+    throw RuntimeError(boost::str(
+        messageFormat % getContextStack().top() % line % file % reason));
 }
 
 std::stack<std::string> &local::GslErrorHandler::getContextStack() {

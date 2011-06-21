@@ -7,6 +7,13 @@
 #include "likely/GslErrorHandler.h"
 #endif
 
+#include "boost/lexical_cast.hpp"
+
+#include <iostream>
+#include <sstream>
+#include <algorithm>
+#include <iterator>
+
 namespace local = likely;
 
 local::Interpolator::Interpolator(CoordinateValues const &x, CoordinateValues const &y,
@@ -60,4 +67,34 @@ double local::Interpolator::operator()(double x) const {
     if(x <= _x.front()) return _y.front();
     if(x >= _x.back()) return _y.back();
     return gsl_interp_eval(_interpolator, &_x[0], &_y[0], x, _accelerator);
+}
+
+int local::readVectors(std::istream &input, std::vector<std::vector<double> > &vectors,
+bool ignoreExtra) {
+    // Loop over input lines.
+    int lineNumber(0);
+    std::string line;
+    int nColumns(vectors.size());
+    while(1) {
+        // Try to read the next line.
+        std::getline(input, line);
+        if(!input.good() || input.eof()) break;
+        lineNumber++;
+        std::vector<double> values;
+        std::istringstream iss(line);
+        std::copy(std::istream_iterator<double>(iss), std::istream_iterator<double>(),
+            std::back_inserter(values));
+        if(values.size() < nColumns || (!ignoreExtra && values.size() > nColumns)) {
+            throw RuntimeError("Badly formed input on line " +
+                boost::lexical_cast<std::string>(lineNumber));
+        }
+        for(int index = 0; index < nColumns; ++index) {
+            vectors[index].push_back(values[index]);
+        }
+    }
+    if(!input.eof()) {
+        throw RuntimeError("Error reading input on line " +
+            boost::lexical_cast<std::string>(lineNumber));
+    }
+    return lineNumber;
 }
