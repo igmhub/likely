@@ -17,7 +17,7 @@ namespace likely {
 		virtual ~GslErrorHandler();
 	private:
 		// Remembers the original handler
-        gsl_error_handler_t const *_original;
+        gsl_error_handler_t *_original;
 		// Handles an error by throwing a RuntimeError with a descriptive message.
 		static void _handle(const char *reason,const char *file,int line,int gsl_errno);
         // Keeps track of the current context in case of nested handlers.
