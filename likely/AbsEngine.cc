@@ -4,6 +4,11 @@
 #include "likely/RuntimeError.h"
 #include "likely/FunctionMinimum.h"
 
+#include "config.h"
+#ifdef HAVE_LIBGSL
+#include "likely/GslEngine.h"
+#endif
+
 #include "boost/regex.hpp"
 
 namespace local = likely;
@@ -39,6 +44,10 @@ double precision, long maxIterations) {
         throw RuntimeError(
             "findMinimum: initial parameter and error vectors have different sizes.");
     }
+    // Trigger first-time registration of engine methods.
+#ifdef HAVE_LIBGSL
+    GslEngine::registerGslEngineMethods();
+#endif
     // Parse the method name, which should have the form <engine>::<algorithm>
     ParsedMethodName parsed(parseMethodName(methodName));
     // Lookup the factory that creates this type of engine.

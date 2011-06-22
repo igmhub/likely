@@ -232,10 +232,9 @@ std::stack<local::GslEngine*> &local::GslEngine::_getEngineStack() {
     return *stack;
 }
 
-#include <iostream>
-
-bool local::GslEngine::registerGslEngineMethods() {
-    std::cout << "Registering GSL methods..." << std::endl;
+void local::GslEngine::registerGslEngineMethods() {
+    static bool registered = false;
+    if(registered) return;
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::registerEngineMethods");
     // Create a function object that constructs a GslEngine with parameters
@@ -245,7 +244,5 @@ bool local::GslEngine::registerGslEngineMethods() {
     // Register our factory method.
     AbsEngine::getEngineRegistry()["gsl"] = factory;
     // Return a dummy value so that we can be called at program startup.
-    return true;
+    registered = true;
 }
-
-bool local::GslEngine::_registered = local::GslEngine::registerGslEngineMethods();
