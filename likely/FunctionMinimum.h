@@ -64,7 +64,7 @@ namespace likely {
         Parameters _where;
         PackedCovariancePtr _covar;
         mutable PackedCovariancePtr _cholesky;
-        mutable Random &_random;
+        Random &_random;
 	}; // FunctionMinimum
 	
     inline double FunctionMinimum::getMinValue() const { return _minValue; }
