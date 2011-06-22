@@ -33,7 +33,7 @@ AC_ARG_WITH([gsl],
 #		AC_MSG_ERROR([Cannot find the gslcblas library.]))
 #])
 AS_IF([test "x$with_gsl" != "xno"], [
-	AC_CHECK_LIB([gsl],[gsl_blas_dgemm],,
+	AC_CHECK_LIB([gsl],[main],,
 		AC_MSG_ERROR([Cannot find the gsl library.]))
 ])
 
