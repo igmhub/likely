@@ -5,7 +5,6 @@
 #include "likely/RuntimeError.h"
 
 #include "boost/format.hpp"
-#include "boost/lambda/lambda.hpp"
 
 #include <iostream>
 #include <algorithm>
@@ -48,8 +47,7 @@ bool errorsOnly) {
         if(covar.size() != nPar) throw RuntimeError(
             "FunctionMinimum: parameter and error vectors have incompatible sizes.");
         // Check for any errors <= 0.
-        if(std::find_if(covar.begin(), covar.end(), boost::lambda::_1 <= 0)
-            != covar.end()) return false;
+        for(int i = 0; i < nPar; ++i) if(covar[i] <= 0) return false;
         // Create a diogonal covariance matrix of squared errors.
         _covar.reset(new PackedCovariance(nCovar,0));
         for(int i = 0; i < nPar; ++i) {
@@ -90,7 +88,7 @@ int *infoPtr) {
     PackedCovariancePtr cholesky(new PackedCovariance(covar));
     // Calculate the number of parameters corresponding to this packed covariance size.
     int nCov(covar.size());
-    int nPar(std::floor(0.5*std::sqrt(1+8*nCov)));
+    int nPar(std::floor(0.5*std::sqrt((double)(1+8*nCov))));
     if(nCov != nPar*(nPar+1)/2) {
         throw RuntimeError("choleskyDecomposition: internal error nCov ~ nPar");
     }
