@@ -21,7 +21,7 @@ LT_INIT
 AC_CHECK_LIB([m],[cos],,
 	AC_MSG_ERROR([Cannot find the math library.]))
 AC_CHECK_LIB([lapack],[main],,
-	AC_MSG_ERROR([Cannot find the lapack library.]))
+	AC_MSG_WARN([Cannot find the lapack library. Will try to continue without it.]))
 
 # Following http://www.gentoo.org/proj/en/qa/automagic.xml below...
 

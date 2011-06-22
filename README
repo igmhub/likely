@@ -1,5 +1,9 @@
 A support package for numerical work with likelihood functions, with interfaces to the GNU Scientific Library (GSL) and Minuit2.
 
+For details, see the documentation at:
+
+  http://c3.lbl.gov:8000/Trac.Cosmology/wiki/NumericalAlgorithms#likely
+
 Contact David Kirkby <dkirkby@uci.edu> for questions or bug reports.
 
 --- 

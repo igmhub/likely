@@ -48,10 +48,11 @@ noinst_PROGRAMS = demo1$(EXEEXT) demo2$(EXEEXT)
 @USE_MINUIT2_TRUE@am__append_3 = likely/MinuitEngine.cc
 @USE_MINUIT2_TRUE@am__append_4 = likely/MinuitEngine.h
 subdir = .
-DIST_COMMON = $(am__configure_deps) $(am__nobase_include_HEADERS_DIST) \
-	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/config.h.in $(top_srcdir)/configure config.guess \
-	config.sub depcomp install-sh ltmain.sh missing
+DIST_COMMON = README $(am__configure_deps) \
+	$(am__nobase_include_HEADERS_DIST) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
+	$(top_srcdir)/configure config.guess config.sub depcomp \
+	install-sh ltmain.sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \

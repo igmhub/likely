@@ -14275,7 +14275,8 @@ _ACEOF
   LIBS="-llapack $LIBS"
 
 else
-  as_fn_error $? "Cannot find the lapack library." "$LINENO" 5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cannot find the lapack library. Will try to continue without it." >&5
+$as_echo "$as_me: WARNING: Cannot find the lapack library. Will try to continue without it." >&2;}
 fi
 
 
