@@ -1,6 +1,7 @@
 # global compile and link options
 AM_CPPFLAGS = $(BOOST_CPPFLAGS)
-AM_LDFLAGS = $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+##AM_LDFLAGS = $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+AM_LDFLAGS = -lboost_regex
 
 # targets to build and install
 lib_LTLIBRARIES = liblikely.la
@@ -46,18 +47,17 @@ endif
 
 likelytest_SOURCES = src/likelytest.cc
 likelytest_DEPENDENCIES = $(lib_LIBRARIES)
-likelytest_LDADD = \
-	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) -L. -llikely
+likelytest_LDADD = -lboost_program_options -L. -llikely
+
+##	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) -L. -llikely
 
 likelymc_SOURCES = src/likelymc.cc
 likelymc_DEPENDENCIES = $(lib_LIBRARIES)
-likelymc_LDADD = \
-	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) -L. -llikely
+likelymc_LDADD = -lboost_program_options -L. -llikely
 
 likelyinterp_SOURCES = src/likelyinterp.cc
 likelyinterp_DEPENDENCIES = $(lib_LIBRARIES)
-likelyinterp_LDADD = \
-	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) -L. -llikely
+likelyinterp_LDADD = -lboost_program_options -L. -llikely
 
 demo1_SOURCES = src/demo1.cc
 demo1_DEPENDENCIES = $(lib_LIBRARIES)

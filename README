@@ -6,7 +6,16 @@ For details, see the documentation at:
 
 Contact David Kirkby <dkirkby@uci.edu> for questions or bug reports.
 
---- 
+
+== Building on NERSC Platforms
+
+Boost is only installed on hopper (why?), so work there:
+
+module load gsl
+module load boost
+../configure --without-minuit2 --with-boost=$BOOST_DIR LDFLAGS="-L$GSL_DIR/lib" CPPFLAGS="-I$GSL_DIR/include" CXX=CC
+
+== Repository Management 
 
 This package is maintained with git. Tagged exports to svn are currently done using:
 
