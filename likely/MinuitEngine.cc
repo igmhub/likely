@@ -169,7 +169,9 @@ template local::FunctionMinimumPtr
     local::MinuitEngine::minimize<mn::VariableMetricMinimizer>
     (Parameters const&,Parameters const&,double,int,int);
 
-bool local::MinuitEngine::registerMinuitEngineMethods() {
+void local::MinuitEngine::registerMinuitEngineMethods() {
+    static bool registered = false;
+    if(registered) return;
     // Create a function object that constructs a MinuitEngine with parameters
     // (FunctionPtr f, GradientCalculatorPtr gc, int npar, std::string const &methodName).
     AbsEngine::EngineFactory factory =
@@ -177,7 +179,5 @@ bool local::MinuitEngine::registerMinuitEngineMethods() {
     // Register our minimization methods.
     AbsEngine::getEngineRegistry()["mn2"] = factory;
     // Return a dummy value so that we can be called at program startup.
-    return true;
+    registered = true;
 }
-
-bool local::MinuitEngine::_registered = local::MinuitEngine::registerMinuitEngineMethods();

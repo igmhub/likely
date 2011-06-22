@@ -132,16 +132,14 @@ int acceptsPerParam, int maxTrialsPerParam) {
     return fmin;
 }
 
-bool local::MarkovChainEngine::registerMarkovChainEngineMethods() {
+void local::MarkovChainEngine::registerMarkovChainEngineMethods() {
+    static bool registered = false;
+    if(registered) return;
     // Create a function object that constructs a MarkovChainEngine with parameters
     // (FunctionPtr f, GradientCalculatorPtr gc, int npar, std::string const &methodName).
     AbsEngine::EngineFactory factory =
         boost::bind(boost::factory<MarkovChainEngine*>(),_1,_2,_3,_4);
     // Register our minimization methods.
     AbsEngine::getEngineRegistry()["mc"] = factory;
-    // Return a dummy value so that we can be called at program startup.
-    return true;
+    registered = true;
 }
-
-bool local::MarkovChainEngine::_registered =
-    local::MarkovChainEngine::registerMarkovChainEngineMethods();

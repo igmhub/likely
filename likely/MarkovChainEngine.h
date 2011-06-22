@@ -31,6 +31,8 @@ namespace likely {
         typedef boost::function<void (Parameters const&, double, bool)> Callback;
         int generate(FunctionMinimumPtr fmin, int nAccepts, int maxTrials,
             Callback callback = Callback());
+        // Registers our named methods.
+        static void registerMarkovChainEngineMethods();
 	private:
         int _nPar;
         FunctionPtr _f;
@@ -39,9 +41,6 @@ namespace likely {
         Parameters _current, _trial, _minParams;
         PackedCovariance _covariance;
         Random &_random;
-        // Registers our named methods.
-        static bool registerMarkovChainEngineMethods();
-        static bool _registered;
 	}; // MarkovChainEngine
 } // likely
 

@@ -243,6 +243,5 @@ void local::GslEngine::registerGslEngineMethods() {
         boost::bind(boost::factory<GslEngine*>(),_1,_2,_3,_4);
     // Register our factory method.
     AbsEngine::getEngineRegistry()["gsl"] = factory;
-    // Return a dummy value so that we can be called at program startup.
     registered = true;
 }

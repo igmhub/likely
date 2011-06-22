@@ -1,12 +1,18 @@
 // Created 28-May-2011 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 
+#include "config.h"
+
 #include "likely/AbsEngine.h"
 #include "likely/RuntimeError.h"
 #include "likely/FunctionMinimum.h"
+#include "likely/MarkovChainEngine.h"
 
-#include "config.h"
 #ifdef HAVE_LIBGSL
 #include "likely/GslEngine.h"
+#endif
+
+#ifdef HAVE_LIBMINUIT2
+#include "likely/MinuitEngine.h"
 #endif
 
 #include "boost/regex.hpp"
@@ -48,6 +54,10 @@ double precision, long maxIterations) {
 #ifdef HAVE_LIBGSL
     GslEngine::registerGslEngineMethods();
 #endif
+#ifdef HAVE_LIBMINUIT2
+    MinuitEngine::registerMinuitEngineMethods();
+#endif
+    MarkovChainEngine::registerMarkovChainEngineMethods();
     // Parse the method name, which should have the form <engine>::<algorithm>
     ParsedMethodName parsed(parseMethodName(methodName));
     // Lookup the factory that creates this type of engine.

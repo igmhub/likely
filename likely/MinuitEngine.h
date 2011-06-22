@@ -45,15 +45,14 @@ namespace likely {
         template<class T>
         FunctionMinimumPtr minimize(Parameters const &initial, Parameters const &errors,
             double prec, int maxfcn, int strategy);        
+        // Registers our named methods.
+        static void registerMinuitEngineMethods();
 	private:
         int _nPar;
         FunctionPtr _f;
         GradientCalculatorPtr _gc;
         StatePtr _initialState;
         void _setInitialState(Parameters const &initial, Parameters const &errors);
-        // Registers our named methods.
-        static bool registerMinuitEngineMethods();
-        static bool _registered;
 	}; // MinuitEngine
 	
 	inline MinuitEngine::StatePtr MinuitEngine::getInitialState() {
