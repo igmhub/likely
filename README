@@ -1,0 +1,15 @@
+A support package for numerical work with likelihood functions, with interfaces to the GNU Scientific Library (GSL) and Minuit2.
+
+Contact David Kirkby <dkirkby@uci.edu> for questions or bug reports.
+
+--- 
+
+This package is maintained with git. Tagged exports to svn are currently done using:
+
+git tag -s -m '...' vXX
+git archive --format=tar --prefix=likely-XX/ vXX | gzip > /tmp/likely-XX.tar.gz
+
+cd ...
+tar -zxf /tmp/likely-XX.tar.gz
+svn commit
+svn tag

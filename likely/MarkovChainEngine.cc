@@ -50,7 +50,6 @@ local::MarkovChainEngine::~MarkovChainEngine() { }
 
 int local::MarkovChainEngine::generate(FunctionMinimumPtr fmin, int nAccepts,
 int maxTrials, Callback callback) {
-    //!!using namespace boost::lambda;
     // Set our initial parameters to the estimated function minimum, where the
     // NLW = -log(weight) is zero, by definition.
     Parameters const &initial(fmin->getParameters());
