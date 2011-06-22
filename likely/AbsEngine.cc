@@ -45,7 +45,7 @@ double precision, long maxIterations) {
     AbsEngine::EngineRegistry::iterator found =
         AbsEngine::getEngineRegistry().find(parsed.first);
     if(found == AbsEngine::getEngineRegistry().end()) {
-        throw RuntimeError("findMinimum: no such engine '" + methodName + "'");
+        throw RuntimeError("findMinimum: no such engine '" + parsed.first + "'");
     }
     // Create a new engine for this function.
     AbsEngine::EngineFactory factory = found->second;

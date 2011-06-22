@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
         printSummary(fmin,0,tag);
         
         // Create an MCMC engine to use.
-        lk::MarkovChainEngine mcmc(f,lk::GradientCalculatorPtr(),npar,"mc::walkabout");
+        lk::MarkovChainEngine mcmc(f,lk::GradientCalculatorPtr(),npar,"mc::saunter");
         
         // Loop over MCMC cycles.
         boost::format cycleOutName("%s/cycle-%d.dat"),valueFmt(" %.5f");

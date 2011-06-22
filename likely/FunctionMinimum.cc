@@ -95,7 +95,7 @@ int *infoPtr) {
     // Use LAPACK to perform the decomposition.
     char uplo('U');
     int info(0);
-    dpptrf_(&uplo,&nPar,&(*cholesky)[0],&info);
+    //dpptrf_(&uplo,&nPar,&(*cholesky)[0],&info);
     if(0 != info) {
         // Reset our return value so that it tests false using, e.g. if(cholesky) ...
         cholesky.reset();

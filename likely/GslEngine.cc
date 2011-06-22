@@ -232,7 +232,10 @@ std::stack<local::GslEngine*> &local::GslEngine::_getEngineStack() {
     return *stack;
 }
 
+#include <iostream>
+
 bool local::GslEngine::registerGslEngineMethods() {
+    std::cout << "Registering GSL methods..." << std::endl;
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::registerEngineMethods");
     // Create a function object that constructs a GslEngine with parameters
