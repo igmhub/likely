@@ -30,9 +30,6 @@
 /* Define to 1 if you have the `gsl' library (-lgsl). */
 #undef HAVE_LIBGSL
 
-/* Define to 1 if you have the `gslcblas' library (-lgslcblas). */
-#undef HAVE_LIBGSLCBLAS
-
 /* Define to 1 if you have the `lapack' library (-llapack). */
 #undef HAVE_LIBLAPACK
 

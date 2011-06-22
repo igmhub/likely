@@ -28,10 +28,10 @@ AC_CHECK_LIB([lapack],[main],,
 # Use 'configure --without-gsl' if GSL should not be used.
 AC_ARG_WITH([gsl],
 	AS_HELP_STRING([--without-gsl], [Build without the GSL library.]))
-AS_IF([test "x$with_gsl" != "xno"], [
-	AC_CHECK_LIB([gslcblas],[cblas_dgemm],,
-		AC_MSG_ERROR([Cannot find the gslcblas library.]))
-])
+#AS_IF([test "x$with_gsl" != "xno"], [
+#	AC_CHECK_LIB([gslcblas],[cblas_dgemm],,
+#		AC_MSG_ERROR([Cannot find the gslcblas library.]))
+#])
 AS_IF([test "x$with_gsl" != "xno"], [
 	AC_CHECK_LIB([gsl],[gsl_blas_dgemm],,
 		AC_MSG_ERROR([Cannot find the gsl library.]))

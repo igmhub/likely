@@ -14279,57 +14279,10 @@ if test "${with_gsl+set}" = set; then :
   withval=$with_gsl;
 fi
 
-if test "x$with_gsl" != "xno"; then :
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cblas_dgemm in -lgslcblas" >&5
-$as_echo_n "checking for cblas_dgemm in -lgslcblas... " >&6; }
-if ${ac_cv_lib_gslcblas_cblas_dgemm+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lgslcblas  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char cblas_dgemm ();
-int
-main ()
-{
-return cblas_dgemm ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_gslcblas_cblas_dgemm=yes
-else
-  ac_cv_lib_gslcblas_cblas_dgemm=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gslcblas_cblas_dgemm" >&5
-$as_echo "$ac_cv_lib_gslcblas_cblas_dgemm" >&6; }
-if test "x$ac_cv_lib_gslcblas_cblas_dgemm" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBGSLCBLAS 1
-_ACEOF
-
-  LIBS="-lgslcblas $LIBS"
-
-else
-  as_fn_error $? "Cannot find the gslcblas library." "$LINENO" 5
-fi
-
-
-fi
+#AS_IF([test "x$with_gsl" != "xno"], [
+#	AC_CHECK_LIB([gslcblas],[cblas_dgemm],,
+#		AC_MSG_ERROR([Cannot find the gslcblas library.]))
+#])
 if test "x$with_gsl" != "xno"; then :
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gsl_blas_dgemm in -lgsl" >&5
