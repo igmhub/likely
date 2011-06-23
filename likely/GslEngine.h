@@ -34,8 +34,6 @@ namespace likely {
         FunctionMinimumPtr minimizeWithGradient(fdfMethod method,
             Parameters const &initial, Parameters const &errors,
             double prec, long maxIterations, double lineMinTol);        
-        // Registers our named methods.
-        static void registerGslEngineMethods();
 	private:
         int _nPar;
         FunctionPtr _f;
@@ -53,6 +51,10 @@ namespace likely {
         static std::stack<GslEngine*> &_getEngineStack();
         static GslEngine* _useTopEngine(const gsl_vector *v);
 	}; // GslEngine
+
+    // Registers our named methods.
+    void registerGslEngineMethods();
+
 } // likely
 
 #endif // LIKELY_GSL_ENGINE

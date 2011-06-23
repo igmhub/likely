@@ -3,6 +3,7 @@
 #include "likely/MarkovChainEngine.h"
 #include "likely/FunctionMinimum.h"
 #include "likely/Random.h"
+#include "likely/EngineRegistry.h"
 #include "likely/RuntimeError.h"
 
 #include "boost/accumulators/accumulators.hpp"
@@ -35,11 +36,11 @@ _covariance(nPar*(nPar+1)/2), _random(Random::instance())
     }
     if(algorithm == "saunter") {
         minimumFinder = boost::bind(&MarkovChainEngine::minimize,this,
-            _1,_2,_3,_4,20,100);
+            _1,_2,_3,_4,100,1000);
     }
     else if(algorithm == "stroll") {
         minimumFinder = boost::bind(&MarkovChainEngine::minimize,this,
-            _1,_2,_3,_4,10,2000);
+            _1,_2,_3,_4,50,5000);
     }
     else {
         throw RuntimeError("MarkovChainEngine: unknown algorithm '" + algorithm + "'");
@@ -132,14 +133,13 @@ int acceptsPerParam, int maxTrialsPerParam) {
     return fmin;
 }
 
-void local::MarkovChainEngine::registerMarkovChainEngineMethods() {
+void local::registerMarkovChainEngineMethods() {
     static bool registered = false;
     if(registered) return;
     // Create a function object that constructs a MarkovChainEngine with parameters
     // (FunctionPtr f, GradientCalculatorPtr gc, int npar, std::string const &methodName).
-    AbsEngine::EngineFactory factory =
-        boost::bind(boost::factory<MarkovChainEngine*>(),_1,_2,_3,_4);
+    EngineFactory factory = boost::bind(boost::factory<MarkovChainEngine*>(),_1,_2,_3,_4);
     // Register our minimization methods.
-    AbsEngine::getEngineRegistry()["mc"] = factory;
+    getEngineRegistry()["mc"] = factory;
     registered = true;
 }

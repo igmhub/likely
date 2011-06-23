@@ -42,6 +42,10 @@ namespace likely {
     // Represents a smart pointer to an interpolator object.
     class Interpolator;
     typedef boost::shared_ptr<Interpolator> InterpolatorPtr;
+    
+    // Represents a smart pointer to a minimization engine.
+    class AbsEngine;
+    typedef boost::shared_ptr<AbsEngine> AbsEnginePtr;
 
 } // likely
 

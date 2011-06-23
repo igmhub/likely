@@ -6,10 +6,9 @@
 #include "likely/types.h"
 
 #include "boost/utility.hpp"
+#include "boost/function.hpp"
 
 #include <string>
-#include <map>
-#include <utility>
 
 namespace likely {
     class FunctionMinimum;
@@ -39,20 +38,6 @@ namespace likely {
 		    MinimumFinder;
         MinimumFinder minimumFinder;
 
-	    // Declares global registries for creating engines by name.
-        typedef boost::function<AbsEngine* (FunctionPtr, GradientCalculatorPtr,
-            int, std::string const&)> EngineFactory;
-        typedef std::map<std::string, EngineFactory> EngineRegistry;
-        static EngineRegistry &getEngineRegistry();
-        
-        /*
-        typedef boost::function<double (Parameters const &pInitial,
-            Parameters const &pErrors,Parameters &pFinal, Covariance &covariance)>
-            MinimumAndCovarianceFinder;
-        typedef boost::function<void (Parameters const &pValues, Gradients &gValues)>
-            FunctionGradientCalculator;
-        */
-        
     private:        
         mutable long _evalCount, _gradCount;
 
@@ -63,10 +48,6 @@ namespace likely {
     inline void AbsEngine::incrementEvalCount() const { _evalCount++; }
     inline void AbsEngine::incrementGradCount() const { _gradCount++; }
 	
-	// Parses a method name of the form <engine>::<algorithm> or throws a RuntimeError.
-    typedef std::pair<std::string,std::string> ParsedMethodName;
-    static ParsedMethodName parseMethodName(std::string const &methodName);
-
     // Finds a minimum of the specified function starting from the initial parameters
     // provided, with steps sizes scaled to the error estimates provided. Returns
     // a smart pointer to a FunctionMinimum object or else throws a RuntimeError.

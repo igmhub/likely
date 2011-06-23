@@ -14,6 +14,7 @@ noinst_PROGRAMS = demo1 demo2
 liblikely_la_SOURCES = \
 	likely/FunctionMinimum.cc \
 	likely/AbsEngine.cc \
+	likely/EngineRegistry.cc \
 	likely/MarkovChainEngine.cc \
 	likely/Interpolator.cc \
 	likely/Random.cc \
@@ -26,6 +27,7 @@ nobase_include_HEADERS = \
 	likely/RuntimeError.h \
 	likely/FunctionMinimum.h \
 	likely/AbsEngine.h \
+	likely/EngineRegistry.h \
 	likely/MarkovChainEngine.h \
 	likely/Interpolator.h \
 	likely/Random.h \

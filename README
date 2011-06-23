@@ -15,8 +15,6 @@ module load gsl
 module load boost
 module swap PrgEnv-pgi PrgEnv-gnu
 
-
-
 ../configure --without-minuit2 --with-boost=$BOOST_DIR LDFLAGS="-L$GSL_DIR/lib -L$BOOST_DIR/lib" CPPFLAGS="-I$GSL_DIR/include -DBOOST_UBLAS_UNSUPPORTED_COMPILER=0" CXX=CC --disable-shared
 
 == Repository Management 

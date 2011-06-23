@@ -23,7 +23,7 @@ void useMethod(int methodId, std::string const &methodName,
 lk::FunctionPtr f, lk::GradientCalculatorPtr gc, lk::Parameters const &initial,
 lk::Parameters const &errors, double prec) {
     lk::FunctionMinimumPtr fmin;
-    long maxIterations(100000); //1e5
+    long maxIterations(1000000); //1e6
     if(gc) {
         // Use an algorithm that requires a gradient calculator.
         fmin = lk::findMinimum(f,gc,initial,errors,methodName,prec,maxIterations);

@@ -1,8 +1,9 @@
 // Created 22-May-2011 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 
 #include "likely/MinuitEngine.h"
-#include "likely/RuntimeError.h"
 #include "likely/FunctionMinimum.h"
+#include "likely/EngineRegistry.h"
+#include "likely/RuntimeError.h"
 
 #include "Minuit2/VariableMetricMinimizer.h"
 #include "Minuit2/SimplexMinimizer.h"
@@ -169,15 +170,14 @@ template local::FunctionMinimumPtr
     local::MinuitEngine::minimize<mn::VariableMetricMinimizer>
     (Parameters const&,Parameters const&,double,int,int);
 
-void local::MinuitEngine::registerMinuitEngineMethods() {
+void local::registerMinuitEngineMethods() {
     static bool registered = false;
     if(registered) return;
     // Create a function object that constructs a MinuitEngine with parameters
     // (FunctionPtr f, GradientCalculatorPtr gc, int npar, std::string const &methodName).
-    AbsEngine::EngineFactory factory =
-        boost::bind(boost::factory<MinuitEngine*>(),_1,_2,_3,_4);
+    EngineFactory factory = boost::bind(boost::factory<MinuitEngine*>(),_1,_2,_3,_4);
     // Register our minimization methods.
-    AbsEngine::getEngineRegistry()["mn2"] = factory;
+    getEngineRegistry()["mn2"] = factory;
     // Return a dummy value so that we can be called at program startup.
     registered = true;
 }

@@ -3,6 +3,7 @@
 #include "likely/GslEngine.h"
 #include "likely/GslErrorHandler.h"
 #include "likely/FunctionMinimum.h"
+#include "likely/EngineRegistry.h"
 #include "likely/RuntimeError.h"
 
 #include "boost/functional/factory.hpp"
@@ -232,16 +233,15 @@ std::stack<local::GslEngine*> &local::GslEngine::_getEngineStack() {
     return *stack;
 }
 
-void local::GslEngine::registerGslEngineMethods() {
+void local::registerGslEngineMethods() {
     static bool registered = false;
     if(registered) return;
     // Declare our error-handling context.
-    GslErrorHandler eh("GslEngine::registerEngineMethods");
+    GslErrorHandler eh("registerEngineMethods");
     // Create a function object that constructs a GslEngine with parameters
     // (FunctionPtr f, GradientCalculatorPtr gc, int npar, std::string const &methodName).
-    AbsEngine::EngineFactory factory =
-        boost::bind(boost::factory<GslEngine*>(),_1,_2,_3,_4);
+    EngineFactory factory = boost::bind(boost::factory<GslEngine*>(),_1,_2,_3,_4);
     // Register our factory method.
-    AbsEngine::getEngineRegistry()["gsl"] = factory;
+    getEngineRegistry()["gsl"] = factory;
     registered = true;
 }

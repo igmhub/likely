@@ -14279,10 +14279,6 @@ if test "${with_gsl+set}" = set; then :
   withval=$with_gsl;
 fi
 
-#AS_IF([test "x$with_gsl" != "xno"], [
-#	AC_CHECK_LIB([gslcblas],[cblas_dgemm],,
-#		AC_MSG_ERROR([Cannot find the gslcblas library.]))
-#])
 if test "x$with_gsl" != "xno"; then :
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lgsl" >&5
@@ -15523,7 +15519,7 @@ ac_config_headers="$ac_config_headers config.h"
 
 
 # Define automake variables that flag whether optional libraries should be used.
- if test "x$ac_cv_lib_gsl_gsl_blas_dgemm" = "xyes"; then
+ if test "x$ac_cv_lib_gsl_main" = "xyes"; then
   USE_GSL_TRUE=
   USE_GSL_FALSE='#'
 else
