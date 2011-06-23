@@ -3,17 +3,14 @@
 #ifndef LIKELY_INTERPOLATOR
 #define LIKELY_INTERPOLATOR
 
-#include "config.h" // propagates HAVE_LIBGSL from configure
-
-#ifdef HAVE_LIBGSL
-#include "gsl/gsl_interp.h"
-#endif
+#include "boost/smart_ptr.hpp"
 
 #include <vector>
 #include <string>
 #include <iosfwd>
 
 namespace likely {
+    class GslInterpolatorData;
     // Implements interpolation algorithms.
 	class Interpolator {
 	public:
@@ -27,11 +24,7 @@ namespace likely {
 	private:
         int _nValues;
         CoordinateValues _x, _y;
-#ifdef HAVE_LIBGSL
-        const gsl_interp_type *_engine;
-        gsl_interp_accel *_accelerator;
-        gsl_interp *_interpolator;
-#endif
+        boost::scoped_ptr<GslInterpolatorData> _gslData;
 	}; // Interpolator
 	
     // Returns a smart pointer to an interpolator based on control points read

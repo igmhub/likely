@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
         boost::format fmt(formatString);
         // Loop over the x range with the requested number of steps.
         double xlo(columns[0].front()), xhi(columns[0].back()), dx((xhi-xlo)/numSamples);
-        for(int i = 0; i < numSamples; i++) {
+        for(int i = 0; i <= numSamples; i++) {
             double x = xlo + i*dx;
             std::cout << fmt % x;
             // Print the results of each interpolator on a single line.
