@@ -3,6 +3,8 @@
 #ifndef LIKELY_INTERPOLATOR
 #define LIKELY_INTERPOLATOR
 
+#include "likely/types.h"
+
 #include "boost/smart_ptr.hpp"
 
 #include <vector>
@@ -29,16 +31,15 @@ namespace likely {
 	
     // Returns a smart pointer to an interpolator based on control points read
     // from the specified file name.
-/*
 	InterpolatorPtr createInterpolator(std::string const &filename,
         std::string const &algorithm);
-*/
+
     // Fills the vectors provided from the columns of the specified input stream.
     // Returns the number of rows successfully read or throws a RuntimeError.
     // Any input beyond the required column values is silently ignore if ignoreExtra
     // is set or, otherwise, generates a RuntimeError.
     int readVectors(std::istream &input, std::vector<std::vector<double> > &vectors,
-        bool ignoreExtra = false);
+        bool ignoreExtra = true);
 	
 } // likely
 

@@ -11,6 +11,7 @@
 #include "boost/lexical_cast.hpp"
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <algorithm>
 #include <iterator>
@@ -69,6 +70,15 @@ double local::Interpolator::operator()(double x) const {
     if(x >= _x.back()) return _y.back();
     return gsl_interp_eval(_gslData->interpolator,
         &_x[0], &_y[0], x, _gslData->accelerator);
+}
+
+local::InterpolatorPtr local::createInterpolator(std::string const &filename,
+std::string const &algorithm) {
+    std::vector<std::vector<double> > columns(2);
+    std::ifstream input(filename.c_str());
+    readVectors(input, columns);
+    InterpolatorPtr interpolator(new Interpolator(columns[0],columns[1],algorithm));
+    return interpolator;
 }
 
 int local::readVectors(std::istream &input, std::vector<std::vector<double> > &vectors,
