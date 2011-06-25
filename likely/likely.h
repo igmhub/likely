@@ -6,6 +6,7 @@
 
 #include "likely/Random.h"
 #include "likely/Interpolator.h"
+#include "likely/WeightedAccumulator.h"
 
 #include "likely/FunctionMinimum.h"
 #include "likely/MarkovChainEngine.h"

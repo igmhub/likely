@@ -32,7 +32,7 @@ void slicestats(TH2F *hist) {
 // Overall comparison of method costs.
 void cmp(int npar=10) {
     // Draw a frame with axis labels.
-    TH2F *frame = new TH2F("frame","",1,0,8.1,1,1,6.1);
+    TH2F *frame = new TH2F("frame","",1,-1,8.1,1,1,6.1);
     frame->SetXTitle("log_{10}(Fmin Accuracy)");
     frame->SetYTitle("log_{10}(Evaluations)");
     frame->Draw();
