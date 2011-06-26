@@ -18,8 +18,8 @@ namespace likely {
     // mean and variance of a sample:
     //
     // likely::WeightedAccumulator bin;
-    // accumulate(bin,1.2,0.5);
-    // accumulate(bin,1.5,1.2);
+    // accumulateWeighted(bin,1.2,0.5);
+    // accumulateWeighted(bin,1.5,1.2);
     // std::cout << weightedMean(bin) << "+/-" << weightedError(bin) << std::endl;
 
     typedef boost::accumulators::accumulator_set<double,
@@ -31,9 +31,9 @@ namespace likely {
         >, double
     > WeightedAccumulator;
     
-    // Accumulates one weighted sample.
+    // Accumulates one weighted sample. Samples with weight <= 0 are silently ignored.
     inline void accumulateWeighted(WeightedAccumulator &acc, double value, double weight) {
-        acc(value, boost::accumulators::weight = weight);
+        if(weight > 0) acc(value, boost::accumulators::weight = weight);
     }
 
     // Returns the number of weighted samples accumulated.
