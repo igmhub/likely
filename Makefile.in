@@ -37,7 +37,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = likelytest$(EXEEXT) likelymc$(EXEEXT) \
-	likelyinterp$(EXEEXT)
+	likelyinterp$(EXEEXT) likelywsum$(EXEEXT)
 noinst_PROGRAMS = demo1$(EXEEXT) demo2$(EXEEXT)
 
 # add GSL features when libgsl is available
@@ -111,6 +111,8 @@ am_likelymc_OBJECTS = likelymc.$(OBJEXT)
 likelymc_OBJECTS = $(am_likelymc_OBJECTS)
 am_likelytest_OBJECTS = likelytest.$(OBJEXT)
 likelytest_OBJECTS = $(am_likelytest_OBJECTS)
+am_likelywsum_OBJECTS = likelywsum.$(OBJEXT)
+likelywsum_OBJECTS = $(am_likelywsum_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -126,10 +128,10 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(liblikely_la_SOURCES) $(demo1_SOURCES) $(demo2_SOURCES) \
 	$(likelyinterp_SOURCES) $(likelymc_SOURCES) \
-	$(likelytest_SOURCES)
+	$(likelytest_SOURCES) $(likelywsum_SOURCES)
 DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(demo1_SOURCES) \
 	$(demo2_SOURCES) $(likelyinterp_SOURCES) $(likelymc_SOURCES) \
-	$(likelytest_SOURCES)
+	$(likelytest_SOURCES) $(likelywsum_SOURCES)
 am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/RuntimeError.h likely/FunctionMinimum.h \
 	likely/AbsEngine.h likely/EngineRegistry.h \
@@ -307,6 +309,9 @@ likelymc_LDADD = -lboost_program_options -L. -llikely
 likelyinterp_SOURCES = src/likelyinterp.cc
 likelyinterp_DEPENDENCIES = $(lib_LIBRARIES)
 likelyinterp_LDADD = -lboost_program_options -L. -llikely
+likelywsum_SOURCES = src/likelywsum.cc
+likelywsum_DEPENDENCIES = $(lib_LIBRARIES)
+likelywsum_LDADD = -lboost_program_options -L. -llikely
 demo1_SOURCES = src/demo1.cc
 demo1_DEPENDENCIES = $(lib_LIBRARIES)
 demo1_LDADD = -L. -llikely
@@ -469,6 +474,9 @@ likelymc$(EXEEXT): $(likelymc_OBJECTS) $(likelymc_DEPENDENCIES)
 likelytest$(EXEEXT): $(likelytest_OBJECTS) $(likelytest_DEPENDENCIES) 
 	@rm -f likelytest$(EXEEXT)
 	$(CXXLINK) $(likelytest_OBJECTS) $(likelytest_LDADD) $(LIBS)
+likelywsum$(EXEEXT): $(likelywsum_OBJECTS) $(likelywsum_DEPENDENCIES) 
+	@rm -f likelywsum$(EXEEXT)
+	$(CXXLINK) $(likelywsum_OBJECTS) $(likelywsum_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -491,6 +499,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyinterp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelymc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelywsum.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -652,6 +661,20 @@ likelytest.obj: src/likelytest.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelytest.cc' object='likelytest.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelytest.obj `if test -f 'src/likelytest.cc'; then $(CYGPATH_W) 'src/likelytest.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelytest.cc'; fi`
+
+likelywsum.o: src/likelywsum.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelywsum.o -MD -MP -MF $(DEPDIR)/likelywsum.Tpo -c -o likelywsum.o `test -f 'src/likelywsum.cc' || echo '$(srcdir)/'`src/likelywsum.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelywsum.Tpo $(DEPDIR)/likelywsum.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelywsum.cc' object='likelywsum.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelywsum.o `test -f 'src/likelywsum.cc' || echo '$(srcdir)/'`src/likelywsum.cc
+
+likelywsum.obj: src/likelywsum.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelywsum.obj -MD -MP -MF $(DEPDIR)/likelywsum.Tpo -c -o likelywsum.obj `if test -f 'src/likelywsum.cc'; then $(CYGPATH_W) 'src/likelywsum.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelywsum.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelywsum.Tpo $(DEPDIR)/likelywsum.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelywsum.cc' object='likelywsum.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelywsum.obj `if test -f 'src/likelywsum.cc'; then $(CYGPATH_W) 'src/likelywsum.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelywsum.cc'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

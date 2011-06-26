@@ -12,7 +12,6 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <sstream>
 
 namespace lk = likely;
 namespace po = boost::program_options;
