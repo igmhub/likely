@@ -15,11 +15,10 @@ namespace likely {
     // Uses the boost statistical accumulators library to calculate the weighted
     // mean and variance of a sample:
     //
-    // likely::WeightedAccumulator accumulate;
-    // accumulate(1,likely::AccumulatorWeight=2);
-    // accumulate(2,likely::AccumulatorWeight=1);
-    // std::cout << weightedMean(accumulate)
-    //   << "+/-" << weightedError(accumulate) << std::endl;
+    // likely::WeightedAccumulator bin;
+    // accumulate(bin,1.2,0.5);
+    // accumulate(bin,1.5,1.2);
+    // std::cout << weightedMean(bin) << "+/-" << weightedError(bin) << std::endl;
 
     typedef boost::accumulators::accumulator_set<double,
         boost::accumulators::stats<
@@ -28,7 +27,9 @@ namespace likely {
         >, double
     > WeightedAccumulator;
     
-    typedef boost::accumulators::tag::weight AccumulatorWeight;
+    inline void accumulate(WeightedAccumulator &acc, double value, double weight) {
+        acc(value, boost::accumulators::weight = weight);
+    }
     
     inline double weightedMean(WeightedAccumulator const &acc) {
         return boost::accumulators::weighted_mean(acc);

@@ -33,6 +33,7 @@ nobase_include_HEADERS = \
 	likely/MarkovChainEngine.h \
 	likely/Interpolator.h \
 	likely/Random.h \
+	likely/WeightedAccumulator.h \
 	likely/test/TestLikelihood.h
 
 # add GSL features when libgsl is available

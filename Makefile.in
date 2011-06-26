@@ -134,9 +134,9 @@ am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/RuntimeError.h likely/FunctionMinimum.h \
 	likely/AbsEngine.h likely/EngineRegistry.h \
 	likely/MarkovChainEngine.h likely/Interpolator.h \
-	likely/Random.h likely/test/TestLikelihood.h \
-	likely/GslEngine.h likely/GslErrorHandler.h \
-	likely/MinuitEngine.h
+	likely/Random.h likely/WeightedAccumulator.h \
+	likely/test/TestLikelihood.h likely/GslEngine.h \
+	likely/GslErrorHandler.h likely/MinuitEngine.h
 HEADERS = $(nobase_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -294,8 +294,8 @@ nobase_include_HEADERS = likely/likely.h likely/types.h \
 	likely/RuntimeError.h likely/FunctionMinimum.h \
 	likely/AbsEngine.h likely/EngineRegistry.h \
 	likely/MarkovChainEngine.h likely/Interpolator.h \
-	likely/Random.h likely/test/TestLikelihood.h $(am__append_2) \
-	$(am__append_4)
+	likely/Random.h likely/WeightedAccumulator.h \
+	likely/test/TestLikelihood.h $(am__append_2) $(am__append_4)
 
 # instructions for building each program
 likelytest_SOURCES = src/likelytest.cc
