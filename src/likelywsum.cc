@@ -4,7 +4,6 @@
 #include "likely/likely.h"
 
 #include "boost/program_options.hpp"
-#include "boost/format.hpp"
 
 #include <string>
 #include <iostream>
@@ -67,11 +66,16 @@ int main(int argc, char **argv) {
             double wgt(columns[1][sample]);
             if(wgt <= 0) continue;
             if(sigmas) wgt = 1/(wgt*wgt);
-            lk::accumulate(accumulator, columns[0][sample], wgt);
+            lk::accumulateWeighted(accumulator, columns[0][sample], wgt);
         }
         // Print the results.
-        std::cout << boost::format("%.5f +/- %.5f") % lk::weightedMean(accumulator)
-            % lk::weightedError(accumulator) << std::endl;
+        std::cout << "Accumulated " << lk::weightedCount(accumulator)
+            << " samples with mean " << lk::weightedMean(accumulator)
+            << " and sqrt(variance) " << lk::weightedError(accumulator) << std::endl;
+        if(sigmas) {
+            std::cout << "Error on the mean is "
+                << lk::weightedErrorOnMean(accumulator) << std::endl;
+        }
     }
     catch(lk::RuntimeError const &e) {
         std::cerr << e.what() << std::endl;
