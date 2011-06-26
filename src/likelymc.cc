@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
         ("alpha", po::value<double>(&alpha)->default_value(0),
             "Size of NLL non-parabolic effects.")
         ("initial", po::value<double>(&initial)->default_value(2),
-            "Initial value of all parameters.")
+            "Initial value of the first parameter (all others are zero).")
         ;
 
     // do the command line parsing now
@@ -112,8 +112,9 @@ int main(int argc, char **argv) {
         lk::FunctionPtr f(new lk::Function(boost::ref(tester)));
 
         // Set the initial parameters and errors.
-        lk::Parameters params(npar,initial);
-        lk::PackedCovariance errors(npar,1);
+        lk::Parameters params(npar,0);
+        params[0] = initial;
+        lk::PackedCovariance errors(npar,1.3);
         
         // Set the initial function minimum to use.
         lk::FunctionMinimumPtr fmin(new lk::FunctionMinimum(
@@ -121,7 +122,7 @@ int main(int argc, char **argv) {
         printSummary(fmin,0,tag);
         
         // Create an MCMC engine to use.
-        lk::MarkovChainEngine mcmc(f,lk::GradientCalculatorPtr(),npar,"mc::saunter");
+        lk::MarkovChainEngine mcmc(f,lk::GradientCalculatorPtr(),npar,"saunter");
         
         // Loop over MCMC cycles.
         boost::format cycleOutName("%s/cycle-%d.dat"),valueFmt(" %.5f");
