@@ -290,7 +290,7 @@ liblikely_la_SOURCES = likely/FunctionMinimum.cc likely/AbsEngine.cc \
 	likely/test/TestLikelihood.cc $(am__append_1) $(am__append_3)
 
 # library headers to install (nobase prefix preserves directories under bosslya)
-# GslInterpolatorData.h is explicitly excluded here since it includes config.h
+# Anything that includes config.h should *not* be listed here.
 # and is not part of the package public API.
 nobase_include_HEADERS = likely/likely.h likely/types.h \
 	likely/RuntimeError.h likely/FunctionMinimum.h \

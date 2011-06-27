@@ -12,7 +12,6 @@
 #include <iosfwd>
 
 namespace likely {
-    class GslInterpolatorData;
     // Implements interpolation algorithms.
 	class Interpolator {
 	public:
@@ -26,7 +25,8 @@ namespace likely {
 	private:
         int _nValues;
         CoordinateValues _x, _y;
-        boost::scoped_ptr<GslInterpolatorData> _gslData;
+        class Implementation;
+        boost::scoped_ptr<Implementation> _pimpl;
 	}; // Interpolator
 	
     // Returns a smart pointer to an interpolator based on control points read
