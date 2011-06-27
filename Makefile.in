@@ -91,14 +91,15 @@ liblikely_la_LIBADD =
 am__liblikely_la_SOURCES_DIST = likely/FunctionMinimum.cc \
 	likely/AbsEngine.cc likely/EngineRegistry.cc \
 	likely/MarkovChainEngine.cc likely/Interpolator.cc \
-	likely/Random.cc likely/test/TestLikelihood.cc \
-	likely/GslEngine.cc likely/GslErrorHandler.cc \
-	likely/MinuitEngine.cc
+	likely/Random.cc likely/WeightedAccumulator.cc \
+	likely/test/TestLikelihood.cc likely/GslEngine.cc \
+	likely/GslErrorHandler.cc likely/MinuitEngine.cc
 @USE_GSL_TRUE@am__objects_1 = GslEngine.lo GslErrorHandler.lo
 @USE_MINUIT2_TRUE@am__objects_2 = MinuitEngine.lo
 am_liblikely_la_OBJECTS = FunctionMinimum.lo AbsEngine.lo \
 	EngineRegistry.lo MarkovChainEngine.lo Interpolator.lo \
-	Random.lo TestLikelihood.lo $(am__objects_1) $(am__objects_2)
+	Random.lo WeightedAccumulator.lo TestLikelihood.lo \
+	$(am__objects_1) $(am__objects_2)
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am_demo1_OBJECTS = demo1.$(OBJEXT)
@@ -287,7 +288,8 @@ lib_LTLIBRARIES = liblikely.la
 liblikely_la_SOURCES = likely/FunctionMinimum.cc likely/AbsEngine.cc \
 	likely/EngineRegistry.cc likely/MarkovChainEngine.cc \
 	likely/Interpolator.cc likely/Random.cc \
-	likely/test/TestLikelihood.cc $(am__append_1) $(am__append_3)
+	likely/WeightedAccumulator.cc likely/test/TestLikelihood.cc \
+	$(am__append_1) $(am__append_3)
 
 # library headers to install (nobase prefix preserves directories under bosslya)
 # Anything that includes config.h should *not* be listed here.
@@ -494,6 +496,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MinuitEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Random.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestLikelihood.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WeightedAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyinterp.Po@am__quote@
@@ -563,6 +566,13 @@ Random.lo: likely/Random.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/Random.cc' object='Random.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Random.lo `test -f 'likely/Random.cc' || echo '$(srcdir)/'`likely/Random.cc
+
+WeightedAccumulator.lo: likely/WeightedAccumulator.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT WeightedAccumulator.lo -MD -MP -MF $(DEPDIR)/WeightedAccumulator.Tpo -c -o WeightedAccumulator.lo `test -f 'likely/WeightedAccumulator.cc' || echo '$(srcdir)/'`likely/WeightedAccumulator.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/WeightedAccumulator.Tpo $(DEPDIR)/WeightedAccumulator.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/WeightedAccumulator.cc' object='WeightedAccumulator.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o WeightedAccumulator.lo `test -f 'likely/WeightedAccumulator.cc' || echo '$(srcdir)/'`likely/WeightedAccumulator.cc
 
 TestLikelihood.lo: likely/test/TestLikelihood.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestLikelihood.lo -MD -MP -MF $(DEPDIR)/TestLikelihood.Tpo -c -o TestLikelihood.lo `test -f 'likely/test/TestLikelihood.cc' || echo '$(srcdir)/'`likely/test/TestLikelihood.cc

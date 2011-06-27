@@ -22,6 +22,10 @@ namespace likely {
     // Declares a smart pointer to a packed covariance matrix.
     typedef boost::shared_ptr<PackedCovariance> PackedCovariancePtr;
 
+    // Represents a smart pointer to a minimization engine.
+    class AbsEngine;
+    typedef boost::shared_ptr<AbsEngine> AbsEnginePtr;
+
     // Encapsulates a minimization objective function.
     typedef boost::function<double (Parameters const &pValues)> Function;
 
@@ -43,10 +47,10 @@ namespace likely {
     class Interpolator;
     typedef boost::shared_ptr<Interpolator> InterpolatorPtr;
     
-    // Represents a smart pointer to a minimization engine.
-    class AbsEngine;
-    typedef boost::shared_ptr<AbsEngine> AbsEnginePtr;
-
+    // Represents a smart pointer to a weighted accumulator object.
+    class WeightedAccumulator;
+    typedef boost::shared_ptr<WeightedAccumulator> WeightedAccumulatorPtr;
+    
 } // likely
 
 #endif // LIKELY_TYPES

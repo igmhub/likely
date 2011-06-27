@@ -18,6 +18,7 @@ liblikely_la_SOURCES = \
 	likely/MarkovChainEngine.cc \
 	likely/Interpolator.cc \
 	likely/Random.cc \
+	likely/WeightedAccumulator.cc \
 	likely/test/TestLikelihood.cc
 
 # library headers to install (nobase prefix preserves directories under bosslya)

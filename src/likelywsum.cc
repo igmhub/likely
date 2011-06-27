@@ -66,15 +66,15 @@ int main(int argc, char **argv) {
             double wgt(columns[1][sample]);
             if(wgt <= 0) continue;
             if(sigmas) wgt = 1/(wgt*wgt);
-            lk::accumulateWeighted(accumulator, columns[0][sample], wgt);
+            accumulator.accumulate(columns[0][sample], wgt);
         }
         // Print the results.
-        std::cout << "Accumulated " << lk::weightedCount(accumulator)
-            << " samples with mean " << lk::weightedMean(accumulator)
-            << " and sqrt(variance) " << lk::weightedError(accumulator) << std::endl;
+        std::cout << "Accumulated " << accumulator.count()
+            << " samples with mean " << accumulator.mean()
+            << " and sqrt(variance) " << accumulator.error() << std::endl;
         if(sigmas) {
             std::cout << "Error on the mean is "
-                << lk::weightedErrorOnMean(accumulator) << std::endl;
+                << accumulator.errorOnMean() << std::endl;
         }
     }
     catch(lk::RuntimeError const &e) {
