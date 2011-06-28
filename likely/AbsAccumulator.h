@@ -16,13 +16,13 @@ namespace likely {
         virtual double mean() const = 0;
         // Returns the the weighted variance of the samples accumulated so far or zero.
         virtual double variance() const = 0;
-        // Returns sqrt(weightedVariance).
-        virtual double error() const = 0;
         // Returns the sum of weights accumulated so far.
         virtual double sumOfWeights() const = 0;
+        // Returns sqrt(weightedVariance).
+        double error() const;
         // Returns sqrt(1/weightSum) or zero. Note that this is only a valid estimate of
         // the error on the mean if each weight is calculated as 1/sigma^2.
-        virtual double errorOnMean() const = 0;
+        double errorOnMean() const;
 	private:
 	}; // AbsAccumulator
 } // likely

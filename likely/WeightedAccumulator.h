@@ -21,13 +21,8 @@ namespace likely {
         virtual double mean() const;
         // Returns the the weighted variance of the samples accumulated so far or zero.
         virtual double variance() const;
-        // Returns sqrt(weightedVariance).
-        virtual double error() const;
         // Returns the sum of weights accumulated so far.
         virtual double sumOfWeights() const;
-        // Returns sqrt(1/weightSum) or zero. Note that this is only a valid estimate of
-        // the error on the mean if each weight is calculated as 1/sigma^2.
-        virtual double errorOnMean() const;
 	private:
         class Implementation;
         boost::scoped_ptr<Implementation> _pimpl;

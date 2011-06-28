@@ -8,6 +8,7 @@
 #include "likely/Interpolator.h"
 #include "likely/AbsAccumulator.h"
 #include "likely/WeightedAccumulator.h"
+#include "likely/WeightedCombiner.h"
 
 #include "likely/FunctionMinimum.h"
 #include "likely/MarkovChainEngine.h"

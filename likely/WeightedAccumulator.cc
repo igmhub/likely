@@ -56,15 +56,6 @@ double local::WeightedAccumulator::variance() const {
         boost::accumulators::weighted_variance(_pimpl->data) : 0;
 }
 
-double local::WeightedAccumulator::error() const {
-    return std::sqrt(variance());
-}
-
 double local::WeightedAccumulator::sumOfWeights() const {
     return boost::accumulators::sum_of_weights(_pimpl->data);
-}
-
-double local::WeightedAccumulator::errorOnMean() const {
-    double wsum(boost::accumulators::sum_of_weights(_pimpl->data));
-    return wsum > 0 ? 1/std::sqrt(wsum) : 0;
 }
