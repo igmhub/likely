@@ -12,7 +12,7 @@ namespace likely {
 		WeightedCombiner();
 		virtual ~WeightedCombiner();
 		// Combines the results of another accumulator with our results.
-        void combine(int count, double sumOfWeights, double mean, double secondMoment);
+        void combine(int count, double sumOfWeights, double mean, double variance);
         void combine(AbsAccumulator const &other);
         // Returns the number of weighted samples accumulated.
         virtual int count() const;

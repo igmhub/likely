@@ -9,14 +9,13 @@ local::WeightedCombiner::WeightedCombiner() : _count(0) { }
 local::WeightedCombiner::~WeightedCombiner() { }
 
 void local::WeightedCombiner::combine(int count, double sumOfWeights,
-double mean, double secondMoment) {
+double mean, double variance) {
     if(count <= 0 || sumOfWeights <= 0) return;
     _count += count;
     _combinedMean.accumulate(mean,sumOfWeights);
-    _combinedSecondMoment.accumulate(secondMoment,sumOfWeights);
+    _combinedSecondMoment.accumulate(variance+mean*mean,sumOfWeights);
 }
 
 void local::WeightedCombiner::combine(AbsAccumulator const &other) {
-    double mu(other.mean()),wsum(other.sumOfWeights());
-    combine(other.count(),wsum,mu,other.variance()+mu*mu);
+    combine(other.count(),other.sumOfWeights(),other.mean(),other.variance());
 }
