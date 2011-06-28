@@ -59,23 +59,38 @@ int main(int argc, char **argv) {
         if(verbose) {
             std::cout << "Read " << nSamples << " sample values." << std::endl;
         }
-        // Prepare a weighted accumulator.
-        lk::WeightedAccumulator accumulator;
+        // Prepare some weighted accumulators
+        lk::WeightedAccumulator all, even, odd;
         // Loop over the input samples.
         for(int sample = 0; sample < nSamples; ++sample) {
             double wgt(columns[1][sample]);
             if(wgt <= 0) continue;
             if(sigmas) wgt = 1/(wgt*wgt);
-            accumulator.accumulate(columns[0][sample], wgt);
+            double val(columns[0][sample]);
+            all.accumulate(val, wgt);
+            if(sample % 2) {
+                odd.accumulate(val, wgt);
+            }
+            else {
+                even.accumulate(val, wgt);
+            }
         }
         // Print the results.
-        std::cout << "Accumulated " << accumulator.count()
-            << " samples with mean " << accumulator.mean()
-            << " and sqrt(variance) " << accumulator.error() << std::endl;
+        std::cout << "Accumulated " << all.count()
+            << " samples with mean " << all.mean()
+            << ", sqrt(variance) " << all.error()
+            << ", sum(weights) " << all.sumOfWeights() << std::endl;
         if(sigmas) {
-            std::cout << "Error on the mean is "
-                << accumulator.errorOnMean() << std::endl;
+            std::cout << "Error on the mean is " << all.errorOnMean() << std::endl;
         }
+        // Compare the results of combining the even/odd subsamples
+        lk::WeightedCombiner combined;
+        combined.combine(even);
+        combined.combine(odd);
+        std::cout << "Even + odd: " << combined.count()
+            << " samples with mean " << combined.mean()
+            << ", sqrt(variance) " << combined.error()
+            << ", sum(weights) " << combined.sumOfWeights() << std::endl;
     }
     catch(lk::RuntimeError const &e) {
         std::cerr << e.what() << std::endl;

@@ -4,13 +4,19 @@
 
 namespace local = likely;
 
-local::WeightedCombiner::WeightedCombiner() { }
+local::WeightedCombiner::WeightedCombiner() : _count(0) { }
 
 local::WeightedCombiner::~WeightedCombiner() { }
 
+void local::WeightedCombiner::combine(int count, double sumOfWeights,
+double mean, double secondMoment) {
+    if(count <= 0 || sumOfWeights <= 0) return;
+    _count += count;
+    _combinedMean.accumulate(mean,sumOfWeights);
+    _combinedSecondMoment.accumulate(secondMoment,sumOfWeights);
+}
+
 void local::WeightedCombiner::combine(AbsAccumulator const &other) {
-    _count += other.count();
     double mu(other.mean()),wsum(other.sumOfWeights());
-    _combinedMean.accumulate(mu, wsum);
-    _combinedSecondMoment.accumulate(other.variance() + mu*mu, wsum);
+    combine(other.count(),wsum,mu,other.variance()+mu*mu);
 }
