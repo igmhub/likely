@@ -78,6 +78,7 @@ int main(int argc, char **argv) {
         // Print the results.
         std::cout << "Accumulated " << all.count()
             << " samples with mean " << all.mean()
+            << ", sum " << all.sum()
             << ", sqrt(variance) " << all.error()
             << ", sum(weights) " << all.sumOfWeights() << std::endl;
         if(sigmas) {
@@ -89,6 +90,7 @@ int main(int argc, char **argv) {
         combined.combine(odd);
         std::cout << "Even + odd: " << combined.count()
             << " samples with mean " << combined.mean()
+            << ", sum " << combined.sum()
             << ", sqrt(variance) " << combined.error()
             << ", sum(weights) " << combined.sumOfWeights() << std::endl;
     }

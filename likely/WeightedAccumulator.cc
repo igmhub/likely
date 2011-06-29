@@ -6,6 +6,7 @@
 #include "boost/accumulators/accumulators.hpp"
 #include "boost/accumulators/statistics/stats.hpp"
 #include "boost/accumulators/statistics/count.hpp"
+#include "boost/accumulators/statistics/weighted_sum.hpp"
 #include "boost/accumulators/statistics/weighted_mean.hpp"
 #include "boost/accumulators/statistics/weighted_variance.hpp"
 #include "boost/accumulators/statistics/sum.hpp"
@@ -18,6 +19,7 @@ namespace likely {
         boost::accumulators::accumulator_set<double,
             boost::accumulators::stats<
                 boost::accumulators::features<boost::accumulators::tag::count>,
+                boost::accumulators::tag::weighted_sum,
                 boost::accumulators::tag::weighted_mean,
                 boost::accumulators::tag::weighted_variance,
                 boost::accumulators::tag::sum_of_weights
@@ -44,6 +46,11 @@ void local::WeightedAccumulator::accumulate(double value, double weight) {
 
 int local::WeightedAccumulator::count() const {
     return boost::accumulators::count(_pimpl->data);
+}
+
+double local::WeightedAccumulator::sum() const {
+    return boost::accumulators::count(_pimpl->data) > 0 ?
+        boost::accumulators::weighted_sum(_pimpl->data) : 0;
 }
 
 double local::WeightedAccumulator::mean() const {

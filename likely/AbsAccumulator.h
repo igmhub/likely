@@ -11,6 +11,9 @@ namespace likely {
 		virtual ~AbsAccumulator();
         // Returns the number of weighted samples accumulated.
         virtual int count() const = 0;
+        // Returns the weighted sum of the samples accumulated so far or zero if
+        // no samples have been accumulated yet.
+        virtual double sum() const = 0;
         // Returns the weighted mean of the samples accumulated so far or zero if
         // no samples have been accumulated yet.        
         virtual double mean() const = 0;

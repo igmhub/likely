@@ -24,6 +24,10 @@ int local::WeightedCombiner::count() const {
     return _count;
 }
 
+double local::WeightedCombiner::sum() const {
+    return _combinedMean.sum();
+}
+
 double local::WeightedCombiner::mean() const {
     return _combinedMean.mean();
 }

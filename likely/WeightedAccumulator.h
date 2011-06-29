@@ -16,6 +16,9 @@ namespace likely {
         void accumulate(double value, double weight);
         // Returns the number of weighted samples accumulated.
         virtual int count() const;
+        // Returns the weighted sum of the samples accumulated so far or zero if
+        // no samples have been accumulated yet.
+        virtual double sum() const;
         // Returns the weighted mean of the samples accumulated so far or zero if
         // no samples have been accumulated yet.        
         virtual double mean() const;
