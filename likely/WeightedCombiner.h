@@ -23,25 +23,13 @@ namespace likely {
         virtual double variance() const;
         // Returns the sum of weights accumulated so far.
         virtual double sumOfWeights() const;
+        // Returns the estimated variance of the means that have been combined
+        // so far.
+        double meanVariance() const;
 	private:
         int _count;
         WeightedAccumulator _combinedMean, _combinedSecondMoment;
 	}; // WeightedCombiner
-
-    inline int WeightedCombiner::count() const {
-        return _count;
-    }
-    inline double WeightedCombiner::mean() const {
-        return _combinedMean.mean();
-    }
-    inline double WeightedCombiner::variance() const {
-        double mu(mean());
-        return _combinedSecondMoment.mean() - mu*mu;
-    }
-    inline double WeightedCombiner::sumOfWeights() const {
-        return _combinedMean.sumOfWeights();
-    }
-	
 } // likely
 
 #endif // LIKELY_WEIGHTED_COMBINER

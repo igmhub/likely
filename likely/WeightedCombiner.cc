@@ -19,3 +19,24 @@ double mean, double variance) {
 void local::WeightedCombiner::combine(AbsAccumulator const &other) {
     combine(other.count(),other.sumOfWeights(),other.mean(),other.variance());
 }
+
+int local::WeightedCombiner::count() const {
+    return _count;
+}
+
+double local::WeightedCombiner::mean() const {
+    return _combinedMean.mean();
+}
+
+double local::WeightedCombiner::variance() const {
+    double mu(mean());
+    return _combinedSecondMoment.mean() - mu*mu;
+}
+
+double local::WeightedCombiner::sumOfWeights() const {
+    return _combinedMean.sumOfWeights();
+}
+
+double local::WeightedCombiner::meanVariance() const {
+    return _combinedMean.variance();
+}
