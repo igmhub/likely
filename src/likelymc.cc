@@ -1,9 +1,8 @@
 // Created 9-Jun-2011 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 // A Markov-chain Monte Carlo test program.
 
-#include "config.h"
-
 #include "likely/likely.h"
+#include "likely/MarkovChainEngine.h"
 
 #include "boost/program_options.hpp"
 #include "boost/format.hpp"

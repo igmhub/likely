@@ -10,15 +10,17 @@
 #include "likely/WeightedAccumulator.h"
 #include "likely/WeightedCombiner.h"
 
+#include "likely/AbsEngine.h"
 #include "likely/FunctionMinimum.h"
+
+// The following "engine" class are not included here since they are considered
+// part of the lower-level implementation and their availability depends on how
+// the package was built. Note that including them will indirectly pull in
+// some GSL and Minuit headers and so require an appropriate include path.
+/*
 #include "likely/MarkovChainEngine.h"
-
-#ifdef HAVE_LIBGSL
 #include "likely/GslEngine.h"
-#endif
-
-#ifdef HAVE_LIBMINUIT
 #include "likely/MinuitEngine.h"
-#endif
+*/
 
 #include "likely/test/TestLikelihood.h"
