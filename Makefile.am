@@ -17,6 +17,7 @@ liblikely_la_SOURCES = \
 	likely/EngineRegistry.cc \
 	likely/MarkovChainEngine.cc \
 	likely/Interpolator.cc \
+	likely/Integrator.cc \
 	likely/Random.cc \
 	likely/AbsAccumulator.cc \
 	likely/WeightedAccumulator.cc \
@@ -35,6 +36,7 @@ nobase_include_HEADERS = \
 	likely/EngineRegistry.h \
 	likely/MarkovChainEngine.h \
 	likely/Interpolator.h \
+	likely/Integrator.h \
 	likely/Random.h \
 	likely/AbsAccumulator.h \
 	likely/WeightedAccumulator.h \
