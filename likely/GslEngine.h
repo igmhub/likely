@@ -46,7 +46,7 @@ namespace likely {
         static double _evaluate(const gsl_vector *v, void *p);
         static void _evaluateGradient(const gsl_vector *v, void *p, gsl_vector *g);
         static void _evaluateBoth(const gsl_vector *v, void *p, double *f, gsl_vector *g);
-        // Maintains a function stack that the global callbacks use to determine with
+        // Maintains a function stack that the global callbacks use to determine which
         // function to invoke when they are called.
         static std::stack<GslEngine*> &_getEngineStack();
         static GslEngine* _useTopEngine(const gsl_vector *v);
