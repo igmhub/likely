@@ -24,6 +24,15 @@ namespace likely {
 		// at the endpoints and/or interior points. Updates the value returned by
 		// getAbsError().
         double integrateSingular(double a, double b);
+        // Returns the integral from [a,+infinity). Updates the value returned by
+        // getAbsError().
+        double integrateUp(double a);
+        // Returns the integral from (-infinity,b]. Updates the value returned by
+        // getAbsError().
+        double integrateDown(double b);
+        // Returns the integral from (-infinity,+infinity). Updates the value return
+        // by getAbsError().
+        double integrateAll();
         // Returns the estimated absolute error from the last integration or zero if
         // no integrations have been performed yet.
         double getAbsError() const;

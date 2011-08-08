@@ -77,6 +77,45 @@ double local::Integrator::integrateSingular(double a, double b) {
     return result;
 }
 
+double local::Integrator::integrateUp(double a) {
+        double result(0);
+        _getStack().push(this);
+    #ifdef HAVE_LIBGSL
+        // Declare our error-handling context.
+        GslErrorHandler eh("Integrator::integrateUp");
+        int status = gsl_integration_qagiu(&_pimpl->function,a,_epsAbs,_epsRel,
+            _pimpl->workspaceSize,_pimpl->workspace,&result,&_absError);
+    #endif
+        _getStack().pop();
+        return result;    
+}
+
+double local::Integrator::integrateDown(double b) {
+        double result(0);
+        _getStack().push(this);
+    #ifdef HAVE_LIBGSL
+        // Declare our error-handling context.
+        GslErrorHandler eh("Integrator::integrateDown");
+        int status = gsl_integration_qagil(&_pimpl->function,b,_epsAbs,_epsRel,
+            _pimpl->workspaceSize,_pimpl->workspace,&result,&_absError);
+    #endif
+        _getStack().pop();
+        return result;    
+}
+
+double local::Integrator::integrateAll() {
+        double result(0);
+        _getStack().push(this);
+    #ifdef HAVE_LIBGSL
+        // Declare our error-handling context.
+        GslErrorHandler eh("Integrator::integrateDown");
+        int status = gsl_integration_qagi(&_pimpl->function,_epsAbs,_epsRel,
+            _pimpl->workspaceSize,_pimpl->workspace,&result,&_absError);
+    #endif
+        _getStack().pop();
+        return result;    
+}
+
 double local::Integrator::_evaluate(double x, void *params) {
     const Integrator *top(_getStack().top());
     return (*(top->_integrand))(x);
