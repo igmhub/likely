@@ -35,8 +35,9 @@ _pimpl(new Implementation())
 #ifdef HAVE_LIBGSL
     // Declare our error-handling context.
     GslErrorHandler eh("Integrator::Integrator");
-    // Allocate an integration workspace.
-    _pimpl->workspace = gsl_integration_workspace_alloc(_pimpl->workspaceSize = 1024);
+    // Integration workspaces will be allocated on demand.
+    _pimpl->workspaceSize = 1024;
+    _pimpl->workspace = 0;    
     // Link the function wrapper to our static evaluator.
     _pimpl->function.function = &_evaluate;
     _pimpl->function.params = 0;
@@ -47,7 +48,7 @@ _pimpl(new Implementation())
 
 local::Integrator::~Integrator() {
 #ifdef HAVE_LIBGSL
-    gsl_integration_workspace_free(_pimpl->workspace);
+    if(0 != _pimpl->workspace) gsl_integration_workspace_free(_pimpl->workspace);
 #endif
 }
 
@@ -57,6 +58,8 @@ double local::Integrator::integrateSmooth(double a, double b) {
 #ifdef HAVE_LIBGSL
     // Declare our error-handling context.
     GslErrorHandler eh("Integrator::integrateSmooth");
+    if(0 == _pimpl->workspace) _pimpl->workspace =
+        gsl_integration_workspace_alloc(_pimpl->workspaceSize);
     int status = gsl_integration_qag(&_pimpl->function,a,b,_epsAbs,_epsRel,
         _pimpl->workspaceSize,GSL_INTEG_GAUSS61,_pimpl->workspace,&result,&_absError);
 #endif
@@ -70,6 +73,8 @@ double local::Integrator::integrateSingular(double a, double b) {
 #ifdef HAVE_LIBGSL
     // Declare our error-handling context.
     GslErrorHandler eh("Integrator::integrateSingular");
+    if(0 == _pimpl->workspace) _pimpl->workspace =
+        gsl_integration_workspace_alloc(_pimpl->workspaceSize);
     int status = gsl_integration_qags(&_pimpl->function,a,b,_epsAbs,_epsRel,
         _pimpl->workspaceSize,_pimpl->workspace,&result,&_absError);
 #endif
@@ -83,6 +88,8 @@ double local::Integrator::integrateUp(double a) {
     #ifdef HAVE_LIBGSL
         // Declare our error-handling context.
         GslErrorHandler eh("Integrator::integrateUp");
+        if(0 == _pimpl->workspace) _pimpl->workspace =
+            gsl_integration_workspace_alloc(_pimpl->workspaceSize);
         int status = gsl_integration_qagiu(&_pimpl->function,a,_epsAbs,_epsRel,
             _pimpl->workspaceSize,_pimpl->workspace,&result,&_absError);
     #endif
@@ -96,6 +103,8 @@ double local::Integrator::integrateDown(double b) {
     #ifdef HAVE_LIBGSL
         // Declare our error-handling context.
         GslErrorHandler eh("Integrator::integrateDown");
+        if(0 == _pimpl->workspace) _pimpl->workspace =
+            gsl_integration_workspace_alloc(_pimpl->workspaceSize);
         int status = gsl_integration_qagil(&_pimpl->function,b,_epsAbs,_epsRel,
             _pimpl->workspaceSize,_pimpl->workspace,&result,&_absError);
     #endif
@@ -109,6 +118,8 @@ double local::Integrator::integrateAll() {
     #ifdef HAVE_LIBGSL
         // Declare our error-handling context.
         GslErrorHandler eh("Integrator::integrateDown");
+        if(0 == _pimpl->workspace) _pimpl->workspace =
+            gsl_integration_workspace_alloc(_pimpl->workspaceSize);
         int status = gsl_integration_qagi(&_pimpl->function,_epsAbs,_epsRel,
             _pimpl->workspaceSize,_pimpl->workspace,&result,&_absError);
     #endif
