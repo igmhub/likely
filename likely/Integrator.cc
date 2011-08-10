@@ -150,6 +150,29 @@ double local::Integrator::integrateAll() {
         return result;    
 }
 
+double local::Integrator::integrateOsc(double a, double b, double omega, bool useSin) {
+        double result(0);
+        _getStack().push(this);
+    #ifdef HAVE_LIBGSL
+        // Declare our error-handling context.
+        GslErrorHandler eh("Integrator::integrateOsc");
+        if(0 == _pimpl->workspace) _pimpl->workspace =
+            gsl_integration_workspace_alloc(_pimpl->workspaceSize);
+        gsl_integration_qawo_enum which(useSin ? GSL_INTEG_SINE : GSL_INTEG_COSINE);
+        if(0 == _pimpl->qawo_table) {
+            _pimpl->qawo_table =
+                gsl_integration_qawo_table_alloc(omega,b-a,which,_pimpl->workspaceSize);
+        }
+        else {
+            gsl_integration_qawo_table_set(_pimpl->qawo_table,omega,b-a,which);
+        }
+        int status = gsl_integration_qawo(&_pimpl->function,a,_epsAbs,_epsRel,
+            _pimpl->workspaceSize,_pimpl->workspace,_pimpl->qawo_table,&result,&_absError);
+    #endif
+        _getStack().pop();
+        return result;    
+}
+
 double local::Integrator::_evaluate(double x, void *params) {
     const Integrator *top(_getStack().top());
     return (*(top->_integrand))(x);

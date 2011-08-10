@@ -37,6 +37,9 @@ namespace likely {
         // Returns the integral from (-infinity,+infinity). Updates the value return
         // by getAbsError(). Uses GSL QAGI.
         double integrateAll();
+        // Returns the integral of integrand(x)*osc(omega*x) where osc = sin or cos.
+        // Updates the value return by getAbsError(). Uses GSL QAWO.
+        double integrateOsc(double a, double b, double omega, bool useSin = true);
         // Returns the estimated absolute error from the last integration or zero if
         // no integrations have been performed yet.
         double getAbsError() const;

@@ -57,6 +57,12 @@ int main(int argc, char **argv) {
         << integrator2.getAbsError() << " (estimate) = "
         << exact5 - result5 << std::endl;
     
+    double exact6 = -0.060498064358031995849;
+    double result6 = integrator1.integrateOsc(1,15,3);
+    std::cout << "I1[1,15]*sin(3x): " << exact6 << " (exact) - " << result6 << " +/- "
+        << integrator2.getAbsError() << " (estimate) = "
+        << exact6 - result6 << std::endl;
+    
     try {
         integrator3.integrateSingular(0,1);
     }
