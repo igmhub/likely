@@ -17,6 +17,8 @@ namespace likely {
 #ifdef HAVE_LIBGSL
         size_t workspaceSize;
         gsl_integration_workspace *workspace;
+        gsl_integration_cquad_workspace *cquad_workspace;
+        gsl_integration_qawo_table *qawo_table;
         gsl_function function;
 #endif
     }; // Integrator::Implementation
@@ -37,7 +39,9 @@ _pimpl(new Implementation())
     GslErrorHandler eh("Integrator::Integrator");
     // Integration workspaces will be allocated on demand.
     _pimpl->workspaceSize = 1024;
-    _pimpl->workspace = 0;    
+    _pimpl->workspace = 0;
+    _pimpl->cquad_workspace = 0;
+    _pimpl->qawo_table = 0;
     // Link the function wrapper to our static evaluator.
     _pimpl->function.function = &_evaluate;
     _pimpl->function.params = 0;
@@ -49,6 +53,9 @@ _pimpl(new Implementation())
 local::Integrator::~Integrator() {
 #ifdef HAVE_LIBGSL
     if(0 != _pimpl->workspace) gsl_integration_workspace_free(_pimpl->workspace);
+    if(0 != _pimpl->cquad_workspace)
+        gsl_integration_cquad_workspace_free(_pimpl->cquad_workspace);
+    if(0 != _pimpl->qawo_table) gsl_integration_qawo_table_free(_pimpl->qawo_table);
 #endif
 }
 
@@ -62,6 +69,22 @@ double local::Integrator::integrateSmooth(double a, double b) {
         gsl_integration_workspace_alloc(_pimpl->workspaceSize);
     int status = gsl_integration_qag(&_pimpl->function,a,b,_epsAbs,_epsRel,
         _pimpl->workspaceSize,GSL_INTEG_GAUSS61,_pimpl->workspace,&result,&_absError);
+#endif
+    _getStack().pop();
+    return result;
+}
+
+double local::Integrator::integrateRobust(double a, double b) {
+    double result(0);
+    _getStack().push(this);
+#ifdef HAVE_LIBGSL
+    // Declare our error-handling context.
+    GslErrorHandler eh("Integrator::integrateRobust");
+    if(0 == _pimpl->cquad_workspace) _pimpl->cquad_workspace =
+        gsl_integration_cquad_workspace_alloc(_pimpl->workspaceSize);
+    size_t nEvals;
+    int status = gsl_integration_cquad(&_pimpl->function,a,b,_epsAbs,_epsRel,
+        _pimpl->cquad_workspace,&result,&_absError,&nEvals);
 #endif
     _getStack().pop();
     return result;

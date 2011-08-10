@@ -18,20 +18,24 @@ namespace likely {
 		Integrator(IntegrandPtr integrand, double epsAbs, double epsRel);
 		virtual ~Integrator();
 		// Returns the integral over an interval [a,b] where the integrand is smooth
-		// and non-singular. Updates the value returned by getAbsError().
+		// and non-singular. Updates the value returned by getAbsError(). Uses GSL QAG.
         double integrateSmooth(double a, double b);
 		// Returns the integral over an interval [a,b] where the integrand is singular
 		// at the endpoints and/or interior points. Updates the value returned by
-		// getAbsError().
+		// getAbsError(). Uses GSL QAGS.
         double integrateSingular(double a, double b);
+        // Returns the integral over an interval [a,b] using a robust but slower method
+        // that can handle singularities and inf,nan values. Updates the value returned
+        // by getAbsError(). Uses GSL CQUAD (added in GSL version 1.15)
+        double integrateRobust(double a, double b);
         // Returns the integral from [a,+infinity). Updates the value returned by
-        // getAbsError().
+        // getAbsError(). Uses GSL QAGIU.
         double integrateUp(double a);
         // Returns the integral from (-infinity,b]. Updates the value returned by
-        // getAbsError().
+        // getAbsError(). Uses GSL QAGIL.
         double integrateDown(double b);
         // Returns the integral from (-infinity,+infinity). Updates the value return
-        // by getAbsError().
+        // by getAbsError(). Uses GSL QAGI.
         double integrateAll();
         // Returns the estimated absolute error from the last integration or zero if
         // no integrations have been performed yet.

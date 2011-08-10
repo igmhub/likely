@@ -47,9 +47,15 @@ int main(int argc, char **argv) {
 
     double exact4 = -4;
     double result4 = integrator2.integrateSingular(0,1);
-    std::cout << "I1[1,+inf): " << exact4 << " (exact) - " << result4 << " +/- "
+    std::cout << "I2[0,1]: " << exact4 << " (exact) - " << result4 << " +/- "
         << integrator2.getAbsError() << " (estimate) = "
         << exact4 - result4 << std::endl;
+    
+    double exact5 = -4;
+    double result5 = integrator2.integrateRobust(0,1);
+    std::cout << "I2[0,1]: " << exact5 << " (exact) - " << result5 << " +/- "
+        << integrator2.getAbsError() << " (estimate) = "
+        << exact5 - result5 << std::endl;
     
     try {
         integrator3.integrateSingular(0,1);
