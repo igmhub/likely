@@ -14,6 +14,7 @@
 
 #include "config.h" // defines HAVE_SSE2 when appropriate, thanks to the AX_EXT m4 macro
 #define MEXP 19937
+//#define MEXP 11213 // 7% faster in the non-SIMD version, but shorter period
 #include "SFMT/SFMT.c"
 
 namespace local = likely;
