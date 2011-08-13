@@ -48,7 +48,10 @@ void local::Random::fillArrayUniform(double *array, int size, int seed) {
         throw RuntimeError("Random::fillArrayUniform: array size < " +
             boost::lexical_cast<std::string>(N64));
     }
-    init_gen_rand(seed);
+    if(seed) init_gen_rand(seed);
+    if(!initialized || idx != N32) {
+        throw RuntimeError("Random::fillArrayUniform: must use seed > 0.");
+    }
     gen_rand_array((w128_t *)array, size / 2);
     idx = N32;
 #if defined(BIG_ENDIAN64)
@@ -67,18 +70,15 @@ void *local::allocateAlignedArray(std::size_t byteSize) {
         throw RuntimeError("allocateAlignedArray: Apple malloc failed.");
     }
 #elif defined(_POSIX_C_SOURCE)
-    printf("posix_memalign used\n");
     if (posix_memalign((void **)&array, 16, byteSize) != 0) {
         throw RuntimeError("allocateAlignedArray: posix_memalign failed.");
     }
 #elif defined(__GNUC__) && (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3))
-    printf("memalign used\n");
     array = (uint32_t*)memalign(16, byteSize);
     if (array == NULL) {
         throw RuntimeError("allocateAlignedArray: GNUC memalign failed.");
     }
 #else /* in this case, gcc doesn't support SSE2 */
-    printf("malloc used\n");
     array = malloc(byteSize);
     if (array == NULL) {
         throw RuntimeError("allocateAlignedArray: default malloc failed.");
@@ -98,7 +98,10 @@ void local::Random::fillArrayNormal(float *array, int size, int seed) {
         throw RuntimeError("Random::fillArrayNormal: array size < " +
             boost::lexical_cast<std::string>(N32));
     }
-    init_gen_rand(seed);
+    if(seed) init_gen_rand(seed);
+    if(!initialized || idx != N32) {
+        throw RuntimeError("Random::fillArrayNormal: must use seed > 0.");
+    }
     gen_rand_array((w128_t *)array, size / 4);
     idx = N32;
     // Convert each 32-bit integer to a normally-distributed float using the ziggurat
