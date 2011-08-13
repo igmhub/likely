@@ -12,6 +12,9 @@ AC_INIT([likely], [dev], [dkirkby@uci.edu])
 # Checks for programs
 AC_PROG_CXX
 
+# Use SIMD compiler extensions when available
+AX_EXT
+
 # Initialize libtool, which adds --enable/disable-shared configure options.
 # The boost.m4 macros used below also need this.
 LT_INIT

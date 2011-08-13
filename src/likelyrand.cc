@@ -8,10 +8,18 @@
 #include <sys/resource.h>
 #include <cmath>
 #include <iostream>
+#include <cassert>
 
-#define BENCHMARK(METHOD) {\
-getrusage(RUSAGE_SELF,&before); \
-for(int i = 0; i < repeat; ++i) { rval = random.METHOD(); } \
+#define BENCHMARK(METHOD,ARGS) {\
+getrusage(RUSAGE_SELF,&before);\
+random.METHOD ARGS;\
+getrusage(RUSAGE_SELF,&after); \
+std::cout << results % #METHOD % (1e3*elapsed(before,after)/repeat); \
+}
+
+#define BENCHMARK_LOOP(METHOD) {\
+getrusage(RUSAGE_SELF,&before);\
+for(int i = 0; i < repeat; ++i) random.METHOD();\
 getrusage(RUSAGE_SELF,&after); \
 std::cout << results % #METHOD % (1e3*elapsed(before,after)/repeat); \
 }
@@ -27,12 +35,35 @@ double elapsed(struct rusage const &before, struct rusage const &after) {
 }
 
 int main(int argc, char **argv) {
-    lk::Random &random(lk::Random::instance());
-    int repeat(1000000);
     double rval;
     struct rusage before,after;
-    boost::format results("%20s: %.3f nanosecs/call\n");
+    boost::format results("%20s: %6.3f nanosecs/call\n");
+    int repeat(1<<24); //  = 16M
+    std::cout << "Testing generation of " << repeat << " random numbers." << std::endl;
     
-    BENCHMARK(getUniform);
-    BENCHMARK(getNormal);
+    lk::Random &random(lk::Random::instance());
+    random.setSeed(1234);
+
+    BENCHMARK_LOOP(getUniform);
+    BENCHMARK_LOOP(getNormal);
+    BENCHMARK_LOOP(getFastUniform);
+
+    assert(sizeof(uint64_t) == sizeof(double));
+    double *dbuffer = (double*)lk::allocateAlignedArray(repeat*sizeof(uint64_t));
+    BENCHMARK(fillArrayUniform, (dbuffer,repeat,123));
+    free(dbuffer);
+
+    assert(sizeof(uint32_t) == sizeof(float));
+    float *fbuffer = (float*)lk::allocateAlignedArray(repeat*sizeof(uint32_t));
+    BENCHMARK(fillArrayNormal, (fbuffer,repeat,123));
+    double sum(0),sum2(0);
+    for(int i = 0; i < repeat; ++i) {
+        float value(fbuffer[i]);
+        sum += value;
+        sum2 += value*value;
+    }
+    double mean(sum/repeat);
+    double variance(sum2/repeat - mean*mean);
+    std::cout << "mean = " << mean << ", variance = " << variance << std::endl;
+    free(fbuffer);
 }
