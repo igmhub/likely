@@ -16,7 +16,7 @@ namespace likely {
     struct Integrator::Implementation {
 #ifdef HAVE_LIBGSL
         size_t workspaceSize;
-        gsl_integration_workspace *workspace;
+        gsl_integration_workspace *workspace, *cycle_workspace;
         gsl_integration_cquad_workspace *cquad_workspace;
         gsl_integration_qawo_table *qawo_table;
         gsl_function function;
@@ -40,6 +40,7 @@ _pimpl(new Implementation())
     // Integration workspaces will be allocated on demand.
     _pimpl->workspaceSize = 1024;
     _pimpl->workspace = 0;
+    _pimpl->cycle_workspace = 0;
     _pimpl->cquad_workspace = 0;
     _pimpl->qawo_table = 0;
     // Link the function wrapper to our static evaluator.
@@ -53,6 +54,8 @@ _pimpl(new Implementation())
 local::Integrator::~Integrator() {
 #ifdef HAVE_LIBGSL
     if(0 != _pimpl->workspace) gsl_integration_workspace_free(_pimpl->workspace);
+    if(0 != _pimpl->cycle_workspace)
+        gsl_integration_workspace_free(_pimpl->cycle_workspace);
     if(0 != _pimpl->cquad_workspace)
         gsl_integration_cquad_workspace_free(_pimpl->cquad_workspace);
     if(0 != _pimpl->qawo_table) gsl_integration_qawo_table_free(_pimpl->qawo_table);
@@ -168,6 +171,32 @@ double local::Integrator::integrateOsc(double a, double b, double omega, bool us
         }
         int status = gsl_integration_qawo(&_pimpl->function,a,_epsAbs,_epsRel,
             _pimpl->workspaceSize,_pimpl->workspace,_pimpl->qawo_table,&result,&_absError);
+    #endif
+        _getStack().pop();
+        return result;    
+}
+
+double local::Integrator::integrateOscUp(double a, double omega, bool useSin) {
+        double result(0);
+        _getStack().push(this);
+    #ifdef HAVE_LIBGSL
+        // Declare our error-handling context.
+        GslErrorHandler eh("Integrator::integrateOscUp");
+        if(0 == _pimpl->workspace) _pimpl->workspace =
+            gsl_integration_workspace_alloc(_pimpl->workspaceSize);
+        if(0 == _pimpl->cycle_workspace) _pimpl->cycle_workspace =
+            gsl_integration_workspace_alloc(_pimpl->workspaceSize);        
+        gsl_integration_qawo_enum which(useSin ? GSL_INTEG_SINE : GSL_INTEG_COSINE);
+        if(0 == _pimpl->qawo_table) {
+            _pimpl->qawo_table =
+                gsl_integration_qawo_table_alloc(omega,1,which,_pimpl->workspaceSize);
+        }
+        else {
+            gsl_integration_qawo_table_set(_pimpl->qawo_table,omega,1,which);
+        }
+        int status = gsl_integration_qawf(&_pimpl->function,a,_epsAbs,
+            _pimpl->workspaceSize,_pimpl->workspace,_pimpl->cycle_workspace,
+            _pimpl->qawo_table,&result,&_absError);
     #endif
         _getStack().pop();
         return result;    
