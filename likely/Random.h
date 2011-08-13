@@ -11,10 +11,13 @@ namespace likely {
 	public:
 		Random();
         void setSeed(int seedValue);
-        // Returns a value from [0,1)
+        // Returns a double-precision value uniformly sampled from [0,1)
         double getUniform();
-        // Returns a value with mean 0 and RMS 1
+        // Returns a double-precision value with mean 0 and RMS 1.
         double getNormal();
+        // Returns a single-precision value uniformly sampled from [0,1) using
+        // an inline coding of SFMT (http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT/)
+        float getFastUniform();
         // Returns a reference to this object's internal generator, so that it
         // can be used for other distributions. This should only be used on the
         // global shared instance.

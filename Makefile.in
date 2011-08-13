@@ -37,7 +37,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = likelytest$(EXEEXT) likelymc$(EXEEXT) \
-	likelyinterp$(EXEEXT) likelywsum$(EXEEXT) likelyinteg$(EXEEXT)
+	likelyinterp$(EXEEXT) likelywsum$(EXEEXT) likelyinteg$(EXEEXT) \
+	likelyrand$(EXEEXT)
 noinst_PROGRAMS = demo1$(EXEEXT) demo2$(EXEEXT)
 
 # add GSL features when libgsl is available
@@ -114,6 +115,8 @@ am_likelyinterp_OBJECTS = likelyinterp.$(OBJEXT)
 likelyinterp_OBJECTS = $(am_likelyinterp_OBJECTS)
 am_likelymc_OBJECTS = likelymc.$(OBJEXT)
 likelymc_OBJECTS = $(am_likelymc_OBJECTS)
+am_likelyrand_OBJECTS = likelyrand.$(OBJEXT)
+likelyrand_OBJECTS = $(am_likelyrand_OBJECTS)
 am_likelytest_OBJECTS = likelytest.$(OBJEXT)
 likelytest_OBJECTS = $(am_likelytest_OBJECTS)
 am_likelywsum_OBJECTS = likelywsum.$(OBJEXT)
@@ -133,12 +136,13 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(liblikely_la_SOURCES) $(demo1_SOURCES) $(demo2_SOURCES) \
 	$(likelyinteg_SOURCES) $(likelyinterp_SOURCES) \
-	$(likelymc_SOURCES) $(likelytest_SOURCES) \
-	$(likelywsum_SOURCES)
+	$(likelymc_SOURCES) $(likelyrand_SOURCES) \
+	$(likelytest_SOURCES) $(likelywsum_SOURCES)
 DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(demo1_SOURCES) \
 	$(demo2_SOURCES) $(likelyinteg_SOURCES) \
 	$(likelyinterp_SOURCES) $(likelymc_SOURCES) \
-	$(likelytest_SOURCES) $(likelywsum_SOURCES)
+	$(likelyrand_SOURCES) $(likelytest_SOURCES) \
+	$(likelywsum_SOURCES)
 am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/RuntimeError.h likely/FunctionMinimum.h \
 	likely/AbsEngine.h likely/EngineRegistry.h \
@@ -326,6 +330,9 @@ likelywsum_LDADD = -lboost_program_options -L. -llikely
 likelyinteg_SOURCES = src/likelyinteg.cc
 likelyinteg_DEPENDENCIES = $(lib_LIBRARIES)
 likelyinteg_LDADD = -L. -llikely
+likelyrand_SOURCES = src/likelyrand.cc
+likelyrand_DEPENDENCIES = $(lib_LIBRARIES)
+likelyrand_LDADD = -L. -llikely
 demo1_SOURCES = src/demo1.cc
 demo1_DEPENDENCIES = $(lib_LIBRARIES)
 demo1_LDADD = -L. -llikely
@@ -488,6 +495,9 @@ likelyinterp$(EXEEXT): $(likelyinterp_OBJECTS) $(likelyinterp_DEPENDENCIES)
 likelymc$(EXEEXT): $(likelymc_OBJECTS) $(likelymc_DEPENDENCIES) 
 	@rm -f likelymc$(EXEEXT)
 	$(CXXLINK) $(likelymc_OBJECTS) $(likelymc_LDADD) $(LIBS)
+likelyrand$(EXEEXT): $(likelyrand_OBJECTS) $(likelyrand_DEPENDENCIES) 
+	@rm -f likelyrand$(EXEEXT)
+	$(CXXLINK) $(likelyrand_OBJECTS) $(likelyrand_LDADD) $(LIBS)
 likelytest$(EXEEXT): $(likelytest_OBJECTS) $(likelytest_DEPENDENCIES) 
 	@rm -f likelytest$(EXEEXT)
 	$(CXXLINK) $(likelytest_OBJECTS) $(likelytest_LDADD) $(LIBS)
@@ -520,6 +530,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyinteg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyinterp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelymc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyrand.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelywsum.Po@am__quote@
 
@@ -711,6 +722,20 @@ likelymc.obj: src/likelymc.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelymc.cc' object='likelymc.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelymc.obj `if test -f 'src/likelymc.cc'; then $(CYGPATH_W) 'src/likelymc.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelymc.cc'; fi`
+
+likelyrand.o: src/likelyrand.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelyrand.o -MD -MP -MF $(DEPDIR)/likelyrand.Tpo -c -o likelyrand.o `test -f 'src/likelyrand.cc' || echo '$(srcdir)/'`src/likelyrand.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelyrand.Tpo $(DEPDIR)/likelyrand.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelyrand.cc' object='likelyrand.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelyrand.o `test -f 'src/likelyrand.cc' || echo '$(srcdir)/'`src/likelyrand.cc
+
+likelyrand.obj: src/likelyrand.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelyrand.obj -MD -MP -MF $(DEPDIR)/likelyrand.Tpo -c -o likelyrand.obj `if test -f 'src/likelyrand.cc'; then $(CYGPATH_W) 'src/likelyrand.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelyrand.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelyrand.Tpo $(DEPDIR)/likelyrand.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelyrand.cc' object='likelyrand.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelyrand.obj `if test -f 'src/likelyrand.cc'; then $(CYGPATH_W) 'src/likelyrand.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelyrand.cc'; fi`
 
 likelytest.o: src/likelytest.cc
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelytest.o -MD -MP -MF $(DEPDIR)/likelytest.Tpo -c -o likelytest.o `test -f 'src/likelytest.cc' || echo '$(srcdir)/'`src/likelytest.cc

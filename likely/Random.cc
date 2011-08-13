@@ -20,3 +20,7 @@ local::Random &local::Random::instance() {
     static Random *_instance = new Random();
     return *_instance;
 }
+
+float local::Random::getFastUniform() {
+    return 0;
+}
