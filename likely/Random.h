@@ -23,11 +23,11 @@ namespace likely {
         // Fills the specified array with double-precision values uniformly sampled from [0,1)
         // using the specified seed (that is independent of the seed used by getUniform and
         // getNormal).
-        void fillArrayUniform(double *array, int size, int seed);
+        void fillArrayUniform(double *array, std::size_t size, int seed);
         // Fills the specified array with double-precision values normally distributed with
         // mean 0 and RMS 1 using the specified seed (that is independent of the seed used
         // by getUniform and getNormal).
-        void fillArrayNormal(float *array, int size, int seed);
+        void fillArrayNormal(float *array, std::size_t size, int seed);
         // Returns a reference to this object's internal generator, so that it
         // can be used for other distributions. This should only be used on the
         // global shared instance.

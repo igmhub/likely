@@ -41,7 +41,7 @@ float local::Random::getFastUniform() {
     return genrand_res53();
 }
 
-void local::Random::fillArrayUniform(double *array, int size, int seed) {
+void local::Random::fillArrayUniform(double *array, std::size_t size, int seed) {
     if(size % 2) {
         throw RuntimeError("Random::fillArrayUniform: array is not 128-bit aligned.");
     }
@@ -91,7 +91,7 @@ void *local::allocateAlignedArray(std::size_t byteSize) {
 /* position of right-most step */
 #define PARAM_R 3.44428647676
 
-void local::Random::fillArrayNormal(float *array, int size, int seed) {
+void local::Random::fillArrayNormal(float *array, std::size_t size, int seed) {
     if(size % 4) {
         throw RuntimeError("Random::fillArrayNormal: array is not 128-bit aligned.");
     }
