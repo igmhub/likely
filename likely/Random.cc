@@ -99,9 +99,9 @@ void local::Random::fillArrayNormal(float *array, std::size_t size, int seed) {
         throw RuntimeError("Random::fillArrayNormal: array size < " +
             boost::lexical_cast<std::string>(N32));
     }
-    if(seed) init_gen_rand(seed);
+    init_gen_rand(seed);
     if(!initialized || idx != N32) {
-        throw RuntimeError("Random::fillArrayNormal: must use seed > 0.");
+        throw RuntimeError("Random::fillArrayNormal: init_gen_rand failed.");
     }
     gen_rand_array((w128_t *)array, size / 4);
     idx = N32;
@@ -132,7 +132,7 @@ void local::Random::fillArrayNormal(float *array, std::size_t size, int seed) {
             }
             if (y < std::exp(-0.5*x*x))  break;
             // If we get here, we need a new 32-bit random number in U.
-            // We actually generate a 64-bit integer to keep in synch.
+            // We actually generate a 64-bit random integer to stay in synch.
             U = gen_rand64() & 0xffffffff;
         }
         array[index] = sign ? (float)(+x) : (float)(-x);
