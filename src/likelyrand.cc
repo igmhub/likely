@@ -56,14 +56,18 @@ int main(int argc, char **argv) {
     assert(sizeof(uint32_t) == sizeof(float));
     float *fbuffer = (float*)lk::allocateAlignedArray(repeat*sizeof(uint32_t));
     BENCHMARK(fillArrayNormal, (fbuffer,repeat,123));
-    double sum(0),sum2(0);
+    
+    lk::WeightedAccumulator stats;
+    lk::QuantileAccumulator median, sigma(1-0.5*0.317310508);
     for(int i = 0; i < repeat; ++i) {
-        float value(fbuffer[i]);
-        sum += value;
-        sum2 += value*value;
+        double value(fbuffer[i]);
+        stats.accumulate(value);
+        median.accumulate(value);
+        sigma.accumulate(value);
     }
-    double mean(sum/repeat);
-    double variance(sum2/repeat - mean*mean);
-    std::cout << "mean = " << mean << ", variance = " << variance << std::endl;
+    std::cout << "mean = " << stats.mean() << ", variance = " << stats.variance() << std::endl;
+    std::cout << "median = " << median.getQuantile() << ", 1-sigma quantile = "
+        << sigma.getQuantile() << std::endl;
+        
     free(fbuffer);
 }

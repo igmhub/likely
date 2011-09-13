@@ -13,7 +13,7 @@ namespace likely {
 		WeightedAccumulator();
 		virtual ~WeightedAccumulator();
         // Accumulates one weighted sample or throws a RuntimeError if weight <= 0.
-        void accumulate(double value, double weight);
+        void accumulate(double value, double weight = 1);
         // Returns the number of weighted samples accumulated.
         virtual int count() const;
         // Returns the weighted sum of the samples accumulated so far or zero if
