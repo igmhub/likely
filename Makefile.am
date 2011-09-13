@@ -22,6 +22,7 @@ liblikely_la_SOURCES = \
 	likely/AbsAccumulator.cc \
 	likely/WeightedAccumulator.cc \
 	likely/WeightedCombiner.cc \
+	likely/QuantileAccumulator.cc \
 	likely/test/TestLikelihood.cc
 
 # library headers to install (nobase prefix preserves directories under bosslya)
@@ -41,6 +42,7 @@ nobase_include_HEADERS = \
 	likely/AbsAccumulator.h \
 	likely/WeightedAccumulator.h \
 	likely/WeightedCombiner.h \
+	likely/QuantileAccumulator.h \
 	likely/test/TestLikelihood.h
 
 # add GSL features when libgsl is available

@@ -7,9 +7,11 @@
 #include "likely/Random.h"
 #include "likely/Interpolator.h"
 #include "likely/Integrator.h"
+
 #include "likely/AbsAccumulator.h"
 #include "likely/WeightedAccumulator.h"
 #include "likely/WeightedCombiner.h"
+#include "likely/QuantileAccumulator.h"
 
 #include "likely/AbsEngine.h"
 #include "likely/FunctionMinimum.h"
