@@ -32,12 +32,12 @@ double local::TriCubicInterpolator::operator()(double x, double y, double z) con
     // Check if we can re-use coefficients from the last interpolation.
     if(!_initialized || xi != _i1 || yi != _i2 || zi != _i3) {
         // Extract the local vocal values and calculate partial derivatives.
-		double fval[8] = {
+		double x[64] = {
+		    // values of f(x,y,z) at each corner.
 		    _data[_index(xi,yi,zi)],_data[_index(xi+1,yi,zi)],_data[_index(xi,yi+1,zi)],
 		    _data[_index(xi+1,yi+1,zi)],_data[_index(xi,yi,zi+1)],_data[_index(xi+1,yi,zi+1)],
-		    _data[_index(xi,yi+1,zi+1)],_data[_index(xi+1,yi+1,zi+1)]
-		};
-		double dfdxval[8] = {
+		    _data[_index(xi,yi+1,zi+1)],_data[_index(xi+1,yi+1,zi+1)],
+            // values of df/dx at each corner.
 		    0.5*(_data[_index(xi+1,yi,zi)]-_data[_index(xi-1,yi,zi)]),
 		    0.5*(_data[_index(xi+2,yi,zi)]-_data[_index(xi,yi,zi)]),
 			0.5*(_data[_index(xi+1,yi+1,zi)]-_data[_index(xi-1,yi+1,zi)]),
@@ -45,9 +45,8 @@ double local::TriCubicInterpolator::operator()(double x, double y, double z) con
 			0.5*(_data[_index(xi+1,yi,zi+1)]-_data[_index(xi-1,yi,zi+1)]),
 			0.5*(_data[_index(xi+2,yi,zi+1)]-_data[_index(xi,yi,zi+1)]),
 			0.5*(_data[_index(xi+1,yi+1,zi+1)]-_data[_index(xi-1,yi+1,zi+1)]),
-			0.5*(_data[_index(xi+2,yi+1,zi+1)]-_data[_index(xi,yi+1,zi+1)])
-		};
-		double dfdyval[8] = {
+			0.5*(_data[_index(xi+2,yi+1,zi+1)]-_data[_index(xi,yi+1,zi+1)]),
+            // values of df/dy at each corner.
 		    0.5*(_data[_index(xi,yi+1,zi)]-_data[_index(xi,yi-1,zi)]),
 		    0.5*(_data[_index(xi+1,yi+1,zi)]-_data[_index(xi+1,yi-1,zi)]),
 			0.5*(_data[_index(xi,yi+2,zi)]-_data[_index(xi,yi,zi)]),
@@ -55,9 +54,8 @@ double local::TriCubicInterpolator::operator()(double x, double y, double z) con
 			0.5*(_data[_index(xi,yi+1,zi+1)]-_data[_index(xi,yi-1,zi+1)]),
 			0.5*(_data[_index(xi+1,yi+1,zi+1)]-_data[_index(xi+1,yi-1,zi+1)]),
 			0.5*(_data[_index(xi,yi+2,zi+1)]-_data[_index(xi,yi,zi+1)]),
-			0.5*(_data[_index(xi+1,yi+2,zi+1)]-_data[_index(xi+1,yi,zi+1)])
-		};
-		double dfdzval[8] = {
+			0.5*(_data[_index(xi+1,yi+2,zi+1)]-_data[_index(xi+1,yi,zi+1)]),
+            // values of df/dz at each corner.
 		    0.5*(_data[_index(xi,yi,zi+1)]-_data[_index(xi,yi,zi-1)]),
 		    0.5*(_data[_index(xi+1,yi,zi+1)]-_data[_index(xi+1,yi,zi-1)]),
 			0.5*(_data[_index(xi,yi+1,zi+1)]-_data[_index(xi,yi+1,zi-1)]),
@@ -65,9 +63,8 @@ double local::TriCubicInterpolator::operator()(double x, double y, double z) con
 			0.5*(_data[_index(xi,yi,zi+2)]-_data[_index(xi,yi,zi)]),
 			0.5*(_data[_index(xi+1,yi,zi+2)]-_data[_index(xi+1,yi,zi)]),
 			0.5*(_data[_index(xi,yi+1,zi+2)]-_data[_index(xi,yi+1,zi)]),
-			0.25*(_data[_index(xi+1,yi+1,zi+2)]-_data[_index(xi+1,yi+1,zi)])
-		};
-		double d2fdxdyval[8] = {
+			0.25*(_data[_index(xi+1,yi+1,zi+2)]-_data[_index(xi+1,yi+1,zi)]),
+            // values of d2f/dxdy at each corner.
 		    0.25*(_data[_index(xi+1,yi+1,zi)]-_data[_index(xi-1,yi+1,zi)]-_data[_index(xi+1,yi-1,zi)]+_data[_index(xi-1,yi-1,zi)]),
 			0.25*(_data[_index(xi+2,yi+1,zi)]-_data[_index(xi,yi+1,zi)]-_data[_index(xi+2,yi-1,zi)]+_data[_index(xi,yi-1,zi)]),
 			0.25*(_data[_index(xi+1,yi+2,zi)]-_data[_index(xi-1,yi+2,zi)]-_data[_index(xi+1,yi,zi)]+_data[_index(xi-1,yi,zi)]),
@@ -75,9 +72,8 @@ double local::TriCubicInterpolator::operator()(double x, double y, double z) con
 			0.25*(_data[_index(xi+1,yi+1,zi+1)]-_data[_index(xi-1,yi+1,zi+1)]-_data[_index(xi+1,yi-1,zi+1)]+_data[_index(xi-1,yi-1,zi+1)]),
 			0.25*(_data[_index(xi+2,yi+1,zi+1)]-_data[_index(xi,yi+1,zi+1)]-_data[_index(xi+2,yi-1,zi+1)]+_data[_index(xi,yi-1,zi+1)]),
 			0.25*(_data[_index(xi+1,yi+2,zi+1)]-_data[_index(xi-1,yi+2,zi+1)]-_data[_index(xi+1,yi,zi+1)]+_data[_index(xi-1,yi,zi+1)]),
-			0.25*(_data[_index(xi+2,yi+2,zi+1)]-_data[_index(xi,yi+2,zi+1)]-_data[_index(xi+2,yi,zi+1)]+_data[_index(xi,yi,zi+1)])
-        };
-		double d2fdxdzval[8] = {
+			0.25*(_data[_index(xi+2,yi+2,zi+1)]-_data[_index(xi,yi+2,zi+1)]-_data[_index(xi+2,yi,zi+1)]+_data[_index(xi,yi,zi+1)]),
+            // values of d2f/dxdz at each corner.
 		    0.25*(_data[_index(xi+1,yi,zi+1)]-_data[_index(xi-1,yi,zi+1)]-_data[_index(xi+1,yi,zi-1)]+_data[_index(xi-1,yi,zi-1)]),
 			0.25*(_data[_index(xi+2,yi,zi+1)]-_data[_index(xi,yi,zi+1)]-_data[_index(xi+2,yi,zi-1)]+_data[_index(xi,yi,zi-1)]),
 			0.25*(_data[_index(xi+1,yi+1,zi+1)]-_data[_index(xi-1,yi+1,zi+1)]-_data[_index(xi+1,yi+1,zi-1)]+_data[_index(xi-1,yi+1,zi-1)]),
@@ -85,9 +81,8 @@ double local::TriCubicInterpolator::operator()(double x, double y, double z) con
 			0.25*(_data[_index(xi+1,yi,zi+2)]-_data[_index(xi-1,yi,zi+2)]-_data[_index(xi+1,yi,zi)]+_data[_index(xi-1,yi,zi)]),
 			0.25*(_data[_index(xi+2,yi,zi+2)]-_data[_index(xi,yi,zi+2)]-_data[_index(xi+2,yi,zi)]+_data[_index(xi,yi,zi)]),
 			0.25*(_data[_index(xi+1,yi+1,zi+2)]-_data[_index(xi-1,yi+1,zi+2)]-_data[_index(xi+1,yi+1,zi)]+_data[_index(xi-1,yi+1,zi)]),
-			0.25*(_data[_index(xi+2,yi+1,zi+2)]-_data[_index(xi,yi+1,zi+2)]-_data[_index(xi+2,yi+1,zi)]+_data[_index(xi,yi+1,zi)])
-		};
-		double d2fdydzval[8] = {
+			0.25*(_data[_index(xi+2,yi+1,zi+2)]-_data[_index(xi,yi+1,zi+2)]-_data[_index(xi+2,yi+1,zi)]+_data[_index(xi,yi+1,zi)]),
+            // values of d2f/dydz at each corner.
 		    0.25*(_data[_index(xi,yi+1,zi+1)]-_data[_index(xi,yi-1,zi+1)]-_data[_index(xi,yi+1,zi-1)]+_data[_index(xi,yi-1,zi-1)]),
 			0.25*(_data[_index(xi+1,yi+1,zi+1)]-_data[_index(xi+1,yi-1,zi+1)]-_data[_index(xi+1,yi+1,zi-1)]+_data[_index(xi+1,yi-1,zi-1)]),
 			0.25*(_data[_index(xi,yi+2,zi+1)]-_data[_index(xi,yi,zi+1)]-_data[_index(xi,yi+2,zi-1)]+_data[_index(xi,yi,zi-1)]),
@@ -95,9 +90,8 @@ double local::TriCubicInterpolator::operator()(double x, double y, double z) con
 			0.25*(_data[_index(xi,yi+1,zi+2)]-_data[_index(xi,yi-1,zi+2)]-_data[_index(xi,yi+1,zi)]+_data[_index(xi,yi-1,zi)]),
 			0.25*(_data[_index(xi+1,yi+1,zi+2)]-_data[_index(xi+1,yi-1,zi+2)]-_data[_index(xi+1,yi+1,zi)]+_data[_index(xi+1,yi-1,zi)]),
 			0.25*(_data[_index(xi,yi+2,zi+2)]-_data[_index(xi,yi,zi+2)]-_data[_index(xi,yi+2,zi)]+_data[_index(xi,yi,zi)]),
-			0.25*(_data[_index(xi+1,yi+2,zi+2)]-_data[_index(xi+1,yi,zi+2)]-_data[_index(xi+1,yi+2,zi)]+_data[_index(xi+1,yi,zi)])
-		};
-		double d3fdxdydzval[8] = {
+			0.25*(_data[_index(xi+1,yi+2,zi+2)]-_data[_index(xi+1,yi,zi+2)]-_data[_index(xi+1,yi+2,zi)]+_data[_index(xi+1,yi,zi)]),
+			// values of d3f/dxdydz at each corner.
 		    0.125*(_data[_index(xi+1,yi+1,zi+1)]-_data[_index(xi-1,yi+1,zi+1)]-_data[_index(xi+1,yi-1,zi+1)]+_data[_index(xi-1,yi-1,zi+1)]-_data[_index(xi+1,yi+1,zi-1)]+_data[_index(xi-1,yi+1,zi-1)]+_data[_index(xi+1,yi-1,zi-1)]-_data[_index(xi-1,yi-1,zi-1)]),
 			0.125*(_data[_index(xi+2,yi+1,zi+1)]-_data[_index(xi,yi+1,zi+1)]-_data[_index(xi+2,yi-1,zi+1)]+_data[_index(xi,yi-1,zi+1)]-_data[_index(xi+2,yi+1,zi-1)]+_data[_index(xi,yi+1,zi-1)]+_data[_index(xi+2,yi-1,zi-1)]-_data[_index(xi,yi-1,zi-1)]),
 			0.125*(_data[_index(xi+1,yi+2,zi+1)]-_data[_index(xi-1,yi+2,zi+1)]-_data[_index(xi+1,yi,zi+1)]+_data[_index(xi-1,yi,zi+1)]-_data[_index(xi+1,yi+2,zi-1)]+_data[_index(xi-1,yi+2,zi-1)]+_data[_index(xi+1,yi,zi-1)]-_data[_index(xi-1,yi,zi-1)]),
@@ -108,17 +102,6 @@ double local::TriCubicInterpolator::operator()(double x, double y, double z) con
 			0.125*(_data[_index(xi+2,yi+2,zi+2)]-_data[_index(xi,yi+2,zi+2)]-_data[_index(xi+2,yi,zi+2)]+_data[_index(xi,yi,zi+2)]-_data[_index(xi+2,yi+2,zi)]+_data[_index(xi,yi+2,zi)]+_data[_index(xi+2,yi,zi)]-_data[_index(xi,yi,zi)])
 		};
 		// Convert voxel values and partial derivatives to interpolation coefficients.
-    	double x[64];
-    	for (int i=0;i<8;++i) {
-    		x[0+i]=fval[i];
-    		x[8+i]=dfdxval[i];
-    		x[16+i]=dfdyval[i];
-    		x[24+i]=dfdzval[i];
-    		x[32+i]=d2fdxdyval[i];
-    		x[40+i]=d2fdxdzval[i];
-    		x[48+i]=d2fdydzval[i];
-    		x[56+i]=d3fdxdydzval[i];
-    	}
     	for (int i=0;i<64;++i) {
     		_coefs[i] = 0.0;
     		for (int j=0;j<64;++j) {
@@ -131,17 +114,23 @@ double local::TriCubicInterpolator::operator()(double x, double y, double z) con
         _i3 = zi;
         _initialized = true;
     }
-    double result(0);
+    // Evaluate the interpolation within this grid voxel.
     dx -= xi;
     dy -= yi;
     dz -= zi;
-    for (int i=0;i<4;++i) {
-		for (int j=0;j<4;++j) {
-			for (int k=0;k<4;++k) {
-				result += _coefs[i+4*j+16*k]*pow(dx,i)*pow(dy,j)*pow(dz,k);
-			}
-		}
-	}
+    int ijkn(0);
+    double dzpow(1);
+    double result(0);
+    for(int k = 0; k < 4; ++k) {
+        double dypow(1);
+        for(int j = 0; j < 4; ++j) {
+            result += dypow*dzpow*
+                (_coefs[ijkn] + dx*(_coefs[ijkn+1] + dx*(_coefs[ijkn+2] + dx*_coefs[ijkn+3])));
+            ijkn += 4;
+            dypow *= dy;
+        }
+        dzpow *= dz;
+    }
     return result;
 }
 
