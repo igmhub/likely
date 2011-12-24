@@ -35,7 +35,7 @@ namespace likely {
         mutable int _i1, _i2, _i3;
         mutable double _coefs[64];
         mutable bool _initialized;
-        static double _C[64][64];
+        static int _C[64][64];
 	}; // TriCubicInterpolator
 	
     inline double TriCubicInterpolator::getSpacing() const { return _spacing; }

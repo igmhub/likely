@@ -132,17 +132,20 @@ double local::TriCubicInterpolator::operator()(double x, double y, double z) con
         _initialized = true;
     }
     double result(0);
+    dx -= xi;
+    dy -= yi;
+    dz -= zi;
     for (int i=0;i<4;++i) {
 		for (int j=0;j<4;++j) {
 			for (int k=0;k<4;++k) {
-				result += _coefs[i+4*j+16*k]*pow(x,i)*pow(y,j)*pow(z,k);
+				result += _coefs[i+4*j+16*k]*pow(dx,i)*pow(dy,j)*pow(dz,k);
 			}
 		}
 	}
     return result;
 }
 
-double local::TriCubicInterpolator::_C[64][64] = {
+int local::TriCubicInterpolator::_C[64][64] = {
     { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     {-3, 3, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
