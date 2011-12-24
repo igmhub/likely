@@ -8,12 +8,14 @@
 namespace likely {
 	class TriCubicInterpolator {
 	// Performs tri-cubic interpolation within a 3D periodic grid.
+	// Based on http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.89.7835
 	public:
         typedef boost::shared_array<double> DataCube;
         // Initializes an interpolator using the specified datacube of length n1*n2*n3 where
         // data is ordered first along the n1 axis [0,0,0], [1,0,0], ..., [n1-1,0,0], [0,1,0], ...
         // If n2 and n3 are both omitted, then n1=n2=n3 is assumed. Data is assumed to be
-        // equally spaced and periodic along each axis.
+        // equally spaced and periodic along each axis, with the coordinate origin (0,0,0) at
+        // grid index [0,0,0].
 		TriCubicInterpolator(DataCube data, double spacing, int n1, int n2 = 0, int n3 = 0);
 		virtual ~TriCubicInterpolator();
         // Returns the interpolated data value for the specified x,y,z point. If the point lies
