@@ -7,27 +7,28 @@
 
 namespace local = likely;
 
-local::TriCubicInterpolator::TriCubicInterpolator(DataCube data, int n1, int n2, int n3)
-: _data(data), _n1(n1), _n2(n2), _n3(n3), _initialized(false)
+local::TriCubicInterpolator::TriCubicInterpolator(DataCube data, double spacing, int n1, int n2, int n3)
+: _data(data), _spacing(spacing), _n1(n1), _n2(n2), _n3(n3), _initialized(false)
 {
     if(_n2 == 0 && _n3 == 0) {
         _n3 = _n2 = _n1;
     }
     if(_n1 <= 0 || _n2 <= 0 || _n3 <= 0) throw RuntimeError("Bad datacube dimensions.");
+    if(_spacing <= 0) throw RuntimeError("Bad datacube grid spacing.");
 }
 
 local::TriCubicInterpolator::~TriCubicInterpolator() { }
 
 double local::TriCubicInterpolator::operator()(double x, double y, double z) const {
-    // Map x,y,z to a point dx,dy,dz in the unit cube [0,1)^3
-    double dx(std::fmod(x,1)), dy(std::fmod(y,1)), dz(std::fmod(z,1));
-    if(dx < 0) dx += 1;
-    if(dy < 0) dy += 1;
-    if(dz < 0) dz += 1;
+    // Map x,y,z to a point dx,dy,dz in the cube [0,n1) x [0,n2) x [0,n3)
+    double dx(std::fmod(x/_spacing,_n1)), dy(std::fmod(y/_spacing,_n2)), dz(std::fmod(z/_spacing,_n3));
+    if(dx < 0) dx += _n1;
+    if(dy < 0) dy += _n2;
+    if(dz < 0) dz += _n3;
     // Calculate the corresponding lower-bound grid indices.
-    int xi = (int)std::floor(dx*_n1);
-    int yi = (int)std::floor(dy*_n2);
-    int zi = (int)std::floor(dz*_n3);
+    int xi = (int)std::floor(dx);
+    int yi = (int)std::floor(dy);
+    int zi = (int)std::floor(dz);
     // Check if we can re-use coefficients from the last interpolation.
     if(!_initialized || xi != _i1 || yi != _i2 || zi != _i3) {
         // Extract the local vocal values and calculate partial derivatives.
