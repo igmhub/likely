@@ -38,7 +38,7 @@ build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = likelytest$(EXEEXT) likelymc$(EXEEXT) \
 	likelyinterp$(EXEEXT) likelywsum$(EXEEXT) likelyinteg$(EXEEXT) \
-	likelyrand$(EXEEXT)
+	likelyrand$(EXEEXT) likelytricubic$(EXEEXT)
 noinst_PROGRAMS = demo1$(EXEEXT) demo2$(EXEEXT)
 
 # add GSL features when libgsl is available
@@ -121,6 +121,8 @@ am_likelyrand_OBJECTS = likelyrand.$(OBJEXT)
 likelyrand_OBJECTS = $(am_likelyrand_OBJECTS)
 am_likelytest_OBJECTS = likelytest.$(OBJEXT)
 likelytest_OBJECTS = $(am_likelytest_OBJECTS)
+am_likelytricubic_OBJECTS = likelytricubic.$(OBJEXT)
+likelytricubic_OBJECTS = $(am_likelytricubic_OBJECTS)
 am_likelywsum_OBJECTS = likelywsum.$(OBJEXT)
 likelywsum_OBJECTS = $(am_likelywsum_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
@@ -139,12 +141,13 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 SOURCES = $(liblikely_la_SOURCES) $(demo1_SOURCES) $(demo2_SOURCES) \
 	$(likelyinteg_SOURCES) $(likelyinterp_SOURCES) \
 	$(likelymc_SOURCES) $(likelyrand_SOURCES) \
-	$(likelytest_SOURCES) $(likelywsum_SOURCES)
+	$(likelytest_SOURCES) $(likelytricubic_SOURCES) \
+	$(likelywsum_SOURCES)
 DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(demo1_SOURCES) \
 	$(demo2_SOURCES) $(likelyinteg_SOURCES) \
 	$(likelyinterp_SOURCES) $(likelymc_SOURCES) \
 	$(likelyrand_SOURCES) $(likelytest_SOURCES) \
-	$(likelywsum_SOURCES)
+	$(likelytricubic_SOURCES) $(likelywsum_SOURCES)
 am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/RuntimeError.h likely/FunctionMinimum.h \
 	likely/AbsEngine.h likely/EngineRegistry.h \
@@ -339,6 +342,9 @@ likelyinteg_LDADD = -L. -llikely
 likelyrand_SOURCES = src/likelyrand.cc
 likelyrand_DEPENDENCIES = $(lib_LIBRARIES)
 likelyrand_LDADD = -L. -llikely
+likelytricubic_SOURCES = src/likelytricubic.cc
+likelytricubic_DEPENDENCIES = $(lib_LIBRARIES)
+likelytricubic_LDADD = -lboost_program_options -L. -llikely
 demo1_SOURCES = src/demo1.cc
 demo1_DEPENDENCIES = $(lib_LIBRARIES)
 demo1_LDADD = -L. -llikely
@@ -507,6 +513,9 @@ likelyrand$(EXEEXT): $(likelyrand_OBJECTS) $(likelyrand_DEPENDENCIES)
 likelytest$(EXEEXT): $(likelytest_OBJECTS) $(likelytest_DEPENDENCIES) 
 	@rm -f likelytest$(EXEEXT)
 	$(CXXLINK) $(likelytest_OBJECTS) $(likelytest_LDADD) $(LIBS)
+likelytricubic$(EXEEXT): $(likelytricubic_OBJECTS) $(likelytricubic_DEPENDENCIES) 
+	@rm -f likelytricubic$(EXEEXT)
+	$(CXXLINK) $(likelytricubic_OBJECTS) $(likelytricubic_LDADD) $(LIBS)
 likelywsum$(EXEEXT): $(likelywsum_OBJECTS) $(likelywsum_DEPENDENCIES) 
 	@rm -f likelywsum$(EXEEXT)
 	$(CXXLINK) $(likelywsum_OBJECTS) $(likelywsum_LDADD) $(LIBS)
@@ -540,6 +549,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelymc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyrand.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytricubic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelywsum.Po@am__quote@
 
 .cc.o:
@@ -772,6 +782,20 @@ likelytest.obj: src/likelytest.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelytest.cc' object='likelytest.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelytest.obj `if test -f 'src/likelytest.cc'; then $(CYGPATH_W) 'src/likelytest.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelytest.cc'; fi`
+
+likelytricubic.o: src/likelytricubic.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelytricubic.o -MD -MP -MF $(DEPDIR)/likelytricubic.Tpo -c -o likelytricubic.o `test -f 'src/likelytricubic.cc' || echo '$(srcdir)/'`src/likelytricubic.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelytricubic.Tpo $(DEPDIR)/likelytricubic.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelytricubic.cc' object='likelytricubic.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelytricubic.o `test -f 'src/likelytricubic.cc' || echo '$(srcdir)/'`src/likelytricubic.cc
+
+likelytricubic.obj: src/likelytricubic.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelytricubic.obj -MD -MP -MF $(DEPDIR)/likelytricubic.Tpo -c -o likelytricubic.obj `if test -f 'src/likelytricubic.cc'; then $(CYGPATH_W) 'src/likelytricubic.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelytricubic.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelytricubic.Tpo $(DEPDIR)/likelytricubic.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelytricubic.cc' object='likelytricubic.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelytricubic.obj `if test -f 'src/likelytricubic.cc'; then $(CYGPATH_W) 'src/likelytricubic.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelytricubic.cc'; fi`
 
 likelywsum.o: src/likelywsum.cc
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelywsum.o -MD -MP -MF $(DEPDIR)/likelywsum.Tpo -c -o likelywsum.o `test -f 'src/likelywsum.cc' || echo '$(srcdir)/'`src/likelywsum.cc
