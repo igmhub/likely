@@ -15,6 +15,19 @@
 namespace lk = likely;
 namespace po = boost::program_options;
 
+class Periodic3D {
+public:
+    Periodic3D(double delta, int nx, int ny, int nz)
+    : _lx(delta*nx), _ly(delta*ny), _lz(delta*nz), _twopi(4*atan2(1,0))
+    { }
+    double operator()(double x, double y, double z) const {
+        return std::sin(_twopi*(x/_lx-0.3))*std::sin(2*_twopi*(y/_ly+0.3))*std::sin(3*_twopi*(z/_lz));
+    }
+private:
+    double _lx, _ly, _lz,_twopi;
+    int _nx, _ny, _nz;
+};
+
 int main(int argc, char **argv) {
 
     // Configure command-line option processing
@@ -56,21 +69,21 @@ int main(int argc, char **argv) {
     }
     
     try {
-        // Create a new datacube with the requested size.
+        // Create a periodic function for testing.
+        Periodic3D f(spacing,nx,ny,nz);
+        // Create a new datacube with the requested size that samples the testing function.
         int n(nx*ny*nz);
         lk::TriCubicInterpolator::DataCube data(new double[n]);
-        double twopi(4*atan2(1,0));
         for(int ix = 0; ix < nx; ++ix) {
             for(int iy = 0; iy < ny; ++iy) {
                 for(int iz = 0; iz < nz; ++iz) {
-                    data[ix + nx*(iy + ny*iz)] = 1;
-                        //std::sin(twopi*(ix+3)/nx)*std::sin(2*twopi*(iy-3)/ny)*std::sin(3*twopi*iz/nz);
+                    data[ix + nx*(iy + ny*iz)] = f(ix*spacing,iy*spacing,iz*spacing);
                 }
             }
         }        
         // Interpolate in this datacube.
         lk::TriCubicInterpolator interpolator(data,spacing,nx,ny,nz);
-        std::cout << "interpolated = " << interpolator(1,2,3) << std::endl;
+        std::cout << "interpolated = " << interpolator(1,2,3) << " =?= " << f(1,2,3) << std::endl;
     }
     catch(lk::RuntimeError const &e) {
         std::cerr << e.what() << std::endl;
