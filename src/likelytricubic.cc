@@ -31,7 +31,7 @@ private:
 int main(int argc, char **argv) {
 
     // Configure command-line option processing
-    int nx,ny,nz;
+    int nx,ny,nz,ntrial;
     double spacing;
     po::options_description cli("Tri-cubic interpolation test program");
     cli.add_options()
@@ -45,6 +45,8 @@ int main(int argc, char **argv) {
             "Number of subdivisions along grid z axis.")
         ("spacing", po::value<double>(&spacing)->default_value(0.1),
             "Spacing between grid points")
+        ("ntrial", po::value<int>(&ntrial)->default_value(1000),
+            "Number of random points for testing the interpolator.")
         ;
 
     // do the command line parsing now
@@ -80,10 +82,22 @@ int main(int argc, char **argv) {
                     data[ix + nx*(iy + ny*iz)] = f(ix*spacing,iy*spacing,iz*spacing);
                 }
             }
-        }        
-        // Interpolate in this datacube.
+        }
+        // Interpolate in this datacube at random points.
         lk::TriCubicInterpolator interpolator(data,spacing,nx,ny,nz);
-        std::cout << "interpolated = " << interpolator(1,2,3) << " =?= " << f(1,2,3) << std::endl;
+        lk::Random &random(lk::Random::instance());
+        random.setSeed(1234);
+        lk::WeightedAccumulator stats;
+        double lx(nx*spacing), ly(ny*spacing), lz(nz*spacing);
+        for(int trial = 0; trial < ntrial; ++trial) {
+            double x = random.getUniform()*lx;
+            double y = random.getUniform()*ly;
+            double z = random.getUniform()*lz;
+            double error = interpolator(x,y,z) - f(x,y,z);
+            stats.accumulate(error);
+        }
+        std::cout << "mean error = " << stats.mean() << " (should be nearly zero)" << std::endl;
+        std::cout << "RMS error = " << stats.error() << " (the smaller, the better)" << std::endl;
     }
     catch(lk::RuntimeError const &e) {
         std::cerr << e.what() << std::endl;
