@@ -90,9 +90,9 @@ int main(int argc, char **argv) {
         lk::WeightedAccumulator stats;
         double lx(nx*spacing), ly(ny*spacing), lz(nz*spacing);
         for(int trial = 0; trial < ntrial; ++trial) {
-            double x = random.getUniform()*lx;
-            double y = random.getUniform()*ly;
-            double z = random.getUniform()*lz;
+            double x = (random.getUniform()-0.25)*4*lx;
+            double y = (random.getUniform()-0.25)*4*ly;
+            double z = (random.getUniform()-0.25)*4*lz;
             double error = interpolator(x,y,z) - f(x,y,z);
             stats.accumulate(error);
         }
