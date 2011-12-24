@@ -27,6 +27,7 @@ namespace likely {
         mutable int _i1, _i2, _i3;
         mutable double _coefs[64];
         mutable bool _initialized;
+        static double _C[64][64];
 	}; // TriCubicInterpolator
 	
 	inline int TriCubicInterpolator::_index(int i1, int i2, int i3) const {
