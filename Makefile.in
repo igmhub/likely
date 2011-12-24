@@ -94,17 +94,17 @@ am__liblikely_la_SOURCES_DIST = likely/FunctionMinimum.cc \
 	likely/MarkovChainEngine.cc likely/Interpolator.cc \
 	likely/Integrator.cc likely/Random.cc likely/AbsAccumulator.cc \
 	likely/WeightedAccumulator.cc likely/WeightedCombiner.cc \
-	likely/QuantileAccumulator.cc likely/test/TestLikelihood.cc \
-	likely/GslEngine.cc likely/GslErrorHandler.cc \
-	likely/MinuitEngine.cc
+	likely/QuantileAccumulator.cc likely/TriCubicInterpolator.cc \
+	likely/test/TestLikelihood.cc likely/GslEngine.cc \
+	likely/GslErrorHandler.cc likely/MinuitEngine.cc
 @USE_GSL_TRUE@am__objects_1 = GslEngine.lo GslErrorHandler.lo
 @USE_MINUIT2_TRUE@am__objects_2 = MinuitEngine.lo
 am_liblikely_la_OBJECTS = FunctionMinimum.lo AbsEngine.lo \
 	EngineRegistry.lo MarkovChainEngine.lo Interpolator.lo \
 	Integrator.lo Random.lo AbsAccumulator.lo \
 	WeightedAccumulator.lo WeightedCombiner.lo \
-	QuantileAccumulator.lo TestLikelihood.lo $(am__objects_1) \
-	$(am__objects_2)
+	QuantileAccumulator.lo TriCubicInterpolator.lo \
+	TestLikelihood.lo $(am__objects_1) $(am__objects_2)
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am_demo1_OBJECTS = demo1.$(OBJEXT)
@@ -151,9 +151,9 @@ am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/MarkovChainEngine.h likely/Interpolator.h \
 	likely/Integrator.h likely/Random.h likely/AbsAccumulator.h \
 	likely/WeightedAccumulator.h likely/WeightedCombiner.h \
-	likely/QuantileAccumulator.h likely/test/TestLikelihood.h \
-	likely/GslEngine.h likely/GslErrorHandler.h \
-	likely/MinuitEngine.h
+	likely/QuantileAccumulator.h likely/TriCubicInterpolator.h \
+	likely/test/TestLikelihood.h likely/GslEngine.h \
+	likely/GslErrorHandler.h likely/MinuitEngine.h
 HEADERS = $(nobase_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -305,7 +305,8 @@ liblikely_la_SOURCES = likely/FunctionMinimum.cc likely/AbsEngine.cc \
 	likely/Interpolator.cc likely/Integrator.cc likely/Random.cc \
 	likely/AbsAccumulator.cc likely/WeightedAccumulator.cc \
 	likely/WeightedCombiner.cc likely/QuantileAccumulator.cc \
-	likely/test/TestLikelihood.cc $(am__append_1) $(am__append_3)
+	likely/TriCubicInterpolator.cc likely/test/TestLikelihood.cc \
+	$(am__append_1) $(am__append_3)
 
 # library headers to install (nobase prefix preserves directories under bosslya)
 # Anything that includes config.h should *not* be listed here.
@@ -316,8 +317,8 @@ nobase_include_HEADERS = likely/likely.h likely/types.h \
 	likely/MarkovChainEngine.h likely/Interpolator.h \
 	likely/Integrator.h likely/Random.h likely/AbsAccumulator.h \
 	likely/WeightedAccumulator.h likely/WeightedCombiner.h \
-	likely/QuantileAccumulator.h likely/test/TestLikelihood.h \
-	$(am__append_2) $(am__append_4)
+	likely/QuantileAccumulator.h likely/TriCubicInterpolator.h \
+	likely/test/TestLikelihood.h $(am__append_2) $(am__append_4)
 
 # instructions for building each program
 likelytest_SOURCES = src/likelytest.cc
@@ -529,6 +530,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QuantileAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Random.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestLikelihood.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TriCubicInterpolator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WeightedAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WeightedCombiner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo1.Po@am__quote@
@@ -637,6 +639,13 @@ QuantileAccumulator.lo: likely/QuantileAccumulator.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/QuantileAccumulator.cc' object='QuantileAccumulator.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o QuantileAccumulator.lo `test -f 'likely/QuantileAccumulator.cc' || echo '$(srcdir)/'`likely/QuantileAccumulator.cc
+
+TriCubicInterpolator.lo: likely/TriCubicInterpolator.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TriCubicInterpolator.lo -MD -MP -MF $(DEPDIR)/TriCubicInterpolator.Tpo -c -o TriCubicInterpolator.lo `test -f 'likely/TriCubicInterpolator.cc' || echo '$(srcdir)/'`likely/TriCubicInterpolator.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/TriCubicInterpolator.Tpo $(DEPDIR)/TriCubicInterpolator.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/TriCubicInterpolator.cc' object='TriCubicInterpolator.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TriCubicInterpolator.lo `test -f 'likely/TriCubicInterpolator.cc' || echo '$(srcdir)/'`likely/TriCubicInterpolator.cc
 
 TestLikelihood.lo: likely/test/TestLikelihood.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestLikelihood.lo -MD -MP -MF $(DEPDIR)/TestLikelihood.Tpo -c -o TestLikelihood.lo `test -f 'likely/test/TestLikelihood.cc' || echo '$(srcdir)/'`likely/test/TestLikelihood.cc

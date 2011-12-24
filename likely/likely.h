@@ -5,8 +5,9 @@
 #include "likely/RuntimeError.h"
 
 #include "likely/Random.h"
-#include "likely/Interpolator.h"
 #include "likely/Integrator.h"
+#include "likely/Interpolator.h"
+#include "likely/TriCubicInterpolator.h"
 
 #include "likely/AbsAccumulator.h"
 #include "likely/WeightedAccumulator.h"
