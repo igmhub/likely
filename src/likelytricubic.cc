@@ -49,6 +49,11 @@ int main(int argc, char **argv) {
         return 1;
     }
     bool verbose(vm.count("verbose"));
+
+    if(nx <= 0 || ny <= 0 || nz <= 0) {
+        std::cerr << "Bad dimensions nx,ny,nz." << std::endl;
+        return -1;
+    }
     
     try {
         // Create a new datacube with the requested size.
