@@ -20,6 +20,11 @@ namespace likely {
         // outside the box [0,n1*spacing) x [0,n2*spacing) x [0,n3*spacing), it will be folded
         // back assuming periodicity along each axis.
         double operator()(double x, double y, double z) const;
+        // Returns the grid parameters.
+        double getSpacing() const;
+        int getN1() const;
+        int getN2() const;
+        int getN3() const;
 	private:
 	    // Returns the unrolled 1D index corresponding to [i1,i2,i3] after mapping to each ik into [0,nk).
 	    // Assumes that i1 increases fastest in the 1D array.
@@ -32,6 +37,11 @@ namespace likely {
         mutable bool _initialized;
         static double _C[64][64];
 	}; // TriCubicInterpolator
+	
+    inline double TriCubicInterpolator::getSpacing() const { return _spacing; }
+    inline int TriCubicInterpolator::getN1() const { return _n1; }
+    inline int TriCubicInterpolator::getN2() const { return _n2; }
+    inline int TriCubicInterpolator::getN3() const { return _n3; }
 	
 	inline int TriCubicInterpolator::_index(int i1, int i2, int i3) const {
         if((i1 %= _n1) < 0) i1 += _n1;
