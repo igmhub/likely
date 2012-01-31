@@ -10,6 +10,8 @@
 #include "boost/accumulators/statistics/weighted_mean.hpp"
 #include "boost/accumulators/statistics/weighted_variance.hpp"
 #include "boost/accumulators/statistics/sum.hpp"
+#include "boost/accumulators/statistics/max.hpp"
+#include "boost/accumulators/statistics/min.hpp"
 
 #include <cmath>
 
@@ -22,7 +24,9 @@ namespace likely {
                 boost::accumulators::tag::weighted_sum,
                 boost::accumulators::tag::weighted_mean,
                 boost::accumulators::tag::weighted_variance,
-                boost::accumulators::tag::sum_of_weights
+                boost::accumulators::tag::sum_of_weights,
+                boost::accumulators::tag::max,
+                boost::accumulators::tag::min
             >, double
         > data;
     };
@@ -65,4 +69,14 @@ double local::WeightedAccumulator::variance() const {
 
 double local::WeightedAccumulator::sumOfWeights() const {
     return boost::accumulators::sum_of_weights(_pimpl->data);
+}
+
+double local::WeightedAccumulator::max() const {
+	return boost::accumulators::count(_pimpl->data) > 0 ? 
+		boost::accumulators::max(_pimpl->data) : 0;
+}
+
+double local::WeightedAccumulator::min() const {
+	return boost::accumulators::count(_pimpl->data) > 0 ?
+		boost::accumulators::min(_pimpl->data) : 0;
 }

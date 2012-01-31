@@ -41,6 +41,14 @@ double local::WeightedCombiner::sumOfWeights() const {
     return _combinedMean.sumOfWeights();
 }
 
+double local::WeightedCombiner::max() const {
+	return _combinedMean.max();
+}
+
+double local::WeightedCombiner::min() const {
+	return _combinedMean.min();
+}
+
 double local::WeightedCombiner::meanVariance() const {
     return _combinedMean.variance();
 }
