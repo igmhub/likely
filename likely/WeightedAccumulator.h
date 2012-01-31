@@ -26,6 +26,12 @@ namespace likely {
         virtual double variance() const;
         // Returns the sum of weights accumulated so far.
         virtual double sumOfWeights() const;
+        // Returns the maximum value of the samples accumulated so far or zero if
+        // no samples have been accumulated yet.
+        virtual double max() const;
+        // Returns the minimum value of the samples accumulated so far or zero if
+        // no samples have been accumulated yet.
+        virtual double min() const;
 	private:
         class Implementation;
         boost::scoped_ptr<Implementation> _pimpl;

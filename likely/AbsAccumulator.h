@@ -21,6 +21,12 @@ namespace likely {
         virtual double variance() const = 0;
         // Returns the sum of weights accumulated so far.
         virtual double sumOfWeights() const = 0;
+        // Returns the maximum value of the samples accumulated so far or zero if
+        // no samples have been accumulated yet.
+        virtual double max() const = 0;
+        // Returns the minimum value of the samples accumulated so far or zero if
+        // no samples have been accumulated yet.
+        virtual double min() const = 0;
         // Returns sqrt(weightedVariance).
         double error() const;
         // Returns sqrt(1/weightSum) or zero. Note that this is only a valid estimate of

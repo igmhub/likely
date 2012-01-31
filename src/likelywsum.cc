@@ -80,7 +80,9 @@ int main(int argc, char **argv) {
             << " samples with mean " << all.mean()
             << ", sum " << all.sum()
             << ", sqrt(variance) " << all.error()
-            << ", sum(weights) " << all.sumOfWeights() << std::endl;
+            << ", sum(weights) " << all.sumOfWeights()
+            << ", max " << all.max() 
+            << ", min " << all.min() << std::endl;
         if(sigmas) {
             std::cout << "Error on the mean is " << all.errorOnMean() << std::endl;
         }
@@ -92,7 +94,9 @@ int main(int argc, char **argv) {
             << " samples with mean " << combined.mean()
             << ", sum " << combined.sum()
             << ", sqrt(variance) " << combined.error()
-            << ", sum(weights) " << combined.sumOfWeights() << std::endl;
+            << ", sum(weights) " << combined.sumOfWeights() 
+            << ", max " << combined.max() 
+            << ", min " << combined.min() << std::endl;
     }
     catch(lk::RuntimeError const &e) {
         std::cerr << e.what() << std::endl;
