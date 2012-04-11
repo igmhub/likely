@@ -10,6 +10,7 @@
 #endif
 
 #include "boost/lexical_cast.hpp"
+#include "boost/bind.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -92,6 +93,17 @@ std::string const &algorithm) {
     InterpolatorPtr interpolator(new Interpolator(columns[0],columns[1],algorithm));
     return interpolator;
 }
+
+template <class P>
+local::GenericFunctionPtr local::createFunctionPtr(boost::shared_ptr<P> pimpl) {
+    GenericFunctionPtr fptr(new GenericFunction(boost::bind(&P::operator(),pimpl,_1)));
+    return fptr;
+}
+
+// explicit template instantiations
+
+template local::GenericFunctionPtr local::createFunctionPtr<likely::Interpolator>
+    (boost::shared_ptr<likely::Interpolator> pimpl);
 
 int local::readVectors(std::istream &input, std::vector<std::vector<double> > &vectors,
 bool ignoreExtra) {

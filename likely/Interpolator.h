@@ -34,6 +34,14 @@ namespace likely {
 	InterpolatorPtr createInterpolator(std::string const &filename,
         std::string const &algorithm);
 
+	// Creates and returns a shared pointer to a generic function object that wraps a
+	// shared pointer pimpl to an implementation function object of class P. The
+	// returned shared pointer creates a new reference to the input shared pointer so that
+	// the input object is guaranteed to stay alive as long as the returned object does.
+	typedef boost::function<double (double)> GenericFunction;
+    typedef boost::shared_ptr<GenericFunction> GenericFunctionPtr;
+	template <class P> GenericFunctionPtr createFunctionPtr(boost::shared_ptr<P> pimpl);
+
     // Fills the vectors provided from the columns of the specified input stream.
     // Returns the number of rows successfully read or throws a RuntimeError.
     // Any input beyond the required column values is silently ignore if ignoreExtra
