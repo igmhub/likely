@@ -149,14 +149,15 @@ DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(demo1_SOURCES) \
 	$(likelyrand_SOURCES) $(likelytest_SOURCES) \
 	$(likelytricubic_SOURCES) $(likelywsum_SOURCES)
 am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
-	likely/RuntimeError.h likely/FunctionMinimum.h \
-	likely/AbsEngine.h likely/EngineRegistry.h \
-	likely/MarkovChainEngine.h likely/Interpolator.h \
-	likely/Integrator.h likely/Random.h likely/AbsAccumulator.h \
-	likely/WeightedAccumulator.h likely/WeightedCombiner.h \
-	likely/QuantileAccumulator.h likely/TriCubicInterpolator.h \
-	likely/test/TestLikelihood.h likely/GslEngine.h \
-	likely/GslErrorHandler.h likely/MinuitEngine.h
+	likely/function.h likely/function_impl.h likely/RuntimeError.h \
+	likely/FunctionMinimum.h likely/AbsEngine.h \
+	likely/EngineRegistry.h likely/MarkovChainEngine.h \
+	likely/Interpolator.h likely/Integrator.h likely/Random.h \
+	likely/AbsAccumulator.h likely/WeightedAccumulator.h \
+	likely/WeightedCombiner.h likely/QuantileAccumulator.h \
+	likely/TriCubicInterpolator.h likely/test/TestLikelihood.h \
+	likely/GslEngine.h likely/GslErrorHandler.h \
+	likely/MinuitEngine.h
 HEADERS = $(nobase_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -315,13 +316,14 @@ liblikely_la_SOURCES = likely/FunctionMinimum.cc likely/AbsEngine.cc \
 # Anything that includes config.h should *not* be listed here.
 # and is not part of the package public API.
 nobase_include_HEADERS = likely/likely.h likely/types.h \
-	likely/RuntimeError.h likely/FunctionMinimum.h \
-	likely/AbsEngine.h likely/EngineRegistry.h \
-	likely/MarkovChainEngine.h likely/Interpolator.h \
-	likely/Integrator.h likely/Random.h likely/AbsAccumulator.h \
-	likely/WeightedAccumulator.h likely/WeightedCombiner.h \
-	likely/QuantileAccumulator.h likely/TriCubicInterpolator.h \
-	likely/test/TestLikelihood.h $(am__append_2) $(am__append_4)
+	likely/function.h likely/function_impl.h likely/RuntimeError.h \
+	likely/FunctionMinimum.h likely/AbsEngine.h \
+	likely/EngineRegistry.h likely/MarkovChainEngine.h \
+	likely/Interpolator.h likely/Integrator.h likely/Random.h \
+	likely/AbsAccumulator.h likely/WeightedAccumulator.h \
+	likely/WeightedCombiner.h likely/QuantileAccumulator.h \
+	likely/TriCubicInterpolator.h likely/test/TestLikelihood.h \
+	$(am__append_2) $(am__append_4)
 
 # instructions for building each program
 likelytest_SOURCES = src/likelytest.cc

@@ -32,6 +32,8 @@ liblikely_la_SOURCES = \
 nobase_include_HEADERS = \
 	likely/likely.h \
 	likely/types.h \
+	likely/function.h \
+	likely/function_impl.h \
 	likely/RuntimeError.h \
 	likely/FunctionMinimum.h \
 	likely/AbsEngine.h \
