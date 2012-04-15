@@ -15,6 +15,8 @@
 #include "likely/WeightedCombiner.h"
 #include "likely/QuantileAccumulator.h"
 
+#include "likely/AbsBinning.h"
+
 #include "likely/AbsEngine.h"
 #include "likely/FunctionMinimum.h"
 
