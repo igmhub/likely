@@ -21,6 +21,10 @@ namespace likely {
     
     // Declares a smart pointer to a packed covariance matrix.
     typedef boost::shared_ptr<PackedCovariance> PackedCovariancePtr;
+    
+    // Declares a smart pointer to a const binning object.
+    class AbsBinning;
+    typedef boost::shared_ptr<const AbsBinning> AbsBinningCPtr;
 
     // Represents a smart pointer to a minimization engine.
     class AbsEngine;
