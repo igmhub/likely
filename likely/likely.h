@@ -16,6 +16,7 @@
 #include "likely/QuantileAccumulator.h"
 
 #include "likely/AbsBinning.h"
+#include "likely/UniformBinning.h"
 
 #include "likely/AbsEngine.h"
 #include "likely/FunctionMinimum.h"

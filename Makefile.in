@@ -95,9 +95,9 @@ am__liblikely_la_SOURCES_DIST = likely/FunctionMinimum.cc \
 	likely/Integrator.cc likely/Random.cc likely/AbsAccumulator.cc \
 	likely/WeightedAccumulator.cc likely/WeightedCombiner.cc \
 	likely/QuantileAccumulator.cc likely/TriCubicInterpolator.cc \
-	likely/AbsBinning.cc likely/test/TestLikelihood.cc \
-	likely/GslEngine.cc likely/GslErrorHandler.cc \
-	likely/MinuitEngine.cc
+	likely/AbsBinning.cc likely/UniformBinning.cc \
+	likely/test/TestLikelihood.cc likely/GslEngine.cc \
+	likely/GslErrorHandler.cc likely/MinuitEngine.cc
 @USE_GSL_TRUE@am__objects_1 = GslEngine.lo GslErrorHandler.lo
 @USE_MINUIT2_TRUE@am__objects_2 = MinuitEngine.lo
 am_liblikely_la_OBJECTS = FunctionMinimum.lo AbsEngine.lo \
@@ -105,7 +105,8 @@ am_liblikely_la_OBJECTS = FunctionMinimum.lo AbsEngine.lo \
 	Integrator.lo Random.lo AbsAccumulator.lo \
 	WeightedAccumulator.lo WeightedCombiner.lo \
 	QuantileAccumulator.lo TriCubicInterpolator.lo AbsBinning.lo \
-	TestLikelihood.lo $(am__objects_1) $(am__objects_2)
+	UniformBinning.lo TestLikelihood.lo $(am__objects_1) \
+	$(am__objects_2)
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am_demo1_OBJECTS = demo1.$(OBJEXT)
@@ -157,8 +158,9 @@ am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/AbsAccumulator.h likely/WeightedAccumulator.h \
 	likely/WeightedCombiner.h likely/QuantileAccumulator.h \
 	likely/TriCubicInterpolator.h likely/AbsBinning.h \
-	likely/test/TestLikelihood.h likely/GslEngine.h \
-	likely/GslErrorHandler.h likely/MinuitEngine.h
+	likely/UniformBinning.h likely/test/TestLikelihood.h \
+	likely/GslEngine.h likely/GslErrorHandler.h \
+	likely/MinuitEngine.h
 HEADERS = $(nobase_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -311,7 +313,8 @@ liblikely_la_SOURCES = likely/FunctionMinimum.cc likely/AbsEngine.cc \
 	likely/AbsAccumulator.cc likely/WeightedAccumulator.cc \
 	likely/WeightedCombiner.cc likely/QuantileAccumulator.cc \
 	likely/TriCubicInterpolator.cc likely/AbsBinning.cc \
-	likely/test/TestLikelihood.cc $(am__append_1) $(am__append_3)
+	likely/UniformBinning.cc likely/test/TestLikelihood.cc \
+	$(am__append_1) $(am__append_3)
 
 # library headers to install (nobase prefix preserves directories under bosslya)
 # Anything that includes config.h should *not* be listed here.
@@ -324,7 +327,8 @@ nobase_include_HEADERS = likely/likely.h likely/types.h \
 	likely/AbsAccumulator.h likely/WeightedAccumulator.h \
 	likely/WeightedCombiner.h likely/QuantileAccumulator.h \
 	likely/TriCubicInterpolator.h likely/AbsBinning.h \
-	likely/test/TestLikelihood.h $(am__append_2) $(am__append_4)
+	likely/UniformBinning.h likely/test/TestLikelihood.h \
+	$(am__append_2) $(am__append_4)
 
 # instructions for building each program
 likelytest_SOURCES = src/likelytest.cc
@@ -544,6 +548,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Random.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestLikelihood.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TriCubicInterpolator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UniformBinning.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WeightedAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WeightedCombiner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo1.Po@am__quote@
@@ -667,6 +672,13 @@ AbsBinning.lo: likely/AbsBinning.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/AbsBinning.cc' object='AbsBinning.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AbsBinning.lo `test -f 'likely/AbsBinning.cc' || echo '$(srcdir)/'`likely/AbsBinning.cc
+
+UniformBinning.lo: likely/UniformBinning.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UniformBinning.lo -MD -MP -MF $(DEPDIR)/UniformBinning.Tpo -c -o UniformBinning.lo `test -f 'likely/UniformBinning.cc' || echo '$(srcdir)/'`likely/UniformBinning.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UniformBinning.Tpo $(DEPDIR)/UniformBinning.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/UniformBinning.cc' object='UniformBinning.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UniformBinning.lo `test -f 'likely/UniformBinning.cc' || echo '$(srcdir)/'`likely/UniformBinning.cc
 
 TestLikelihood.lo: likely/test/TestLikelihood.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestLikelihood.lo -MD -MP -MF $(DEPDIR)/TestLikelihood.Tpo -c -o TestLikelihood.lo `test -f 'likely/test/TestLikelihood.cc' || echo '$(srcdir)/'`likely/test/TestLikelihood.cc
