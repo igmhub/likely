@@ -11,7 +11,11 @@ local::AbsBinning::AbsBinning() { }
 local::AbsBinning::~AbsBinning() { }
 
 double local::AbsBinning::getBinCenter(int index) const {
-    return getBinLowEdge(index) + 0.5*getBinSize(index);
+    return 0.5*(getBinLowEdge(index) + getBinHighEdge(index));
+}
+
+double local::AbsBinning::getBinWidth(int index) const {
+    return getBinHighEdge(index) - getBinLowEdge(index);
 }
 
 void local::AbsBinning::dump(std::ostream &os) const {
