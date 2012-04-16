@@ -32,3 +32,13 @@ double local::UniformBinning::getBinHighEdge(int index) const {
     isValidBinIndex(index,"getBinHighEdge: invalid bin index %d.");
     return _minValue + (index+1)*_binWidth;
 }
+
+double local::UniformBinning::getBinWidth(int index) const {
+    isValidBinIndex(index,"getBinWidth: invalid bin index %d.");
+    return _binWidth;
+}
+
+double local::UniformBinning::getBinCenter(int index) const {
+    isValidBinIndex(index,"getBinCenter: invalid bin index %d.");
+    return _minValue + (index+0.5)*_binWidth;
+}

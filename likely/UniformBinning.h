@@ -19,7 +19,6 @@ namespace likely {
         virtual double getBinLowEdge(int index) const;
         // Returns the upper bound of the specified bin. Throws a BinningError if index is out of range.
         virtual double getBinHighEdge(int index) const;
-        /*
         // Returns the full width (hi-lo) of the specified bin, which might be zero if this bin represents
         // a point sample rather than an integral over some interval. Throws a BinningError if index
         // is out of range.
@@ -27,7 +26,6 @@ namespace likely {
         // Returns the midpoint value (lo+hi)/2 of the specified bin. Throws a BinningError if index is
         // out of range.
         virtual double getBinCenter(int index) const;
-        */
 	private:
         double _minValue, _maxValue, _binWidth;
         int _nBins;
