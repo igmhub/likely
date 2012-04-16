@@ -96,7 +96,8 @@ am__liblikely_la_SOURCES_DIST = likely/FunctionMinimum.cc \
 	likely/WeightedAccumulator.cc likely/WeightedCombiner.cc \
 	likely/QuantileAccumulator.cc likely/TriCubicInterpolator.cc \
 	likely/AbsBinning.cc likely/UniformBinning.cc \
-	likely/NonUniformBinning.cc likely/test/TestLikelihood.cc \
+	likely/NonUniformBinning.cc likely/UniformSampling.cc \
+	likely/NonUniformSampling.cc likely/test/TestLikelihood.cc \
 	likely/GslEngine.cc likely/GslErrorHandler.cc \
 	likely/MinuitEngine.cc
 @USE_GSL_TRUE@am__objects_1 = GslEngine.lo GslErrorHandler.lo
@@ -106,8 +107,9 @@ am_liblikely_la_OBJECTS = FunctionMinimum.lo AbsEngine.lo \
 	Integrator.lo Random.lo AbsAccumulator.lo \
 	WeightedAccumulator.lo WeightedCombiner.lo \
 	QuantileAccumulator.lo TriCubicInterpolator.lo AbsBinning.lo \
-	UniformBinning.lo NonUniformBinning.lo TestLikelihood.lo \
-	$(am__objects_1) $(am__objects_2)
+	UniformBinning.lo NonUniformBinning.lo UniformSampling.lo \
+	NonUniformSampling.lo TestLikelihood.lo $(am__objects_1) \
+	$(am__objects_2)
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am_demo1_OBJECTS = demo1.$(OBJEXT)
@@ -160,7 +162,8 @@ am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/WeightedCombiner.h likely/QuantileAccumulator.h \
 	likely/TriCubicInterpolator.h likely/AbsBinning.h \
 	likely/BinningError.h likely/UniformBinning.h \
-	likely/NonUniformBinning.h likely/test/TestLikelihood.h \
+	likely/NonUniformBinning.h likely/UniformSampling.h \
+	likely/NonUniformSampling.h likely/test/TestLikelihood.h \
 	likely/GslEngine.h likely/GslErrorHandler.h \
 	likely/MinuitEngine.h
 HEADERS = $(nobase_include_HEADERS)
@@ -316,6 +319,7 @@ liblikely_la_SOURCES = likely/FunctionMinimum.cc likely/AbsEngine.cc \
 	likely/WeightedCombiner.cc likely/QuantileAccumulator.cc \
 	likely/TriCubicInterpolator.cc likely/AbsBinning.cc \
 	likely/UniformBinning.cc likely/NonUniformBinning.cc \
+	likely/UniformSampling.cc likely/NonUniformSampling.cc \
 	likely/test/TestLikelihood.cc $(am__append_1) $(am__append_3)
 
 # library headers to install (nobase prefix preserves directories under bosslya)
@@ -330,7 +334,8 @@ nobase_include_HEADERS = likely/likely.h likely/types.h \
 	likely/WeightedCombiner.h likely/QuantileAccumulator.h \
 	likely/TriCubicInterpolator.h likely/AbsBinning.h \
 	likely/BinningError.h likely/UniformBinning.h \
-	likely/NonUniformBinning.h likely/test/TestLikelihood.h \
+	likely/NonUniformBinning.h likely/UniformSampling.h \
+	likely/NonUniformSampling.h likely/test/TestLikelihood.h \
 	$(am__append_2) $(am__append_4)
 
 # instructions for building each program
@@ -548,11 +553,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MarkovChainEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MinuitEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NonUniformBinning.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NonUniformSampling.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QuantileAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Random.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestLikelihood.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TriCubicInterpolator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UniformBinning.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UniformSampling.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WeightedAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WeightedCombiner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo1.Po@am__quote@
@@ -690,6 +697,20 @@ NonUniformBinning.lo: likely/NonUniformBinning.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/NonUniformBinning.cc' object='NonUniformBinning.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o NonUniformBinning.lo `test -f 'likely/NonUniformBinning.cc' || echo '$(srcdir)/'`likely/NonUniformBinning.cc
+
+UniformSampling.lo: likely/UniformSampling.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UniformSampling.lo -MD -MP -MF $(DEPDIR)/UniformSampling.Tpo -c -o UniformSampling.lo `test -f 'likely/UniformSampling.cc' || echo '$(srcdir)/'`likely/UniformSampling.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UniformSampling.Tpo $(DEPDIR)/UniformSampling.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/UniformSampling.cc' object='UniformSampling.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UniformSampling.lo `test -f 'likely/UniformSampling.cc' || echo '$(srcdir)/'`likely/UniformSampling.cc
+
+NonUniformSampling.lo: likely/NonUniformSampling.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT NonUniformSampling.lo -MD -MP -MF $(DEPDIR)/NonUniformSampling.Tpo -c -o NonUniformSampling.lo `test -f 'likely/NonUniformSampling.cc' || echo '$(srcdir)/'`likely/NonUniformSampling.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/NonUniformSampling.Tpo $(DEPDIR)/NonUniformSampling.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/NonUniformSampling.cc' object='NonUniformSampling.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o NonUniformSampling.lo `test -f 'likely/NonUniformSampling.cc' || echo '$(srcdir)/'`likely/NonUniformSampling.cc
 
 TestLikelihood.lo: likely/test/TestLikelihood.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestLikelihood.lo -MD -MP -MF $(DEPDIR)/TestLikelihood.Tpo -c -o TestLikelihood.lo `test -f 'likely/test/TestLikelihood.cc' || echo '$(srcdir)/'`likely/test/TestLikelihood.cc

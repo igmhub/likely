@@ -27,6 +27,8 @@ liblikely_la_SOURCES = \
 	likely/AbsBinning.cc \
 	likely/UniformBinning.cc \
 	likely/NonUniformBinning.cc \
+	likely/UniformSampling.cc \
+	likely/NonUniformSampling.cc \
 	likely/test/TestLikelihood.cc
 
 # library headers to install (nobase prefix preserves directories under bosslya)
@@ -54,6 +56,8 @@ nobase_include_HEADERS = \
 	likely/BinningError.h \
 	likely/UniformBinning.h \
 	likely/NonUniformBinning.h \
+	likely/UniformSampling.h \
+	likely/NonUniformSampling.h \
 	likely/test/TestLikelihood.h
 
 # add GSL features when libgsl is available
