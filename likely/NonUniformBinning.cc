@@ -23,6 +23,17 @@ local::NonUniformBinning::NonUniformBinning(std::vector<double> const &binEdges)
 
 local::NonUniformBinning::~NonUniformBinning() { }
 
+int local::NonUniformBinning::getBinIndex(double value) const {
+    // should use bisection for this, and cache the last bin found...
+    if(value < _binEdges[0]) {
+        throw BinningError("getBinIndex: value is below binning interval.");
+    }
+    for(int bin = 1; bin < _binEdges.size(); ++bin) {
+        if(value < _binEdges[bin]) return bin-1;
+    }
+    throw BinningError("getBinIndex: value is above binning interval.");
+}
+
 int local::NonUniformBinning::getNBins() const {
     return _binEdges.size()-1;
 }

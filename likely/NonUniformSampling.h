@@ -16,6 +16,9 @@ namespace likely {
 	    // order. Throws a BinningError unless maxValue >= minValue.
 		explicit NonUniformSampling(std::vector<double> const &samplePoints);
 		virtual ~NonUniformSampling();
+        // Returns the bin index [0,nBins-1] corresponding to the specified value, or throws a
+        // BinningError if value is not exactly one of our sample points.
+        virtual int getBinIndex(double value) const;
         // Returns the total number of bins.
         virtual int getNBins() const;
         // Returns the lower bound of the specified bin. Throws a BinningError if index is out of range.

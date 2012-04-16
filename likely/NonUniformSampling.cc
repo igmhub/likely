@@ -3,6 +3,8 @@
 #include "likely/NonUniformSampling.h"
 #include "likely/BinningError.h"
 
+#include <cmath>
+
 namespace local = likely;
 
 local::NonUniformSampling::NonUniformSampling(std::vector<double> const &samplePoints)
@@ -22,6 +24,19 @@ local::NonUniformSampling::NonUniformSampling(std::vector<double> const &sampleP
 }
 
 local::NonUniformSampling::~NonUniformSampling() { }
+
+int local::NonUniformSampling::getBinIndex(double value) const {
+    if(value < _samplePoints[0]) {
+        throw BinningError("getBinIndex: value is below binning interval.");
+    }
+    for(int sample = 0; sample < _samplePoints.size(); ++sample) {
+        if(std::fabs(getBinCenter(sample) - value) == 0) return sample;
+        if(value > getBinCenter(sample)) {
+            throw BinningError("getBinIndex: value is not one of our samples.");
+        }
+    }
+    throw BinningError("getBinIndex: value is above binning interval.");
+}
 
 int local::NonUniformSampling::getNBins() const {
     return _samplePoints.size();
