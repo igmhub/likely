@@ -50,6 +50,7 @@ nobase_include_HEADERS = \
 	likely/QuantileAccumulator.h \
 	likely/TriCubicInterpolator.h \
 	likely/AbsBinning.h \
+	likely/BinningError.h \
 	likely/UniformBinning.h \
 	likely/test/TestLikelihood.h
 
