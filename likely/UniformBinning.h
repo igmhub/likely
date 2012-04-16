@@ -10,7 +10,7 @@ namespace likely {
 	class UniformBinning : public AbsBinning {
 	public:
 	    // Creates a new uniform binning for the interval [minValue,maxValue] using the specified
-	    // number of bins. Throws a BinningError of maxValue <= minValue or nBins <= 0.
+	    // number of bins. Throws a BinningError if maxValue <= minValue or nBins <= 0.
 		UniformBinning(double minValue, double maxValue, int nBins);
 		virtual ~UniformBinning();
         // Returns the total number of bins.
