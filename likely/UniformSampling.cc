@@ -3,6 +3,8 @@
 #include "likely/UniformSampling.h"
 #include "likely/BinningError.h"
 
+#include <cmath>
+
 namespace local = likely;
 
 local::UniformSampling::UniformSampling(double minValue, double maxValue, int nSamples)
@@ -21,6 +23,17 @@ local::UniformSampling::UniformSampling(double minValue, double maxValue, int nS
 }
 
 local::UniformSampling::~UniformSampling() { }
+
+int local::UniformSampling::getBinIndex(double value) const {
+    double dindex = (value - _minValue)/_sampleSpacing;
+    int index(std::floor(dindex+0.5));
+    if(std::fabs(dindex-index) > 0) {
+        throw BinningError("getBinIndex: value is not one of our samples.");
+    }
+    if(index < 0 || index >= _nSamples) {
+        throw BinningError("getBinIndex: value is out of range.");
+    }
+}
 
 int local::UniformSampling::getNBins() const {
     return _nSamples;

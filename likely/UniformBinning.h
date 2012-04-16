@@ -13,6 +13,9 @@ namespace likely {
 	    // number of bins. Throws a BinningError if maxValue <= minValue or nBins <= 0.
 		UniformBinning(double minValue, double maxValue, int nBins);
 		virtual ~UniformBinning();
+        // Returns the bin index [0,nBins-1] corresponding to the specified value, or throws a
+        // BinningError if value does not fall in any bin.
+        virtual int getBinIndex(double value) const;
         // Returns the total number of bins.
         virtual int getNBins() const;
         // Returns the lower bound of the specified bin. Throws a BinningError if index is out of range.

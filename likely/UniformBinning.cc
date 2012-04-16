@@ -3,6 +3,8 @@
 #include "likely/UniformBinning.h"
 #include "likely/BinningError.h"
 
+#include <cmath>
+
 namespace local = likely;
 
 local::UniformBinning::UniformBinning(double minValue, double maxValue, int nBins)
@@ -18,6 +20,14 @@ local::UniformBinning::UniformBinning(double minValue, double maxValue, int nBin
 }
 
 local::UniformBinning::~UniformBinning() { }
+
+int local::UniformBinning::getBinIndex(double value) const {
+    int bin = std::floor((value - _minValue)/_binWidth);
+    if(bin < 0 || bin >= _nBins) {
+        throw BinningError("getBinIndex: value is out of range.");
+    }
+    return bin;
+}
 
 int local::UniformBinning::getNBins() const {
     return _nBins;

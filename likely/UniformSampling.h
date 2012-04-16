@@ -15,6 +15,9 @@ namespace likely {
 	    // or else maxValue==minValue and nSamples==1.
 		UniformSampling(double minValue, double maxValue, int nSamples);
 		virtual ~UniformSampling();
+        // Returns the bin index [0,nBins-1] corresponding to the specified value, or throws a
+        // BinningError if value is not exactly one of our sample points.
+        virtual int getBinIndex(double value) const;
         // Returns the total number of bins, which is equal to the number of samples.
         virtual int getNBins() const;
         // Returns the lower bound of the specified bin. Throws a BinningError if index is out of range.
