@@ -7,11 +7,11 @@
 #include <iosfwd>
 
 namespace likely {
-	class AbsBinning {
 	// Represents an abstract 1D binning of a real-valued independent variable. Each bin is associated
 	// with an integer non-negative index and represented by low- and high-edge values. Bins are required
 	// to be non-overlapping but gaps between bins are permitted. Increasing bin index corresponds to
 	// increasing low and high edge values.
+	class AbsBinning {
 	public:
 		AbsBinning();
 		virtual ~AbsBinning();

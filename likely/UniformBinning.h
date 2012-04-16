@@ -6,8 +6,8 @@
 #include "likely/AbsBinning.h"
 
 namespace likely {
-	class UniformBinning : public AbsBinning {
 	// Represents a uniform 1D binning of a finite interval.
+	class UniformBinning : public AbsBinning {
 	public:
 	    // Creates a new uniform binning for the interval [minValue,maxValue] using the specified
 	    // number of bins. Throws a BinningError of maxValue <= minValue or nBins <= 0.
