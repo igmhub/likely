@@ -38,7 +38,7 @@ int local::NonUniformSampling::getBinIndex(double value) const {
         int next = (sample < _samplePoints.size()-1) ? sample+1 : _samplePoints.size()-1;
         double scale = (next > prev) ? (_samplePoints[next] - _samplePoints[prev])/(next-prev) : 0;
         if(std::fabs(getBinCenter(sample) - value) <= _ftol*scale) return sample;
-        if(value > getBinCenter(sample)) {
+        if(value < getBinCenter(sample)) {
             throw BinningError("getBinIndex: value is not one of our samples.");
         }
     }
