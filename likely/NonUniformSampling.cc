@@ -7,8 +7,8 @@
 
 namespace local = likely;
 
-local::NonUniformSampling::NonUniformSampling(std::vector<double> const &samplePoints)
-: _samplePoints(samplePoints)
+local::NonUniformSampling::NonUniformSampling(std::vector<double> const &samplePoints, double ftol)
+: _samplePoints(samplePoints), _ftol(ftol)
 {
     // Check that we have some samples.
     int nSamples = _samplePoints.size();
@@ -21,6 +21,10 @@ local::NonUniformSampling::NonUniformSampling(std::vector<double> const &sampleP
             throw BinningError("NonUniformSampling: sample points are not in increasing order.");
         }
     }
+    // A value of ftol < 0 means that getBinIndex will always throw a BinningError.
+    if(ftol < 0) {
+        throw BinningError("NonUniformSampling: expected ftol >= 0.");
+    }
 }
 
 local::NonUniformSampling::~NonUniformSampling() { }
@@ -30,7 +34,10 @@ int local::NonUniformSampling::getBinIndex(double value) const {
         throw BinningError("getBinIndex: value is below binning interval.");
     }
     for(int sample = 0; sample < _samplePoints.size(); ++sample) {
-        if(std::fabs(getBinCenter(sample) - value) == 0) return sample;
+        int prev = (sample > 0) ? sample-1 : 0;
+        int next = (sample < _samplePoints.size()-1) ? sample+1 : _samplePoints.size()-1;
+        double scale = (next > prev) ? (_samplePoints[next] - _samplePoints[prev])/(next-prev) : 0;
+        if(std::fabs(getBinCenter(sample) - value) <= _ftol*scale) return sample;
         if(value > getBinCenter(sample)) {
             throw BinningError("getBinIndex: value is not one of our samples.");
         }

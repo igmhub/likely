@@ -7,8 +7,8 @@
 
 namespace local = likely;
 
-local::UniformSampling::UniformSampling(double minValue, double maxValue, int nSamples)
-: _minValue(minValue), _maxValue(maxValue), _nSamples(nSamples)
+local::UniformSampling::UniformSampling(double minValue, double maxValue, int nSamples, double ftol)
+: _minValue(minValue), _maxValue(maxValue), _ftol(ftol), _nSamples(nSamples)
 {
     if(maxValue < minValue) {
         throw BinningError("UniformSampling: expected minValue <= maxValue.");
@@ -19,20 +19,25 @@ local::UniformSampling::UniformSampling(double minValue, double maxValue, int nS
     if(nSamples == 1 && maxValue != minValue) {
         throw BinningError("UniformSampling: must have minValue==maxValue when nSamples==1.");
     }
+    // A value of ftol < 0 means that getBinIndex will always throw a BinningError.
+    if(ftol < 0) {
+        throw BinningError("NonUniformSampling: expected ftol >= 0.");
+    }
     _sampleSpacing = (1==nSamples) ? 0 : (maxValue - minValue)/(nSamples-1.0);
 }
 
 local::UniformSampling::~UniformSampling() { }
 
 int local::UniformSampling::getBinIndex(double value) const {
-    double dindex = (value - _minValue)/_sampleSpacing;
-    int index(std::floor(dindex+0.5));
-    if(std::fabs(dindex-index) > 0) {
-        throw BinningError("getBinIndex: value is not one of our samples.");
+    double scale = _sampleSpacing;
+    int index = std::floor((value - _minValue)/_sampleSpacing + 0.5);
+    if(std::fabs(value - index*_sampleSpacing) <= _ftol*scale) {
+        if(index < 0 || index >= _nSamples) {
+            throw BinningError("getBinIndex: value is out of range.");
+        }
+        return index;
     }
-    if(index < 0 || index >= _nSamples) {
-        throw BinningError("getBinIndex: value is out of range.");
-    }
+    throw BinningError("getBinIndex: value is not one of our samples.");
 }
 
 int local::UniformSampling::getNBins() const {

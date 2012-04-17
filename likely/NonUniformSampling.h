@@ -13,11 +13,13 @@ namespace likely {
 	class NonUniformSampling : public AbsBinning {
 	public:
 	    // Creates a new sampling using the specified list of sample points, which must be in increasing
-	    // order. Throws a BinningError unless maxValue >= minValue.
-		explicit NonUniformSampling(std::vector<double> const &samplePoints);
+	    // order. Throws a BinningError unless maxValue >= minValue. See getBinIndex for a description
+	    // of ftol.
+		explicit NonUniformSampling(std::vector<double> const &samplePoints, double ftol = 1e-6);
 		virtual ~NonUniformSampling();
         // Returns the bin index [0,nBins-1] corresponding to the specified value, or throws a
-        // BinningError if value is not exactly one of our sample points.
+        // BinningError if value is not within ftol*spacing of a sample point, where spacing is the
+        // average spacing of nearby sample points.
         virtual int getBinIndex(double value) const;
         // Returns the total number of bins.
         virtual int getNBins() const;
@@ -34,6 +36,7 @@ namespace likely {
         virtual double getBinCenter(int index) const;
 	private:
         std::vector<double> _samplePoints;
+        double _ftol;
 	}; // NonUniformSampling
 } // likely
 
