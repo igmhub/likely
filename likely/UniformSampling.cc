@@ -31,7 +31,7 @@ local::UniformSampling::~UniformSampling() { }
 int local::UniformSampling::getBinIndex(double value) const {
     double scale = _sampleSpacing;
     int index = std::floor((value - _minValue)/_sampleSpacing + 0.5);
-    if(std::fabs(value - index*_sampleSpacing) <= _ftol*scale) {
+    if(std::fabs(value - getBinCenter(index)) <= _ftol*scale) {
         if(index < 0 || index >= _nSamples) {
             throw BinningError("getBinIndex: value is out of range.");
         }
