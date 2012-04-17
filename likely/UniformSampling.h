@@ -13,7 +13,7 @@ namespace likely {
 	    // Creates a new uniform sampling for the interval [minValue,maxValue] using the specified
 	    // number of samples. Throws a BinningError unless maxValue > minValue and nSamples > 1,
 	    // or else maxValue==minValue and nSamples==1. See getBinIndex for a description of ftol.
-		UniformSampling(double minValue, double maxValue, int nSamples, double ftol = 1e-6);
+		UniformSampling(double minValue, double maxValue, int nSamples, double ftol = 1e-4);
 		virtual ~UniformSampling();
         // Returns the bin index [0,nBins-1] corresponding to the specified value, or throws a
         // BinningError if value is not within ftol*spacing of a sample point, where spacing is

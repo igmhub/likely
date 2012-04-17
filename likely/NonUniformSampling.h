@@ -15,7 +15,7 @@ namespace likely {
 	    // Creates a new sampling using the specified list of sample points, which must be in increasing
 	    // order. Throws a BinningError unless maxValue >= minValue. See getBinIndex for a description
 	    // of ftol.
-		explicit NonUniformSampling(std::vector<double> const &samplePoints, double ftol = 1e-6);
+		explicit NonUniformSampling(std::vector<double> const &samplePoints, double ftol = 1e-4);
 		virtual ~NonUniformSampling();
         // Returns the bin index [0,nBins-1] corresponding to the specified value, or throws a
         // BinningError if value is not within ftol*spacing of a sample point, where spacing is the
