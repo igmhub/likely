@@ -97,7 +97,7 @@ am__liblikely_la_SOURCES_DIST = likely/FunctionMinimum.cc \
 	likely/QuantileAccumulator.cc likely/TriCubicInterpolator.cc \
 	likely/AbsBinning.cc likely/UniformBinning.cc \
 	likely/NonUniformBinning.cc likely/UniformSampling.cc \
-	likely/NonUniformSampling.cc likely/AbsCovarianceMatrix.cc \
+	likely/NonUniformSampling.cc likely/CovarianceMatrix.cc \
 	likely/test/TestLikelihood.cc likely/GslEngine.cc \
 	likely/GslErrorHandler.cc likely/MinuitEngine.cc
 @USE_GSL_TRUE@am__objects_1 = GslEngine.lo GslErrorHandler.lo
@@ -108,7 +108,7 @@ am_liblikely_la_OBJECTS = FunctionMinimum.lo AbsEngine.lo \
 	WeightedAccumulator.lo WeightedCombiner.lo \
 	QuantileAccumulator.lo TriCubicInterpolator.lo AbsBinning.lo \
 	UniformBinning.lo NonUniformBinning.lo UniformSampling.lo \
-	NonUniformSampling.lo AbsCovarianceMatrix.lo TestLikelihood.lo \
+	NonUniformSampling.lo CovarianceMatrix.lo TestLikelihood.lo \
 	$(am__objects_1) $(am__objects_2)
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
@@ -163,7 +163,7 @@ am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/TriCubicInterpolator.h likely/AbsBinning.h \
 	likely/BinningError.h likely/UniformBinning.h \
 	likely/NonUniformBinning.h likely/UniformSampling.h \
-	likely/NonUniformSampling.h likely/AbsCovarianceMatrix.h \
+	likely/NonUniformSampling.h likely/CovarianceMatrix.h \
 	likely/test/TestLikelihood.h likely/GslEngine.h \
 	likely/GslErrorHandler.h likely/MinuitEngine.h
 HEADERS = $(nobase_include_HEADERS)
@@ -320,7 +320,7 @@ liblikely_la_SOURCES = likely/FunctionMinimum.cc likely/AbsEngine.cc \
 	likely/TriCubicInterpolator.cc likely/AbsBinning.cc \
 	likely/UniformBinning.cc likely/NonUniformBinning.cc \
 	likely/UniformSampling.cc likely/NonUniformSampling.cc \
-	likely/AbsCovarianceMatrix.cc likely/test/TestLikelihood.cc \
+	likely/CovarianceMatrix.cc likely/test/TestLikelihood.cc \
 	$(am__append_1) $(am__append_3)
 
 # library headers to install (nobase prefix preserves directories under bosslya)
@@ -336,7 +336,7 @@ nobase_include_HEADERS = likely/likely.h likely/types.h \
 	likely/TriCubicInterpolator.h likely/AbsBinning.h \
 	likely/BinningError.h likely/UniformBinning.h \
 	likely/NonUniformBinning.h likely/UniformSampling.h \
-	likely/NonUniformSampling.h likely/AbsCovarianceMatrix.h \
+	likely/NonUniformSampling.h likely/CovarianceMatrix.h \
 	likely/test/TestLikelihood.h $(am__append_2) $(am__append_4)
 
 # instructions for building each program
@@ -544,8 +544,8 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsBinning.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsCovarianceMatrix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsEngine.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceMatrix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EngineRegistry.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FunctionMinimum.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslEngine.Plo@am__quote@
@@ -714,12 +714,12 @@ NonUniformSampling.lo: likely/NonUniformSampling.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o NonUniformSampling.lo `test -f 'likely/NonUniformSampling.cc' || echo '$(srcdir)/'`likely/NonUniformSampling.cc
 
-AbsCovarianceMatrix.lo: likely/AbsCovarianceMatrix.cc
-@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AbsCovarianceMatrix.lo -MD -MP -MF $(DEPDIR)/AbsCovarianceMatrix.Tpo -c -o AbsCovarianceMatrix.lo `test -f 'likely/AbsCovarianceMatrix.cc' || echo '$(srcdir)/'`likely/AbsCovarianceMatrix.cc
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/AbsCovarianceMatrix.Tpo $(DEPDIR)/AbsCovarianceMatrix.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/AbsCovarianceMatrix.cc' object='AbsCovarianceMatrix.lo' libtool=yes @AMDEPBACKSLASH@
+CovarianceMatrix.lo: likely/CovarianceMatrix.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CovarianceMatrix.lo -MD -MP -MF $(DEPDIR)/CovarianceMatrix.Tpo -c -o CovarianceMatrix.lo `test -f 'likely/CovarianceMatrix.cc' || echo '$(srcdir)/'`likely/CovarianceMatrix.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/CovarianceMatrix.Tpo $(DEPDIR)/CovarianceMatrix.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/CovarianceMatrix.cc' object='CovarianceMatrix.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AbsCovarianceMatrix.lo `test -f 'likely/AbsCovarianceMatrix.cc' || echo '$(srcdir)/'`likely/AbsCovarianceMatrix.cc
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CovarianceMatrix.lo `test -f 'likely/CovarianceMatrix.cc' || echo '$(srcdir)/'`likely/CovarianceMatrix.cc
 
 TestLikelihood.lo: likely/test/TestLikelihood.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestLikelihood.lo -MD -MP -MF $(DEPDIR)/TestLikelihood.Tpo -c -o TestLikelihood.lo `test -f 'likely/test/TestLikelihood.cc' || echo '$(srcdir)/'`likely/test/TestLikelihood.cc

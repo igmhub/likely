@@ -1,13 +1,13 @@
 // Created 17-Apr-2012 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 
-#ifndef LIKELY_ABS_COVARIANCE_MATRIX
-#define LIKELY_ABS_COVARIANCE_MATRIX
+#ifndef LIKELY_COVARIANCE_MATRIX
+#define LIKELY_COVARIANCE_MATRIX
 
 namespace likely {
     // Represents an abstract interface to a covariance matrix.
-	class AbsCovarianceMatrix {
+	class CovarianceMatrix {
 	public:
-		virtual ~AbsCovarianceMatrix();
+		virtual ~CovarianceMatrix();
 		// Returns the fixed size of this covariance matrix.
         int getSize() const;
         // Requests that this covariance matrix be compressed to reduce its memory usage,
@@ -19,7 +19,7 @@ namespace likely {
         bool isCompressed() const;
 	protected:
 	    // Creates a new size-by-size covariance matrix. Throws a RuntimeError if size <= 0.
-		explicit AbsCovarianceMatrix(int size);
+		explicit CovarianceMatrix(int size);
 		// Does the actual work of compressing a matrix, if possible.
         virtual void doCompress() = 0;
         // Does the actual work of undoing any compression performed by doCompress().
@@ -27,19 +27,19 @@ namespace likely {
 	private:
         int _size;
         bool _compressed;
-	}; // AbsCovarianceMatrix
+	}; // CovarianceMatrix
 	
-    inline int AbsCovarianceMatrix::getSize() const { return _size; }
+    inline int CovarianceMatrix::getSize() const { return _size; }
     
-    inline void AbsCovarianceMatrix::compress() {
+    inline void CovarianceMatrix::compress() {
         if(!_compressed) { doCompress(); _compressed = true; }
     }
-    inline void AbsCovarianceMatrix::uncompress() {
+    inline void CovarianceMatrix::uncompress() {
         if(_compressed) { doUncompress(); _compressed = false; }
     }
     
-    inline bool AbsCovarianceMatrix::isCompressed() const { return _compressed; }
+    inline bool CovarianceMatrix::isCompressed() const { return _compressed; }
 
 } // likely
 
-#endif // LIKELY_ABS_COVARIANCE_MATRIX
+#endif // LIKELY_COVARIANCE_MATRIX
