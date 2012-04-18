@@ -27,16 +27,16 @@ namespace likely {
         void setInverseCovariance(int row, int col, double value);
         // Requests that this covariance matrix be compressed to reduce its memory usage,
         // if possible. Returns immediately if we are already compressed.
-        void compress();
+        void compress() const;
         // Undoes any compression. Returns immediately if we are already uncompressed.
-        void uncompress();
+        void uncompress() const;
         // Returns true if this covariance matrix is currently compressed.
         bool isCompressed() const;
 	private:
         // Prepares to change at least one element of the _cov array.
         void _changesCov();
         int _size, _ncov;
-        bool _compressed;
+        mutable bool _compressed;
         mutable std::vector<double> _cov, _icov, _cholesky;
 	}; // CovarianceMatrix
 	

@@ -35,11 +35,14 @@ local::CovarianceMatrix::CovarianceMatrix(int size)
 
 local::CovarianceMatrix::~CovarianceMatrix() { }
 
-void local::CovarianceMatrix::compress() {
+void local::CovarianceMatrix::compress() const {
     if(_compressed) return;
+    _compressed = true;
 }
-void local::CovarianceMatrix::uncompress() {
+
+void local::CovarianceMatrix::uncompress() const {
     if(!_compressed) return;
+    _compressed = false;
 }
 
 int local::symmetricMatrixIndex(int row, int col, int size) {
