@@ -4,6 +4,9 @@
 #include "likely/RuntimeError.h"
 
 #include <cassert>
+#include <cmath>
+
+#include <iostream>
 
 // Declare bindings to BLAS,LAPACK routines we need
 extern "C" {
@@ -54,26 +57,37 @@ int local::symmetricMatrixIndex(int row, int col, int size) {
     return row+(col*(col+1))/2;
 }
 
-void local::choleskyDecompose(std::vector<double> &matrix) {
+int local::symmetricMatrixSize(int nelem) {
+    int size = std::floor(std::sqrt(8*nelem+1)/2);
+    if(nelem != (size*(size+1))/2) {
+        throw RuntimeError("symmetricMatrixSize: invalid number of elements.");
+    }
+    std::cout << "size = " << size << std::endl;
+    return size;
+}
+
+void local::choleskyDecompose(std::vector<double> &matrix, int size) {
     static char uplo('U');
     static int info(0);
-    int n(matrix.size());
-    dpptrf_(&uplo,&n,&matrix[0],&info);
+    if(0 == size) size = symmetricMatrixSize(matrix.size());
+    dpptrf_(&uplo,&size,&matrix[0],&info);
+    std::cout << "Cholesky = " << info << std::endl;
     if(0 != info) {
         info = 0;
         throw RuntimeError("choleskyDecomposition: matrix is not positive definite.");
-    }    
+    }
 }
 
-void local::invertCholesky(std::vector<double> &matrix) {
+void local::invertCholesky(std::vector<double> &matrix, int size) {
     static char uplo('U');
     static int info(0);
-    int n(matrix.size());
-    dpptri_(&uplo,&n,&matrix[0],&info);
+    if(0 == size) size = symmetricMatrixSize(matrix.size());
+    std::cout << "Invert = " << info << std::endl;
+    dpptri_(&uplo,&size,&matrix[0],&info);
     if(0 != info) {
         info = 0;
         throw RuntimeError("invertCholesky: symmetric matrix inversion failed.");
-    }    
+    }
 } 
 
 void local::CovarianceMatrix::_changesCov() {
@@ -87,8 +101,8 @@ void local::CovarianceMatrix::_changesCov() {
         else {
             // Try to invert the existing inverse covariance in place. This will throw a
             // RuntimeError in case the existing inverse covariance is only partially filled in.
-            choleskyDecompose(_icov);
-            invertCholesky(_icov);
+            choleskyDecompose(_icov,_size);
+            invertCholesky(_icov,_size);
             // Remove the existing inverse covariance (by swapping with _cov), since it will
             // become invalid after we update the the covariance.
             _cov.swap(_icov);
@@ -109,23 +123,42 @@ double local::CovarianceMatrix::getCovariance(int row, int col) const {
     if(_cov.empty()) {
         if(_icov.empty()) {
             // Nothing has been allocated yet, so return zero since that is our
-            // declared initial state.
+            // advertised initial state.
             return 0;
         }
         else {
             // Try to invert the existing inverse covariance into _cov. This will throw a
             // RuntimeError in case the existing inverse covariance is only partially filled in.
             _cov = _icov;
-            choleskyDecompose(_cov);
-            _cholesky = _cov;
-            invertCholesky(_cov);            
+            choleskyDecompose(_cov,_size);
+            // (we don't bother keeping the Cholesky decomposition of the inverse covariance)
+            invertCholesky(_cov,_size);
         }
     }
     return _cov[index];
 }
 
 double local::CovarianceMatrix::getInverseCovariance(int row, int col) const {
-    return 0;
+    // Calculate the index corresponding to (row,col). This will throw a RuntimeError
+    // in case of an invalid address, before we go any further.
+    int index(symmetricMatrixIndex(row,col,_size));
+    // Do we have an inverse covariance matrix allocated yet?
+    if(_icov.empty()) {
+        if(_cov.empty()) {
+            // Nothing has been allocated yet, so return zero since that is our
+            // advertised initial state.
+            return 0;
+        }
+        else {
+            // Try to invert the existing covariance into _icov. This will throw a
+            // RuntimeError in case the existing inverse covariance is only partially filled in.
+            _icov = _cov;
+            choleskyDecompose(_icov,_size);
+            _cholesky = _icov; // remember this
+            invertCholesky(_icov,_size);
+        }
+    }
+    return _icov[index];
 }
 
 void local::CovarianceMatrix::setCovariance(int row, int col, double value) {

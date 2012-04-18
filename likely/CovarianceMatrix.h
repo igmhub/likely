@@ -48,14 +48,20 @@ namespace likely {
     // described at http://www.netlib.org/lapack/lug/node123.html or throws a
     // RuntimeError for invalid row or col inputs.
     int symmetricMatrixIndex(int row, int col, int size);
+    // Returns the size of a symmetric matrix in the BLAS packed format implied by
+    // symmetricMatrixIndex, or throws a RuntimeError. The size is related to the
+    // number nelem of packed matrix elements by size = (nelem*(nelem+1))/2.
+    int symmetricMatrixSize(int nelem);
     // Performs a Cholesky decomposition in place of a symmetric positive definite matrix
     // or throws a RuntimeError if the matrix is not positive definite. The input matrix
     // is assumed to be in the BLAS packed format implied by packedMatrixIndex(row,col).
-    static void choleskyDecompose(std::vector<double> &matrix);
+    // The matrix size will be calculated unless a positive value is provided.
+    static void choleskyDecompose(std::vector<double> &matrix, int size = 0);
     // Inverts a symmetric positive definite matrix in place, or throws a RuntimeError.
     // The input matrix should already be Cholesky decomposed and in the BLAS packed format
     // implied by packedMatrixIndex(row,col), e.g. by first calling _choleskyDecompose(matrix).
-    static void invertCholesky(std::vector<double> &matrix);
+    // The matrix size will be calculated unless a positive value is provided.
+    static void invertCholesky(std::vector<double> &matrix, int size = 0);
 
 } // likely
 
