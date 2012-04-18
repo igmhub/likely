@@ -91,7 +91,7 @@ void local::invertCholesky(std::vector<double> &matrix, int size) {
 } 
 
 void local::CovarianceMatrix::_changesCov() {
-    // Do we have a valid matrix to change?
+    // Do we have a matrix to change?
     if(_cov.empty()) {
         // Have we allocated anything yet?
         if(_icov.empty()) {
@@ -112,6 +112,32 @@ void local::CovarianceMatrix::_changesCov() {
     }
     assert(!_cov.empty());
     assert(_icov.empty());
+    assert(_cholesky.empty());
+}
+
+void local::CovarianceMatrix::_changesICov() {
+    // Do we have a matrix to change?
+    if(_icov.empty()) {
+        // Have we allocated anything yet?
+        if(_cov.empty()) {
+            // Allocate an inverse covariance matrix initialized to zero.
+            std::vector<double>(_ncov,0).swap(_icov);
+        }
+        else {
+            // Try to invert the existing covariance in place. This will throw a
+            // RuntimeError in case the existing covariance is only partially filled in.
+            choleskyDecompose(_cov,_size);
+            // (don't save the Cholesky decomposition since it will become invalid)
+            invertCholesky(_cov,_size);
+            // Remove the existing covariance (by swapping with _icov), since it will
+            // become invalid after we update the the covariance.
+            _icov.swap(_cov);
+            // Remove any existing Cholesky decomposition since it will become invalid.
+            if(!_cholesky.empty()) std::vector<double>().swap(_cholesky);
+        }
+    }
+    assert(_cov.empty());
+    assert(!_icov.empty());
     assert(_cholesky.empty());
 }
 
@@ -173,5 +199,12 @@ void local::CovarianceMatrix::setCovariance(int row, int col, double value) {
 }
 
 void local::CovarianceMatrix::setInverseCovariance(int row, int col, double value) {
-    
+    // Calculate the index corresponding to (row,col). This will throw a RuntimeError
+    // in case of an invalid address, before we actually change anything.
+    int index(symmetricMatrixIndex(row,col,_size));
+    // Prepare to change the inverse covariance matrix, which might throw a RuntimeError
+    // if cov elements have already been set, but cov is not invertible.
+    _changesICov();
+    // Finally, set the new value here.
+    _icov[index] = value;        
 }

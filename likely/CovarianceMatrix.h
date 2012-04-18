@@ -33,8 +33,9 @@ namespace likely {
         // Returns true if this covariance matrix is currently compressed.
         bool isCompressed() const;
 	private:
-        // Prepares to change at least one element of the _cov array.
+        // Prepares to change at least one element of _cov or _icov.
         void _changesCov();
+        void _changesICov();
         int _size, _ncov;
         mutable bool _compressed;
         mutable std::vector<double> _cov, _icov, _cholesky;

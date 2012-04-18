@@ -15,6 +15,7 @@ int main(int argc, char **argv) {
     }
     cov.setCovariance(0,1,0.1);
     cov.setCovariance(1,2,-0.2);
+    cov.setInverseCovariance(2,2,0.3);
     for(int row = 0; row < size; ++row) {
         for(int col = 0; col < size; ++col) {
             std::cout << row << ',' << col << " = " << cov.getCovariance(row,col) << std::endl;
