@@ -29,6 +29,8 @@ local::CovarianceMatrix::CovarianceMatrix(int size)
         throw RuntimeError("CovarianceMatrix: expected size > 0.");
     }
     _ncov = (_size*(_size+1))/2;
+    // We don't actually allocate any memory at this point. Wait until this is actually
+    // necessary, and we know wether to allocate _cov or _icov.
 }
 
 local::CovarianceMatrix::~CovarianceMatrix() { }
@@ -94,6 +96,33 @@ void local::CovarianceMatrix::_changesCov() {
     assert(!_cov.empty());
     assert(_icov.empty());
     assert(_cholesky.empty());
+}
+
+double local::CovarianceMatrix::getCovariance(int row, int col) const {
+    // Calculate the index corresponding to (row,col). This will throw a RuntimeError
+    // in case of an invalid address, before we go any further.
+    int index(symmetricMatrixIndex(row,col,_size));
+    // Do we have a covariance matrix allocated yet?
+    if(_cov.empty()) {
+        if(_icov.empty()) {
+            // Nothing has been allocated yet, so return zero since that is our
+            // declared initial state.
+            return 0;
+        }
+        else {
+            // Try to invert the existing inverse covariance into _cov. This will throw a
+            // RuntimeError in case the existing inverse covariance is only partially filled in.
+            _cov = _icov;
+            choleskyDecompose(_cov);
+            _cholesky = _cov;
+            invertCholesky(_cov);            
+        }
+    }
+    return _cov[index];
+}
+
+double local::CovarianceMatrix::getInverseCovariance(int row, int col) const {
+    return 0;
 }
 
 void local::CovarianceMatrix::setCovariance(int row, int col, double value) {

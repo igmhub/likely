@@ -10,15 +10,19 @@ namespace likely {
 	class CovarianceMatrix {
 	public:
 	    // Creates a new size-by-size covariance matrix with all elements initialized to zero.
-	    // Throws a RuntimeError if size <= 0.
+	    // Throws a RuntimeError if size <= 0. Note that the matrix created by this constructor
+	    // is not valid until sufficient elements have been set to make it positive definite.
 		explicit CovarianceMatrix(int size);
 		virtual ~CovarianceMatrix();
 		// Returns the fixed size of this covariance matrix.
         int getSize() const;
-        // Sets the specified (inverse) covariance matrix element or throws a RuntimeError
-        // if this is not possible (when a required matrix inversion fails). Row and column
-        // indices should be in the range [0,size-1]. Setting any element with row != col will
-        // also set the symmetric element in the matrix.
+        // Returns the specified (inverse) covariance matrix element or throws a RuntimeError.
+        // (row,col) and (col,row) give the same result by construction.
+        double getCovariance(int row, int col) const;
+        double getInverseCovariance(int row, int col) const;
+        // Sets the specified (inverse) covariance matrix element or throws a RuntimeError.
+        // Row and column indices should be in the range [0,size-1]. Setting any element with
+        // row != col will also set the symmetric element in the matrix.
         void setCovariance(int row, int col, double value);
         void setInverseCovariance(int row, int col, double value);
         // Requests that this covariance matrix be compressed to reduce its memory usage,
@@ -33,7 +37,7 @@ namespace likely {
         void _changesCov();
         int _size, _ncov;
         bool _compressed;
-        std::vector<double> _cov, _icov, _cholesky;
+        mutable std::vector<double> _cov, _icov, _cholesky;
 	}; // CovarianceMatrix
 	
     inline int CovarianceMatrix::getSize() const { return _size; }

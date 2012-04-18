@@ -11,6 +11,9 @@ int main(int argc, char **argv) {
     int size(3);
     lk::CovarianceMatrix cov(size);
     for(int k = 0; k < size; ++k) {
-        cov.setCovariance(k,k,1);
+        cov.setCovariance(k,k,k);
     }
+    for(int k = 0; k < size; ++k) {
+        std::cout << k << ' ' << cov.getCovariance(k,k) << std::endl;
+    }    
 }
