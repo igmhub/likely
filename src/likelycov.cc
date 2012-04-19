@@ -47,4 +47,11 @@ int main(int argc, char **argv) {
     std::cout << cov.getMemoryState() << std::endl;
     cov.compress();
     std::cout << cov.getMemoryState() << std::endl;
+    
+    std::vector<double> vec(3);
+    vec[0] = 1; vec[1] = 2; vec[2] = 3;
+    cov.multiplyByInverseCovariance(vec);
+    std::cout << cov.getMemoryState() << std::endl;
+    cov.compress();
+    std::cout << cov.getMemoryState() << std::endl;
 }

@@ -27,6 +27,9 @@ namespace likely {
         // row != col will also set the symmetric element in the matrix.
         void setCovariance(int row, int col, double value);
         void setInverseCovariance(int row, int col, double value);
+        // Multiplies the specified vector by the inverse covariance in place or throws
+        // a RuntimeError. The result is stored in the input vector.
+        void multiplyByInverseCovariance(std::vector<double> &vector) const;
         // Requests that this covariance matrix be compressed to reduce its memory usage,
         // if possible. Returns immediately if we are already compressed. Any compression
         // is lossless. The next call to any method except getSize(), compress(), or
@@ -107,6 +110,10 @@ namespace likely {
     // implied by packedMatrixIndex(row,col), e.g. by first calling _choleskyDecompose(matrix).
     // The matrix size will be calculated unless a positive value is provided.
     static void invertCholesky(std::vector<double> &matrix, int size = 0);
+    // Multiplies a symmetric matrix by a vector, or throws a RuntimeError. The input matrix
+    // is assumed to be in the BLAS packed format implied by packedMatrixIndex(row,col).
+    static void symmetricMatrixMultiply(std::vector<double> const &matrix,
+        std::vector<double> const &vector, std::vector<double> &result);
 
 } // likely
 

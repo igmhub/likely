@@ -150,6 +150,21 @@ void local::invertCholesky(std::vector<double> &matrix, int size) {
     }
 } 
 
+void local::symmetricMatrixMultiply(std::vector<double> const &matrix,
+std::vector<double> const &vector, std::vector<double> &result) {
+    static char uplo('U');
+    static int incr(1);
+    static double alpha(1),beta(0);
+    int size(vector.size());
+    if(matrix.size() != (size*(size+1))/2) {
+        throw RuntimeError("symmetricMatrixMultiply: incompatible matrix and vector sizes.");
+    }
+    // size result correctly (but do not need to zero elements since beta=0)
+    std::vector<double>(size).swap(result);
+    // See http://netlib.org/blas/dspmv.f
+    dspmv_(&uplo,&size,&alpha,&matrix[0],&vector[0],&incr,&beta,&result[0],&incr);
+}
+
 void local::CovarianceMatrix::_changesCov() {
     _uncompress();
     // Any cached compressed matrix data is now invalid so delete it.
@@ -307,4 +322,11 @@ void local::CovarianceMatrix::setInverseCovariance(int row, int col, double valu
     _changesICov();
     // Finally, set the new value here.
     _icov[index] = value;        
+}
+
+void local::CovarianceMatrix::multiplyByInverseCovariance(std::vector<double> &vector) const {
+    _readsICov();
+    std::vector<double> result;
+    symmetricMatrixMultiply(_icov,vector,result);
+    vector.swap(result);
 }
