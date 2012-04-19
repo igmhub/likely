@@ -330,3 +330,13 @@ void local::CovarianceMatrix::multiplyByInverseCovariance(std::vector<double> &v
     symmetricMatrixMultiply(_icov,vector,result);
     vector.swap(result);
 }
+
+double local::CovarianceMatrix::chiSquare(std::vector<double> const &delta) const {
+    std::vector<double> icovDelta = delta;
+    multiplyByInverseCovariance(icovDelta);
+    double result(0);
+    for(int k = 0; k < delta.size(); ++k) {
+        result += delta[k]*icovDelta[k];
+    }
+    return result;
+}

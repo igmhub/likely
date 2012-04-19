@@ -30,6 +30,9 @@ namespace likely {
         // Multiplies the specified vector by the inverse covariance in place or throws
         // a RuntimeError. The result is stored in the input vector.
         void multiplyByInverseCovariance(std::vector<double> &vector) const;
+        // Calculates the chi-square = delta.Cinv.delta for the specified residuals vector delta
+        // or throws a RuntimeError.
+        double chiSquare(std::vector<double> const &delta) const;
         // Requests that this covariance matrix be compressed to reduce its memory usage,
         // if possible. Returns immediately if we are already compressed. Any compression
         // is lossless. The next call to any method except getSize(), compress(), or
