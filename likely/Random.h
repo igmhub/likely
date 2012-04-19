@@ -23,11 +23,11 @@ namespace likely {
         // Fills the specified array with double-precision values uniformly sampled from [0,1)
         // using the specified seed (that is independent of the seed used by getUniform and
         // getNormal).
-        void fillArrayUniform(double *array, std::size_t size, int seed);
-        // Fills the specified array with double-precision values normally distributed with
+        static void fillArrayUniform(double *array, std::size_t size, int seed);
+        // Fills the specified array with single-precision values normally distributed with
         // mean 0 and RMS 1 using the specified seed (that is independent of the seed used
         // by getUniform and getNormal).
-        void fillArrayNormal(float *array, std::size_t size, int seed);
+        static void fillArrayNormal(float *array, std::size_t size, int seed);
         // Returns a reference to this object's internal generator, so that it
         // can be used for other distributions. This should only be used on the
         // global shared instance.
@@ -45,8 +45,8 @@ namespace likely {
     inline double Random::getNormal() { return _gauss(); }
     inline boost::mt19937 &Random::getGenerator() { return _generator; }
 	
-    // Allocates an array with the 128-bit alignment required by Random::fillArray where
-    // size is in bytes.
+    // Allocates an array with the 128-bit alignment required by the Random::fillArrayX methods
+    // where size is in bytes.
     void *allocateAlignedArray(std::size_t byteSize);
 
 } // likely
