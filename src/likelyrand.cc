@@ -35,6 +35,24 @@ double elapsed(struct rusage const &before, struct rusage const &after) {
 }
 
 int main(int argc, char **argv) {
+    
+    /**
+    int size = 624;
+    //float *fptr = (float*)malloc(size*sizeof(float));
+    float *fptr = (float*)lk::allocateAlignedArray(size*sizeof(float));
+    boost::shared_array<float> ivec(fptr,std::ptr_fun(free));
+    float *iptr = ivec.get();
+    for(int k = 0; k < size; ++k) {
+        *(iptr+k) = k;
+        std::cout << k << ' ' << ivec[k] << ' ' << iptr[k] << std::endl;
+    }
+    lk::Random::fillArrayNormal(iptr,size,123);
+    for(int k = 0; k < size; ++k) {
+        std::cout << k << ' ' << ivec[k] << ' ' << iptr[k] << std::endl;
+    }
+    return 0;
+    **/
+
     double rval;
     struct rusage before,after;
     boost::format results("%20s: %6.3f nanosecs/call\n");
@@ -48,19 +66,26 @@ int main(int argc, char **argv) {
     BENCHMARK_LOOP(getNormal);
     BENCHMARK_LOOP(getFastUniform);
 
-    assert(sizeof(uint64_t) == sizeof(double));
     double *dbuffer = (double*)lk::allocateAlignedArray(repeat*sizeof(uint64_t));
     BENCHMARK(fillArrayUniform, (dbuffer,repeat,123));
     free(dbuffer);
 
-    assert(sizeof(uint32_t) == sizeof(float));
+    /*
     float *fbuffer = (float*)lk::allocateAlignedArray(repeat*sizeof(uint32_t));
     BENCHMARK(fillArrayNormal, (fbuffer,repeat,123));
+    */
+    /*
+    float *fraw = (float*)lk::allocateAlignedArray(repeat*sizeof(uint32_t));
+    boost::shared_array<float> fbuffer(fraw,std::ptr_fun(free));
+    random.fillArrayNormal(fbuffer.get(),repeat,123);
+    */
+    boost::shared_array<float> fbuffer = random.fillArrayNormal(repeat,123);
     
     lk::WeightedAccumulator stats;
     lk::QuantileAccumulator median, sigma(1-0.5*0.317310508);
     for(int i = 0; i < repeat; ++i) {
         double value(fbuffer[i]);
+        if(i < 10) std::cout << i << ' ' << value << std::endl;
         stats.accumulate(value);
         median.accumulate(value);
         sigma.accumulate(value);
@@ -68,6 +93,6 @@ int main(int argc, char **argv) {
     std::cout << "mean = " << stats.mean() << ", variance = " << stats.variance() << std::endl;
     std::cout << "median = " << median.getQuantile() << ", 1-sigma quantile = "
         << sigma.getQuantile() << std::endl;
-        
-    free(fbuffer);
+      
+    //free(fbuffer);
 }

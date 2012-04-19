@@ -5,6 +5,7 @@
 
 #include "boost/random/mersenne_twister.hpp"
 #include "boost/function.hpp"
+#include "boost/smart_ptr.hpp"
 
 #include <cstddef>
 
@@ -24,10 +25,11 @@ namespace likely {
         // using the specified seed (that is independent of the seed used by getUniform and
         // getNormal).
         static void fillArrayUniform(double *array, std::size_t size, int seed);
-        // Fills the specified array with single-precision values normally distributed with
+        // Returns a shared array filled with single-precision values normally distributed with
         // mean 0 and RMS 1 using the specified seed (that is independent of the seed used
-        // by getUniform and getNormal).
-        static void fillArrayNormal(float *array, std::size_t size, int seed);
+        // by getUniform and getNormal). The number nrandom of numbers generated must be a
+        // multiple of 4 that is >= 624.
+        static boost::shared_array<float> fillArrayNormal(std::size_t nrandom, int seed);
         // Returns a reference to this object's internal generator, so that it
         // can be used for other distributions. This should only be used on the
         // global shared instance.
@@ -48,7 +50,12 @@ namespace likely {
     // Allocates an array with the 128-bit alignment required by the Random::fillArrayX methods
     // where size is in bytes.
     void *allocateAlignedArray(std::size_t byteSize);
-
+    
+    // Wraps the result of calling allocateAlignedArray into a smart array pointer with a
+    // custom deleter that calls free.
+    boost::shared_array<float> allocateAlignedFloatArray(std::size_t size);
+    boost::shared_array<double> allocateAlignedDoubleArray(std::size_t size);
+    
 } // likely
 
 #endif // LIKELY_RANDOM

@@ -41,27 +41,6 @@ float local::Random::getFastUniform() {
     return genrand_res53();
 }
 
-void local::Random::fillArrayUniform(double *array, std::size_t size, int seed) {
-    if(size % 2) {
-        throw RuntimeError("Random::fillArrayUniform: array is not 128-bit aligned.");
-    }
-    if(size < N64) {
-        throw RuntimeError("Random::fillArrayUniform: array size < " +
-            boost::lexical_cast<std::string>(N64));
-    }
-    if(seed) init_gen_rand(seed);
-    if(!initialized || idx != N32) {
-        throw RuntimeError("Random::fillArrayUniform: must use seed > 0.");
-    }
-    gen_rand_array((w128_t *)array, size / 2);
-    idx = N32;
-#if defined(BIG_ENDIAN64)
-    swap((w128_t *)array, size /2);
-#endif
-    uint64_t *ptr((uint64_t*)array);
-    for(int i = 0; i < size; ++i) array[i] = to_res53(*ptr++);
-}
-
 void *local::allocateAlignedArray(std::size_t byteSize) {
     void *array(0);
 #if defined(__APPLE__) || \
@@ -88,29 +67,67 @@ void *local::allocateAlignedArray(std::size_t byteSize) {
     return array;
 }
 
+boost::shared_array<float> local::allocateAlignedFloatArray(std::size_t size) {
+    float *fbuffer = (float*)allocateAlignedArray(size*sizeof(uint32_t));
+    return boost::shared_array<float>(fbuffer,std::ptr_fun(free));
+}
+
+boost::shared_array<double> local::allocateAlignedDoubleArray(std::size_t size) {
+    double *dbuffer = (double*)allocateAlignedArray(size*sizeof(uint64_t));
+    return boost::shared_array<double>(dbuffer,std::ptr_fun(free));
+}
+
+void local::Random::fillArrayUniform(double *array, std::size_t size, int seed) {
+    assert(sizeof(double) == sizeof(uint64_t));
+    if(size % 2) {
+        throw RuntimeError("Random::fillArrayUniform: array is not 128-bit aligned.");
+    }
+    if(size < N64) {
+        throw RuntimeError("Random::fillArrayUniform: array size < " +
+            boost::lexical_cast<std::string>(N64));
+    }
+    if(seed) init_gen_rand(seed);
+    if(!initialized || idx != N32) {
+        throw RuntimeError("Random::fillArrayUniform: must use seed > 0.");
+    }
+    gen_rand_array((w128_t *)array, size / 2);
+    idx = N32;
+#if defined(BIG_ENDIAN64)
+    swap((w128_t *)array, size /2);
+#endif
+    uint64_t *ptr((uint64_t*)array);
+    for(int i = 0; i < size; ++i) array[i] = to_res53(*ptr++);
+}
+
 /* position of right-most step */
 #define PARAM_R 3.44428647676
 
-void local::Random::fillArrayNormal(float *array, std::size_t size, int seed) {
-    if(size % 4) {
-        throw RuntimeError("Random::fillArrayNormal: array is not 128-bit aligned.");
+boost::shared_array<float> local::Random::fillArrayNormal(std::size_t nrandom, int seed) {
+    assert(sizeof(float) == sizeof(uint32_t));
+    if(nrandom % 4) {
+        throw RuntimeError("Random::fillArrayNormal: nrandom is not a multiple of 4.");
     }
-    if(size < N32) {
-        throw RuntimeError("Random::fillArrayNormal: array size < " +
+    if(nrandom < N32) {
+        throw RuntimeError("Random::fillArrayNormal: nrandom < " +
             boost::lexical_cast<std::string>(N32));
     }
+    // Set the random seed
     init_gen_rand(seed);
     if(!initialized || idx != N32) {
         throw RuntimeError("Random::fillArrayNormal: init_gen_rand failed.");
     }
-    gen_rand_array((w128_t *)array, size / 4);
+    // Allocate the shared array
+    boost::shared_array<float> sarray = allocateAlignedFloatArray(nrandom);
+    float *array = sarray.get();
+    // Generate the random numbers
+    gen_rand_array((w128_t *)array, nrandom / 4);
     idx = N32;
     // Convert each 32-bit integer to a normally-distributed float using the ziggurat
     // algorithm described at http://www.seehuhn.de/pages/ziggurat
     uint32_t *ptr((uint32_t*)array);
     uint32_t U,i,j,sign;
     double x, y;
-    for(int index = 0; index < size; ++index) {
+    for(int index = 0; index < nrandom; ++index) {
         U = *ptr++;
         while(1) {
             i = U & 0x0000007F;		/* 7 bit to choose the step */
@@ -137,6 +154,7 @@ void local::Random::fillArrayNormal(float *array, std::size_t size, int seed) {
         }
         array[index] = sign ? (float)(+x) : (float)(-x);
     }
+    return sarray;
 }
 
 /* tabulated values for the heigt of the Ziggurat levels */
