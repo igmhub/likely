@@ -4,6 +4,8 @@
 #define LIKELY_COVARIANCE_MATRIX
 
 #include <vector>
+#include <string>
+#include <cstddef>
 
 namespace likely {
     // Represents an abstract interface to a covariance matrix.
@@ -26,19 +28,61 @@ namespace likely {
         void setCovariance(int row, int col, double value);
         void setInverseCovariance(int row, int col, double value);
         // Requests that this covariance matrix be compressed to reduce its memory usage,
-        // if possible. Returns immediately if we are already compressed.
-        void compress() const;
-        // Undoes any compression. Returns immediately if we are already uncompressed.
-        void uncompress() const;
+        // if possible. Returns immediately if we are already compressed. Any compression
+        // is lossless. The next call to any method except getSize(), compress(), or
+        // isCompressed() will automatically trigger a decompression. Return value indicates
+        // if any compression was actually performed.
+        bool compress() const;
         // Returns true if this covariance matrix is currently compressed.
         bool isCompressed() const;
-	private:
+        // Returns the memory usage of this object.
+        size_t getMemoryUsage() const;
+        // Returns a string describing this object's internal state in the form
+        // 
+        // [MICDZV] nnnnnnn
+        //
+        // where each letter indicates the memory allocation state of an internal
+        // vector and nnnnnn is the total number of bytes used by this object, as reported
+        // by getMemoryUsage(). The letter codes are: M = _cov, I = _icov, C = _cholesky,
+        // D = _diag, Z = _offdiagIndex, V = _offdiagValue. A "-" indidcates that the vector
+        // is not allocated. A "." below is a wildcard.
+        //
+        // [---...] : newly created object with no elements set
+        // [M--...] : most recent change was to covariance matrix
+        // [-I-...] : most recent change was to inverse covariance matrix
+        // [MI-...] : synchronized covariance and inverse covariance both in memory
+        // [--C...] : ** this should never happen **
+        // [M-C...] : Cholesky decomposition and covariance in memory
+        // [-IC...] : Cholesky decomposition and inverse covariance in memory
+        // [MIC...] : Cholesky decomposition, covariance and inverse covariance in memory
+        // [...D--] : Matrix is diagonal and compressed
+        // [...DZV] : Matrix is non-diagonal and compressed
+        std::string getMemoryState() const;
+    private:
+        // Undoes any compression. Returns immediately if we are already uncompressed.
+        // There is usually no need to call this method explicitly, since it is called
+        // automatically as needed by other methods.
+        void _uncompress() const;
+	    // Prepares to read elements of _cov or _icov. Returns false if nothing has
+	    // been allocated yet, or else returns true. Always uncompresses.
+        bool _readsCov() const;
+        bool _readsICov() const;
         // Prepares to change at least one element of _cov or _icov.
         void _changesCov();
         void _changesICov();
+        // Helper function used by getMemoryState()
+        char _tag(char symbol, std::vector<double> const &vector) const;
+
+        // TODO: is a cached value of _ncov = (_size*(_size+1))/2 really necessary?
         int _size, _ncov;
+        // Track our compression state. This is not the same as !_diag.empty() since we
+        // cache previous compression data until a change to _cov or _icov invalidates it.
         mutable bool _compressed;
+        // _cholesky is the Cholesky decomposition of the covariance matrix (_cov, not _icov)
         mutable std::vector<double> _cov, _icov, _cholesky;
+        // compression replaces _cov, _icov, _cholesky with the following
+        // smaller vectors, that encode the inverse covariance matrix (_icov not _cov).
+        mutable std::vector<double> _diag, _offdiagIndex, _offdiagValue;
 	}; // CovarianceMatrix
 	
     inline int CovarianceMatrix::getSize() const { return _size; }

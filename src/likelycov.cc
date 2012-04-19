@@ -10,25 +10,41 @@ namespace lk = likely;
 int main(int argc, char **argv) {
     int size(3);
     lk::CovarianceMatrix cov(size);
+    std::cout << cov.getMemoryState() << std::endl;
     for(int k = 0; k < size; ++k) {
         cov.setCovariance(k,k,k+1);
     }
     cov.setCovariance(0,1,0.1);
     cov.setCovariance(1,2,-0.2);
+    std::cout << cov.getMemoryState() << std::endl;
     cov.setInverseCovariance(2,2,0.3);
+    std::cout << cov.getMemoryState() << std::endl;
     for(int row = 0; row < size; ++row) {
         for(int col = 0; col < size; ++col) {
             std::cout << row << ',' << col << " = " << cov.getCovariance(row,col) << std::endl;
         }
-    }    
+    }
+    std::cout << cov.getMemoryState() << std::endl;
     for(int row = 0; row < size; ++row) {
         for(int col = 0; col < size; ++col) {
             std::cout << row << ',' << col << " = " << cov.getInverseCovariance(row,col) << std::endl;
         }
-    }    
+    }
+    std::cout << cov.getMemoryState() << std::endl;
+    cov.compress();
+    std::cout << cov.getMemoryState() << std::endl;
     for(int row = 0; row < size; ++row) {
         for(int col = 0; col < size; ++col) {
             std::cout << row << ',' << col << " = " << cov.getCovariance(row,col) << std::endl;
         }
-    }    
+    }
+    std::cout << cov.getMemoryState() << std::endl;
+    cov.setCovariance(0,0,1.5);
+    std::cout << cov.getMemoryState() << std::endl;
+    cov.getInverseCovariance(0,0);
+    std::cout << cov.getMemoryState() << std::endl;
+    cov.setCovariance(0,0,2.5);
+    std::cout << cov.getMemoryState() << std::endl;
+    cov.compress();
+    std::cout << cov.getMemoryState() << std::endl;
 }

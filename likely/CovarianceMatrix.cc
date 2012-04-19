@@ -3,6 +3,8 @@
 #include "likely/CovarianceMatrix.h"
 #include "likely/RuntimeError.h"
 
+#include "boost/format.hpp"
+
 #include <cassert>
 #include <cmath>
 
@@ -38,13 +40,71 @@ local::CovarianceMatrix::CovarianceMatrix(int size)
 
 local::CovarianceMatrix::~CovarianceMatrix() { }
 
-void local::CovarianceMatrix::compress() const {
-    if(_compressed) return;
-    _compressed = true;
+size_t local::CovarianceMatrix::getMemoryUsage() const {
+    return sizeof(*this) + sizeof(double)*(
+        _cov.capacity() + _icov.capacity() + _cholesky.capacity() +
+        _diag.capacity() + _offdiagIndex.capacity() + _offdiagValue.capacity());
 }
 
-void local::CovarianceMatrix::uncompress() const {
+std::string local::CovarianceMatrix::getMemoryState() const {
+    return boost::str(boost::format("[%c%c%c%c%c%c] %d") %
+        _tag('M',_cov) % _tag('I',_icov) % _tag('C',_cholesky) % _tag('D',_diag) %
+        _tag('Z',_offdiagIndex) % _tag('V',_offdiagValue) % getMemoryUsage());
+}
+
+char local::CovarianceMatrix::_tag(char symbol, std::vector<double> const &vector) const {
+    if(0 == vector.capacity()) return '-';
+    if(0 == vector.size()) return std::tolower(symbol);
+    return symbol;
+}
+
+bool local::CovarianceMatrix::compress() const {
+    // Are we already compressed?
+    if(_compressed) return false;
+    // Do we still have valid compressed data?
+    if(_diag.empty()) {
+        // Reserve space for the diagonal elements, which cannot be compressed.
+        _diag.reserve(_size);
+        // Prepare to read the inverse covariance and check if anything been allocated yet.
+        if(!_readsICov()) return false;
+        // Loop over the upper-diagonal (row <= col) inverse matrix elements.
+        int index(0);
+        double value;
+        for(int col = 0; col < _size; ++col) {
+            for(int row = 0; row < col; ++row) {
+                if(value = _icov[index]) {
+                    _offdiagIndex.push_back(index);
+                    _offdiagValue.push_back(value);
+                }
+                index++;
+            }
+            _diag.push_back(_icov[index++]);
+        }
+    }
+    // Delete anything we don't need now.
+    if(!_cov.empty()) std::vector<double>().swap(_cov);
+    if(!_icov.empty()) std::vector<double>().swap(_icov);
+    if(!_cholesky.empty()) std::vector<double>().swap(_cholesky);
+    _compressed = true;
+    return true;
+}
+
+void local::CovarianceMatrix::_uncompress() const {
+    // Are we already decompressed?
     if(!_compressed) return;
+    assert(0 == _cov.capacity());
+    assert(0 == _icov.capacity());
+    assert(0 == _cholesky.capacity());
+    // Decompress the inverse covariance matrix.
+    std::vector<double>(_ncov,0).swap(_icov);
+    for(int k = 0; k < _offdiagIndex.size(); ++k) {
+        _icov[_offdiagIndex[k]] = _offdiagValue[k];
+    }
+    for(int k = 0; k < _size; ++k) {
+        _icov[(k*(k+3))/2] = _diag[k];
+    }
+    // Don't delete the uncompressed matrix data in case we can re-use it
+    // because no changes are made before the next call to compress().
     _compressed = false;
 }
 
@@ -91,6 +151,14 @@ void local::invertCholesky(std::vector<double> &matrix, int size) {
 } 
 
 void local::CovarianceMatrix::_changesCov() {
+    _uncompress();
+    // Any cached compressed matrix data is now invalid so delete it.
+    if(!_diag.empty()) {
+        // TODO: use resize(0) instead?
+        std::vector<double>().swap(_diag);
+        std::vector<double>().swap(_offdiagIndex);
+        std::vector<double>().swap(_offdiagValue);
+    }
     // Do we have a matrix to change?
     if(_cov.empty()) {
         // Have we allocated anything yet?
@@ -107,15 +175,29 @@ void local::CovarianceMatrix::_changesCov() {
             // become invalid after we update the the covariance.
             _cov.swap(_icov);
             // Remove any existing Cholesky decomposition since it will become invalid.
+            // TODO: use resize(0) instead here?
             if(!_cholesky.empty()) std::vector<double>().swap(_cholesky);
         }
     }
+    else {
+        // Delete any inverse covariance and Cholesky decomposition.
+        if(!_icov.empty()) std::vector<double>().swap(_icov);
+        if(!_cholesky.empty()) std::vector<double>().swap(_cholesky);
+    }
     assert(!_cov.empty());
-    assert(_icov.empty());
-    assert(_cholesky.empty());
+    assert(0 == _icov.capacity());
+    assert(0 == _cholesky.capacity());
 }
 
 void local::CovarianceMatrix::_changesICov() {
+    _uncompress();
+    // Any cached compressed matrix data is now invalid so delete it.
+    if(!_diag.empty()) {
+        // TODO: use resize(0) instead?
+        std::vector<double>().swap(_diag);
+        std::vector<double>().swap(_offdiagIndex);
+        std::vector<double>().swap(_offdiagValue);
+    }
     // Do we have a matrix to change?
     if(_icov.empty()) {
         // Have we allocated anything yet?
@@ -136,21 +218,22 @@ void local::CovarianceMatrix::_changesICov() {
             if(!_cholesky.empty()) std::vector<double>().swap(_cholesky);
         }
     }
-    assert(_cov.empty());
+    else {
+        // Delete the covariance now in case we had both in memory.
+        if(!_cov.empty()) std::vector<double>().swap(_cov);
+    }
     assert(!_icov.empty());
-    assert(_cholesky.empty());
+    assert(0 == _cov.capacity());
+    assert(0 == _cholesky.capacity());
 }
 
-double local::CovarianceMatrix::getCovariance(int row, int col) const {
-    // Calculate the index corresponding to (row,col). This will throw a RuntimeError
-    // in case of an invalid address, before we go any further.
-    int index(symmetricMatrixIndex(row,col,_size));
+bool local::CovarianceMatrix::_readsCov() const {
+    _uncompress();
     // Do we have a covariance matrix allocated yet?
     if(_cov.empty()) {
         if(_icov.empty()) {
-            // Nothing has been allocated yet, so return zero since that is our
-            // advertised initial state.
-            return 0;
+            // Nothing has been allocated yet.
+            return false;
         }
         else {
             // Try to invert the existing inverse covariance into _cov. This will throw a
@@ -161,19 +244,16 @@ double local::CovarianceMatrix::getCovariance(int row, int col) const {
             invertCholesky(_cov,_size);
         }
     }
-    return _cov[index];
+    return true;
 }
 
-double local::CovarianceMatrix::getInverseCovariance(int row, int col) const {
-    // Calculate the index corresponding to (row,col). This will throw a RuntimeError
-    // in case of an invalid address, before we go any further.
-    int index(symmetricMatrixIndex(row,col,_size));
+bool local::CovarianceMatrix::_readsICov() const {
+    _uncompress();
     // Do we have an inverse covariance matrix allocated yet?
     if(_icov.empty()) {
         if(_cov.empty()) {
-            // Nothing has been allocated yet, so return zero since that is our
-            // advertised initial state.
-            return 0;
+            // Nothing has been allocated yet.
+            return false;
         }
         else {
             // Try to invert the existing covariance into _icov. This will throw a
@@ -184,6 +264,26 @@ double local::CovarianceMatrix::getInverseCovariance(int row, int col) const {
             invertCholesky(_icov,_size);
         }
     }
+    return true;
+}
+
+double local::CovarianceMatrix::getCovariance(int row, int col) const {
+    // Calculate the index corresponding to (row,col). This will throw a RuntimeError
+    // in case of an invalid address, before we go any further.
+    int index(symmetricMatrixIndex(row,col,_size));
+    // Prepare to read from the covariance matrix, and return zero if nothing has
+    // been allocated yet.
+    if(!_readsCov()) return 0;
+    return _cov[index];
+}
+
+double local::CovarianceMatrix::getInverseCovariance(int row, int col) const {
+    // Calculate the index corresponding to (row,col). This will throw a RuntimeError
+    // in case of an invalid address, before we go any further.
+    int index(symmetricMatrixIndex(row,col,_size));
+    // Prepare to read from the inverse covariance matrix, and return zero if nothing has
+    // been allocated yet.
+    if(!_readsICov()) return 0;
     return _icov[index];
 }
 
