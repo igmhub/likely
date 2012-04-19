@@ -77,26 +77,32 @@ boost::shared_array<double> local::allocateAlignedDoubleArray(std::size_t size) 
     return boost::shared_array<double>(dbuffer,std::ptr_fun(free));
 }
 
-void local::Random::fillArrayUniform(double *array, std::size_t size, int seed) {
+boost::shared_array<double> local::Random::fillArrayUniform(std::size_t nrandom, int seed) {
     assert(sizeof(double) == sizeof(uint64_t));
-    if(size % 2) {
-        throw RuntimeError("Random::fillArrayUniform: array is not 128-bit aligned.");
+    if(nrandom % 2) {
+        throw RuntimeError("Random::fillArrayUniform: nrandom is not a multiple of 2.");
     }
-    if(size < N64) {
-        throw RuntimeError("Random::fillArrayUniform: array size < " +
+    if(nrandom < N64) {
+        throw RuntimeError("Random::fillArrayUniform: nrandom < " +
             boost::lexical_cast<std::string>(N64));
     }
-    if(seed) init_gen_rand(seed);
+    // Set the random seed.
+    init_gen_rand(seed);
     if(!initialized || idx != N32) {
         throw RuntimeError("Random::fillArrayUniform: must use seed > 0.");
     }
-    gen_rand_array((w128_t *)array, size / 2);
+    // Allocate the shared array
+    boost::shared_array<double> sarray = allocateAlignedDoubleArray(nrandom);
+    double *array = sarray.get();
+    // Generate the random numbers
+    gen_rand_array((w128_t *)array, nrandom / 2);
     idx = N32;
 #if defined(BIG_ENDIAN64)
-    swap((w128_t *)array, size /2);
+    swap((w128_t *)array, nrandom /2);
 #endif
     uint64_t *ptr((uint64_t*)array);
-    for(int i = 0; i < size; ++i) array[i] = to_res53(*ptr++);
+    for(int i = 0; i < nrandom; ++i) array[i] = to_res53(*ptr++);
+    return sarray;
 }
 
 /* position of right-most step */

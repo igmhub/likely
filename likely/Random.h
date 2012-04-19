@@ -21,10 +21,10 @@ namespace likely {
         // Returns a single-precision value uniformly sampled from [0,1) using
         // an inline coding of SFMT (http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT/)
         float getFastUniform();
-        // Fills the specified array with double-precision values uniformly sampled from [0,1)
+        // Returns a shared array filled with double-precision values uniformly sampled from [0,1)
         // using the specified seed (that is independent of the seed used by getUniform and
-        // getNormal).
-        static void fillArrayUniform(double *array, std::size_t size, int seed);
+        // getNormal). The number nrandom of numbers generated must be a multiple of 2 that is >= 312.
+        static boost::shared_array<double> fillArrayUniform(std::size_t nrandom, int seed);
         // Returns a shared array filled with single-precision values normally distributed with
         // mean 0 and RMS 1 using the specified seed (that is independent of the seed used
         // by getUniform and getNormal). The number nrandom of numbers generated must be a
