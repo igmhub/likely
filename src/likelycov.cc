@@ -59,5 +59,7 @@ int main(int argc, char **argv) {
     cov.compress();
     std::cout << cov.getMemoryState() << std::endl;
     
-    
+    std::vector<double> residuals;
+    cov.sample(10,residuals);
+    std::cout << cov.getMemoryState() << std::endl;    
 }

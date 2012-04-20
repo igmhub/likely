@@ -2,6 +2,7 @@
 
 #include "likely/CovarianceMatrix.h"
 #include "likely/RuntimeError.h"
+#include "likely/Random.h"
 
 #include "boost/format.hpp"
 
@@ -28,7 +29,7 @@ extern "C" {
 namespace local = likely;
 
 local::CovarianceMatrix::CovarianceMatrix(int size)
-: _size(size), _compressed(false)
+: _size(size), _compressed(false), _nextSeed(0)
 {
     if(size <= 0) {
         throw RuntimeError("CovarianceMatrix: expected size > 0.");
@@ -339,4 +340,26 @@ double local::CovarianceMatrix::chiSquare(std::vector<double> const &delta) cons
         result += delta[k]*icovDelta[k];
     }
     return result;
+}
+
+void local::CovarianceMatrix::sample(int nsample, std::vector<double> &residuals) const {
+    if(nsample <= 0) {
+        throw RuntimeError("CovarianceMatrix: expected nsample > 0.");
+    }
+    // Make sure we have a Cholesky decomposition available.
+    if(_cholesky.empty()) {
+        _readsCov();
+        _cholesky = _cov;
+        choleskyDecompose(_cholesky);
+    }
+    // Allocate a temporary array to hold double-precision normally distributed random numbers.
+    std::size_t nrandom(nsample*_size), ngen(nrandom);
+    boost::shared_array<double> randomBuffer = Random::fillDoubleArrayNormal(ngen,++_nextSeed);
+    // Make sure that the output vector is "empty" but has sufficient capacity.
+    residuals.resize(0);
+    residuals.reserve(nrandom);
+    // Loop over samples.
+    for(int k = 0; k < nsample; ++k) {
+        
+    }
 }

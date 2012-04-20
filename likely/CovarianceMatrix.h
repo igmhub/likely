@@ -27,12 +27,16 @@ namespace likely {
         // row != col will also set the symmetric element in the matrix.
         void setCovariance(int row, int col, double value);
         void setInverseCovariance(int row, int col, double value);
-        // Multiplies the specified vector by the inverse covariance in place or throws
-        // a RuntimeError. The result is stored in the input vector.
+        // Multiplies the specified vector by the inverse covariance or throws a RuntimeError.
+        // The result is stored in the input vector, overwriting its original contents.
         void multiplyByInverseCovariance(std::vector<double> &vector) const;
         // Calculates the chi-square = delta.Cinv.delta for the specified residuals vector delta
         // or throws a RuntimeError.
         double chiSquare(std::vector<double> const &delta) const;
+        // Generates the specified number of random residuals vectors by sampling the Gaussian
+        // probability density implied by this object, or throws a RuntimeError. The generated
+        // vectors are packed into the input vector, which will be resized to nsample*getSize().
+        void sample(int nsample, std::vector<double> &residuals) const;
         // Requests that this covariance matrix be compressed to reduce its memory usage,
         // if possible. Returns immediately if we are already compressed. Any compression
         // is lossless. The next call to any method except getSize(), compress(), or
@@ -42,7 +46,7 @@ namespace likely {
         // Returns true if this covariance matrix is currently compressed.
         bool isCompressed() const;
         // Returns the memory usage of this object.
-        size_t getMemoryUsage() const;
+        std::size_t getMemoryUsage() const;
         // Returns a string describing this object's internal state in the form
         // 
         // [MICDZV] nnnnnnn
@@ -89,6 +93,8 @@ namespace likely {
         // compression replaces _cov, _icov, _cholesky with the following
         // smaller vectors, that encode the inverse covariance matrix (_icov not _cov).
         mutable std::vector<double> _diag, _offdiagIndex, _offdiagValue;
+        // keep a random seed counter used by sample()
+        mutable int _nextSeed;
 	}; // CovarianceMatrix
 	
     inline int CovarianceMatrix::getSize() const { return _size; }
