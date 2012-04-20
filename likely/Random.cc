@@ -8,8 +8,8 @@
 #include "boost/random/variate_generator.hpp"
 #include "boost/lexical_cast.hpp"
 
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
 #include <string>
 
 #include "config.h" // defines HAVE_SSE2 when appropriate, thanks to the AX_EXT m4 macro
@@ -79,7 +79,8 @@ boost::shared_array<double> local::allocateAlignedDoubleArray(std::size_t size) 
     return boost::shared_array<double>(dbuffer,std::ptr_fun(free));
 }
 
-void local::Random::_initializeFill(std::size_t nrandom, int seed, int stride, int minimum) {
+void local::Random::_initializeFill(void *array, std::size_t nrandom,
+int seed, int stride, int minimum) {
     if(nrandom % stride) {
         throw RuntimeError("Random: nrandom is not a multiple of " +
             boost::lexical_cast<std::string>(stride));
@@ -92,65 +93,44 @@ void local::Random::_initializeFill(std::size_t nrandom, int seed, int stride, i
     init_gen_rand(seed);
     if(!initialized || idx != N32) {
         throw RuntimeError("Random: init_gen_rand failed.");
-    }    
+    }
+    gen_rand_array((w128_t *)array, nrandom/stride);
+    idx = N32;
 }
 
 boost::shared_array<double> local::Random::fillDoubleArrayUniform(std::size_t nrandom, int seed) {
-    _initializeFill(nrandom,seed,2,N64);
-    /*
-    if(nrandom % 2) {
-        throw RuntimeError("Random::fillDoubleArrayUniform: nrandom is not a multiple of 2.");
-    }
-    if(nrandom < N64) {
-        throw RuntimeError("Random::fillDoubleArrayUniform: nrandom < " +
-            boost::lexical_cast<std::string>(N64));
-    }
-    // Set the random seed.
-    init_gen_rand(seed);
-    if(!initialized || idx != N32) {
-        throw RuntimeError("Random::fillDoubleArrayUniform: must use seed > 0.");
-    }
-    */
     // Allocate the shared array
     boost::shared_array<double> sarray = allocateAlignedDoubleArray(nrandom);
     double *array = sarray.get();
-    // Generate the random numbers
-    gen_rand_array((w128_t *)array, nrandom / 2);
-    idx = N32;
+    _initializeFill((w128_t *)array,nrandom,seed,2,N64);
 #if defined(BIG_ENDIAN64)
     swap((w128_t *)array, nrandom /2);
 #endif
     uint64_t *ptr((uint64_t*)array);
-    for(int i = 0; i < nrandom; ++i) array[i] = to_res53(*ptr++);
+    for(int i = 0; i < nrandom; ++i) {
+        array[i] = to_res53(*ptr++);
+    }
     return sarray;
 }
 
 boost::shared_array<double> local::Random::fillDoubleArrayNormal(std::size_t nrandom, int seed) {
-    return boost::shared_array<double>();
+    // Allocate the shared array
+    boost::shared_array<double> sarray = allocateAlignedDoubleArray(nrandom);
+    double *array = sarray.get();
+    // Generate random integers in the second half of our array.
+    uint32_t *ptr((uint32_t*)(array+nrandom/2));
+    _initializeFill((w128_t *)ptr,nrandom,seed,4,N32);
+    for(int index = 0; index < nrandom; ++index) {
+        array[index] = _zigguratConvert(*ptr++);
+    }
+    return sarray;
 }
 
 boost::shared_array<float> local::Random::fillFloatArrayNormal(std::size_t nrandom, int seed) {
-    _initializeFill(nrandom,seed,4,N32);
-    /*
-    if(nrandom % 4) {
-        throw RuntimeError("Random::fillFloatArrayNormal: nrandom is not a multiple of 4.");
-    }
-    if(nrandom < N32) {
-        throw RuntimeError("Random::fillFloatArrayNormal: nrandom < " +
-            boost::lexical_cast<std::string>(N32));
-    }
-    // Set the random seed
-    init_gen_rand(seed);
-    if(!initialized || idx != N32) {
-        throw RuntimeError("Random::fillFloatArrayNormal: init_gen_rand failed.");
-    }
-    */
     // Allocate the shared array
     boost::shared_array<float> sarray = allocateAlignedFloatArray(nrandom);
     float *array = sarray.get();
-    // Generate the random numbers
-    gen_rand_array((w128_t *)array, nrandom / 4);
-    idx = N32;
+    _initializeFill((w128_t *)array,nrandom,seed,4,N32);
     uint32_t *ptr((uint32_t*)array);
     for(int index = 0; index < nrandom; ++index) {
         array[index] = (float)_zigguratConvert(*ptr++);

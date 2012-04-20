@@ -48,22 +48,40 @@ int main(int argc, char **argv) {
     BENCHMARK_LOOP(getNormal);
     BENCHMARK_LOOP(getFastUniform);
 
-    boost::shared_array<double> dbuffer;
-    BENCHMARK_ASSIGN(dbuffer,fillDoubleArrayUniform,(repeat,123));
-    
-    boost::shared_array<float> fbuffer;
-    BENCHMARK_ASSIGN(fbuffer,fillFloatArrayNormal,(repeat,123));
-
-    lk::WeightedAccumulator stats;
-    lk::QuantileAccumulator median, sigma(1-0.5*0.317310508);
-    for(int i = 0; i < repeat; ++i) {
-        double value(fbuffer[i]);
-        if(i < 10) std::cout << i << ' ' << value << std::endl;
-        stats.accumulate(value);
-        median.accumulate(value);
-        sigma.accumulate(value);
+    {
+        boost::shared_array<double> dbuffer;
+        BENCHMARK_ASSIGN(dbuffer,fillDoubleArrayUniform,(repeat,123));
+    }    
+    {
+        boost::shared_array<float> fbuffer;
+        BENCHMARK_ASSIGN(fbuffer,fillFloatArrayNormal,(repeat,123));
+        lk::WeightedAccumulator stats;
+        lk::QuantileAccumulator median, sigma(1-0.5*0.317310508);
+        for(int i = 0; i < repeat; ++i) {
+            double value(fbuffer[i]);
+            if(i < 10) std::cout << i << ' ' << value << std::endl;
+            stats.accumulate(value);
+            median.accumulate(value);
+            sigma.accumulate(value);
+        }
+        std::cout << "mean = " << stats.mean() << ", variance = " << stats.variance() << std::endl;
+        std::cout << "median = " << median.getQuantile() << ", 1-sigma quantile = "
+            << sigma.getQuantile() << std::endl;
     }
-    std::cout << "mean = " << stats.mean() << ", variance = " << stats.variance() << std::endl;
-    std::cout << "median = " << median.getQuantile() << ", 1-sigma quantile = "
-        << sigma.getQuantile() << std::endl;
+    {
+        boost::shared_array<double> dbuffer;
+        BENCHMARK_ASSIGN(dbuffer,fillDoubleArrayNormal,(repeat,123));
+        lk::WeightedAccumulator stats;
+        lk::QuantileAccumulator median, sigma(1-0.5*0.317310508);
+        for(int i = 0; i < repeat; ++i) {
+            double value(dbuffer[i]);
+            if(i < 10) std::cout << i << ' ' << value << std::endl;
+            stats.accumulate(value);
+            median.accumulate(value);
+            sigma.accumulate(value);
+        }
+        std::cout << "mean = " << stats.mean() << ", variance = " << stats.variance() << std::endl;
+        std::cout << "median = " << median.getQuantile() << ", 1-sigma quantile = "
+            << sigma.getQuantile() << std::endl;
+    }
 }

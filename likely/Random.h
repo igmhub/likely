@@ -40,7 +40,8 @@ namespace likely {
         static Random &instance();
 	private:
 	    // Performs common initialization for the fillXArrayY methods.
-        static void _initializeFill(std::size_t nrandom, int seed, int stride, int minimum);
+        static void _initializeFill(void *array, std::size_t nrandom,
+            int seed, int stride, int minimum);
         // Converts a random 32-bit unsigned integer into a normally distributed double. Note that
         // the result does not have a full 64 bits of randomness. Uses the Ziggurat algorithm
         // described at http://www.seehuhn.de/pages/ziggurat. A small fraction of the time,
