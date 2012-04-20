@@ -79,30 +79,38 @@ boost::shared_array<double> local::allocateAlignedDoubleArray(std::size_t size) 
     return boost::shared_array<double>(dbuffer,std::ptr_fun(free));
 }
 
-void local::Random::_initializeFill(void *array, std::size_t nrandom,
+std::size_t local::Random::_initializeFill(std::size_t nrandom,
 int seed, int stride, int minimum) {
-    if(nrandom % stride) {
-        throw RuntimeError("Random: nrandom is not a multiple of " +
-            boost::lexical_cast<std::string>(stride));
+    if(nrandom <= 0) {
+        throw RuntimeError("Random: expected nrandom > 0.");
     }
-    if(nrandom < minimum) {
-        throw RuntimeError("Random: expected nrandom >= " +
-            boost::lexical_cast<std::string>(minimum));
+    // Increase the number generated?
+    std::size_t ngen(nrandom);
+    if(ngen < minimum) {
+        // Round up to the minimum size.
+        ngen = minimum;
+    }
+    else if(ngen % stride) {
+        // Round up for alignment.
+        ngen += stride - (ngen % stride);
     }
     // Set the random seed.
     init_gen_rand(seed);
     if(!initialized || idx != N32) {
         throw RuntimeError("Random: init_gen_rand failed.");
     }
-    gen_rand_array((w128_t *)array, nrandom/stride);
-    idx = N32;
+    return ngen;
 }
 
 boost::shared_array<double> local::Random::fillDoubleArrayUniform(std::size_t nrandom, int seed) {
-    // Allocate the shared array
-    boost::shared_array<double> sarray = allocateAlignedDoubleArray(nrandom);
+    // Get the number of random 64-bit integers to generate.
+    std::size_t ngen = _initializeFill(nrandom,seed,2,N64);
+    // Allocate the shared array.
+    boost::shared_array<double> sarray = allocateAlignedDoubleArray(ngen);
     double *array = sarray.get();
-    _initializeFill((w128_t *)array,nrandom,seed,2,N64);
+    // Fill the array with random bits.
+    gen_rand_array((w128_t *)array, ngen/2);
+    idx = N32;
 #if defined(BIG_ENDIAN64)
     swap((w128_t *)array, nrandom /2);
 #endif
@@ -114,12 +122,30 @@ boost::shared_array<double> local::Random::fillDoubleArrayUniform(std::size_t nr
 }
 
 boost::shared_array<double> local::Random::fillDoubleArrayNormal(std::size_t nrandom, int seed) {
-    // Allocate the shared array
+    // Round nrandom up to an even number to simplify alignment issues.
+    if(nrandom % 2) nrandom++;
+    // Get the number of random 32-bit integers to generate.
+    std::size_t ngen = _initializeFill(nrandom,seed,4,N32);
+    // Will this fit within an array of nrandom doubles? Ensure that nrandom >= ngen/2.
+    if(ngen > 2*nrandom) nrandom = ngen/2;
+    // Allocate the shared array with enough space for ngen quad-aligned 32-bit random integers
+    // and nrandom 64-bit doubles.
     boost::shared_array<double> sarray = allocateAlignedDoubleArray(nrandom);
     double *array = sarray.get();
-    // Generate random integers in the second half of our array.
-    uint32_t *ptr((uint32_t*)(array+nrandom/2));
-    _initializeFill((w128_t *)ptr,nrandom,seed,4,N32);
+    // Calculate the 64-bit offset for filling the array in the top of the output array.
+    int offset = nrandom - ngen/2;
+    // Fill the array with random bits.
+    gen_rand_array((w128_t *)(array+offset), ngen/4);
+    idx = N32;    
+    // Calculate where to start reading the 32-bit random integers so we will not
+    // overwrite them as we save the new double values. Step n involves reading the next
+    // 32-bit int from [offset+n] and writing the new double into [2n] and [2n+1], so
+    // we require that the next 32-bit int not be clobbered, i.e., offset+n+1 > 2n+1,
+    // or simply offset > n for all n. Since n covers the range 0..(nrandom-1), take
+    // offset = nrandom. This will always fit since it is a 32-bit offset and the array
+    // has space for at least nrandom 64-bit doubles.
+    uint32_t *ptr((uint32_t*)array+nrandom);
+    // Read random integers and convert them to normally distributed doubles.
     for(int index = 0; index < nrandom; ++index) {
         array[index] = _zigguratConvert(*ptr++);
     }
@@ -127,10 +153,15 @@ boost::shared_array<double> local::Random::fillDoubleArrayNormal(std::size_t nra
 }
 
 boost::shared_array<float> local::Random::fillFloatArrayNormal(std::size_t nrandom, int seed) {
+    // Get the number of random 32-bit integers to generate.
+    std::size_t ngen = _initializeFill(nrandom,seed,4,N32);
     // Allocate the shared array
-    boost::shared_array<float> sarray = allocateAlignedFloatArray(nrandom);
+    boost::shared_array<float> sarray = allocateAlignedFloatArray(ngen);
     float *array = sarray.get();
-    _initializeFill((w128_t *)array,nrandom,seed,4,N32);
+    // Fill the array with random bits.
+    gen_rand_array((w128_t *)array, ngen/4);
+    idx = N32;
+    // Read random integers and convert them to normally distributed floats.
     uint32_t *ptr((uint32_t*)array);
     for(int index = 0; index < nrandom; ++index) {
         array[index] = (float)_zigguratConvert(*ptr++);

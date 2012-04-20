@@ -21,16 +21,17 @@ namespace likely {
         // Returns a single-precision value uniformly sampled from [0,1) using
         // an inline coding of SFMT (http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT/)
         float getFastUniform();
-        // Returns a shared array filled with double-precision values uniformly sampled from [0,1)
-        // using the specified seed (that is independent of the seed used by getUniform and
-        // getNormal). The number nrandom of numbers generated must be a multiple of 2 that is >= 312.
+        // Returns a shared array filled with at least nrandom double-precision values uniformly
+        // sampled from [0,1) using the specified seed (that is independent of the seed used by
+        // getUniform and getNormal). The returned array size will be a multiple of 2 and >= 312.
         static boost::shared_array<double> fillDoubleArrayUniform(std::size_t nrandom, int seed);
-        // Returns a shared array filled with double-precision values normally distributed with
-        // mean 0 and RMS 1 using the specified seed (that is independent of the seed used
-        // by getUniform and getNormal). The number nrandom of numbers generated must be a
-        // multiple of 4 that is >= 624.
+        // Returns a shared array filled with at least nrandom double-precision values normally
+        // distributed with mean 0 and RMS 1 using the specified seed (that is independent of the
+        // seed used by getUniform and getNormal). The return array size will be a multiple of 4
+        // and >= 624.
         static boost::shared_array<double> fillDoubleArrayNormal(std::size_t nrandom, int seed);
-        // Returns the same values as fillDoubleArrayNormal, but with each value truncated to a float.
+        // Returns the same values as fillDoubleArrayNormal, but with each value truncated to
+        // a float.
         static boost::shared_array<float> fillFloatArrayNormal(std::size_t nrandom, int seed);        
         // Returns a reference to this object's internal generator, so that it
         // can be used for other distributions. This should only be used on the
@@ -39,9 +40,9 @@ namespace likely {
         // Returns the global shared Random instance.
         static Random &instance();
 	private:
-	    // Performs common initialization for the fillXArrayY methods.
-        static void _initializeFill(void *array, std::size_t nrandom,
-            int seed, int stride, int minimum);
+	    // Performs common initialization for the fillXArrayY methods and returns the actual
+	    // array size to allocate for filling, which will be >= nrandom.
+        static std::size_t _initializeFill(std::size_t nrandom, int seed, int stride, int minimum);
         // Converts a random 32-bit unsigned integer into a normally distributed double. Note that
         // the result does not have a full 64 bits of randomness. Uses the Ziggurat algorithm
         // described at http://www.seehuhn.de/pages/ziggurat. A small fraction of the time,
