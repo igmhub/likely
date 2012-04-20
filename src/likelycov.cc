@@ -58,8 +58,23 @@ int main(int argc, char **argv) {
 
     cov.compress();
     std::cout << cov.getMemoryState() << std::endl;
-    
-    std::vector<double> residuals;
-    cov.sample(10,residuals);
-    std::cout << cov.getMemoryState() << std::endl;    
+
+    // Test random sampling...
+    cov.setCovariance(0,0,1);
+    cov.setCovariance(1,1,1);
+    cov.setCovariance(2,2,1);
+    cov.setCovariance(0,1,0.5);
+    cov.setCovariance(0,2,0.5);
+    cov.setCovariance(1,2,0.5);
+    std::cout << cov.getMemoryState() << std::endl;
+
+    int nsample(10);
+    boost::shared_array<double> residuals = cov.sample(nsample);
+    for(int row = 0; row < nsample; ++row) {
+        for(int col = 0; col < size; ++col) {
+            std::cout << ' ' << residuals[size*row + col];
+        }
+        std::cout << std::endl;
+    }
+    std::cout << cov.getMemoryState() << std::endl;
 }

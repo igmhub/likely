@@ -9,8 +9,6 @@
 #include <cassert>
 #include <cmath>
 
-#include <iostream>
-
 // Declare bindings to BLAS,LAPACK routines we need
 extern "C" {
     // http://www.netlib.org/lapack/double/dpptrf.f
@@ -20,10 +18,10 @@ extern "C" {
     // http://netlib.org/blas/dspmv.f
     void dspmv_(char const *uplo, int const *n, double const *alpha, double const *ap,
         double const *x, int const *incx, double const *beta, double *y, int const *incy);
-    // http://www.netlib.org/blas/dsymm.f
-    void dsymm_(char const *side, char const *uplo, int const *m, int const *n,
-        double const *alpha, double const *a, int const *lda, double const *b,
-        int const *ldb, double const *beta, double *c, int const *ldc);
+    // http://www.netlib.org/blas/dtrmm.f
+    void dtrmm_(char const *side, char const *uplo, char const *transa, const char *diag,
+        int const *m, int const *n, double const *alpha, double const *a, int const *lda,
+        double *b, int const *ldb);        
 }
 
 namespace local = likely;
@@ -123,7 +121,6 @@ int local::symmetricMatrixSize(int nelem) {
     if(nelem != (size*(size+1))/2) {
         throw RuntimeError("symmetricMatrixSize: invalid number of elements.");
     }
-    std::cout << "size = " << size << std::endl;
     return size;
 }
 
@@ -132,7 +129,6 @@ void local::choleskyDecompose(std::vector<double> &matrix, int size) {
     static int info(0);
     if(0 == size) size = symmetricMatrixSize(matrix.size());
     dpptrf_(&uplo,&size,&matrix[0],&info);
-    std::cout << "Cholesky = " << info << std::endl;
     if(0 != info) {
         info = 0;
         throw RuntimeError("choleskyDecomposition: matrix is not positive definite.");
@@ -143,7 +139,6 @@ void local::invertCholesky(std::vector<double> &matrix, int size) {
     static char uplo('U');
     static int info(0);
     if(0 == size) size = symmetricMatrixSize(matrix.size());
-    std::cout << "Invert = " << info << std::endl;
     dpptri_(&uplo,&size,&matrix[0],&info);
     if(0 != info) {
         info = 0;
@@ -342,24 +337,39 @@ double local::CovarianceMatrix::chiSquare(std::vector<double> const &delta) cons
     return result;
 }
 
-void local::CovarianceMatrix::sample(int nsample, std::vector<double> &residuals) const {
+boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int seed) const {
     if(nsample <= 0) {
         throw RuntimeError("CovarianceMatrix: expected nsample > 0.");
     }
-    // Make sure we have a Cholesky decomposition available.
+    // Make sure we have a packed Cholesky decomposition available.
     if(_cholesky.empty()) {
         _readsCov();
         _cholesky = _cov;
-        choleskyDecompose(_cholesky);
+        choleskyDecompose(_cholesky,_size);
     }
-    // Allocate a temporary array to hold double-precision normally distributed random numbers.
+    // Temporarily transpose and expand the packed Cholesky matrix.
+    boost::shared_array<double> expanded(new double[_size*_size]);
+    double *ptr(&_cholesky[0]);
+    for(int col = 0; col < _size; ++col) {
+        for(int row = 0; row <= col; ++row) {
+            // BLAS expects column-major ordering, i.e., with row increasing fastest.
+            // Since we are transposing, col increases fastest here. We do not need to
+            // initialize the upper diagonal elements since they will never be used.
+            expanded[row*_size + col] = *ptr++;
+        }
+    }
+    // Generate double-precision normally distributed (but uncorrelated) random numbers.
     std::size_t nrandom(nsample*_size), ngen(nrandom);
-    boost::shared_array<double> randomBuffer = Random::fillDoubleArrayNormal(ngen,++_nextSeed);
-    // Make sure that the output vector is "empty" but has sufficient capacity.
-    residuals.resize(0);
-    residuals.reserve(nrandom);
-    // Loop over samples.
-    for(int k = 0; k < nsample; ++k) {
-        
-    }
+    if(0 == seed) seed = ++_nextSeed;
+    boost::shared_array<double> array = Random::fillDoubleArrayNormal(ngen,seed);
+    // Consider this array to be a rectangular matrix M of dimensions _size x nsample and
+    // calculate (expanded).(M) to obtain a new matrix of dimensions _size x nsample
+    // containing correlated residual vectors of length _size in each of its nsample columns.
+    // The column-major ordering of BLAS means that the transformed residuals vectors
+    // will be consecutive in memory.
+    double alpha(1);
+    char side = 'L', uplo = 'L', transa = 'N', diag = 'N';
+    dtrmm_(&side,&uplo,&transa,&diag,&_size,&nsample,&alpha,
+        expanded.get(),&_size,array.get(),&_size);
+    return array;
 }
