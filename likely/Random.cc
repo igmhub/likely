@@ -68,29 +68,49 @@ void *local::allocateAlignedArray(std::size_t byteSize) {
 }
 
 boost::shared_array<float> local::allocateAlignedFloatArray(std::size_t size) {
+    assert(sizeof(float) == sizeof(uint32_t));
     float *fbuffer = (float*)allocateAlignedArray(size*sizeof(uint32_t));
     return boost::shared_array<float>(fbuffer,std::ptr_fun(free));
 }
 
 boost::shared_array<double> local::allocateAlignedDoubleArray(std::size_t size) {
+    assert(sizeof(double) == sizeof(uint64_t));
     double *dbuffer = (double*)allocateAlignedArray(size*sizeof(uint64_t));
     return boost::shared_array<double>(dbuffer,std::ptr_fun(free));
 }
 
-boost::shared_array<double> local::Random::fillArrayUniform(std::size_t nrandom, int seed) {
-    assert(sizeof(double) == sizeof(uint64_t));
+void local::Random::_initializeFill(std::size_t nrandom, int seed, int stride, int minimum) {
+    if(nrandom % stride) {
+        throw RuntimeError("Random: nrandom is not a multiple of " +
+            boost::lexical_cast<std::string>(stride));
+    }
+    if(nrandom < minimum) {
+        throw RuntimeError("Random: expected nrandom >= " +
+            boost::lexical_cast<std::string>(minimum));
+    }
+    // Set the random seed.
+    init_gen_rand(seed);
+    if(!initialized || idx != N32) {
+        throw RuntimeError("Random: init_gen_rand failed.");
+    }    
+}
+
+boost::shared_array<double> local::Random::fillDoubleArrayUniform(std::size_t nrandom, int seed) {
+    _initializeFill(nrandom,seed,2,N64);
+    /*
     if(nrandom % 2) {
-        throw RuntimeError("Random::fillArrayUniform: nrandom is not a multiple of 2.");
+        throw RuntimeError("Random::fillDoubleArrayUniform: nrandom is not a multiple of 2.");
     }
     if(nrandom < N64) {
-        throw RuntimeError("Random::fillArrayUniform: nrandom < " +
+        throw RuntimeError("Random::fillDoubleArrayUniform: nrandom < " +
             boost::lexical_cast<std::string>(N64));
     }
     // Set the random seed.
     init_gen_rand(seed);
     if(!initialized || idx != N32) {
-        throw RuntimeError("Random::fillArrayUniform: must use seed > 0.");
+        throw RuntimeError("Random::fillDoubleArrayUniform: must use seed > 0.");
     }
+    */
     // Allocate the shared array
     boost::shared_array<double> sarray = allocateAlignedDoubleArray(nrandom);
     double *array = sarray.get();
@@ -105,62 +125,69 @@ boost::shared_array<double> local::Random::fillArrayUniform(std::size_t nrandom,
     return sarray;
 }
 
-/* position of right-most step */
-#define PARAM_R 3.44428647676
+boost::shared_array<double> local::Random::fillDoubleArrayNormal(std::size_t nrandom, int seed) {
+    return boost::shared_array<double>();
+}
 
-boost::shared_array<float> local::Random::fillArrayNormal(std::size_t nrandom, int seed) {
-    assert(sizeof(float) == sizeof(uint32_t));
+boost::shared_array<float> local::Random::fillFloatArrayNormal(std::size_t nrandom, int seed) {
+    _initializeFill(nrandom,seed,4,N32);
+    /*
     if(nrandom % 4) {
-        throw RuntimeError("Random::fillArrayNormal: nrandom is not a multiple of 4.");
+        throw RuntimeError("Random::fillFloatArrayNormal: nrandom is not a multiple of 4.");
     }
     if(nrandom < N32) {
-        throw RuntimeError("Random::fillArrayNormal: nrandom < " +
+        throw RuntimeError("Random::fillFloatArrayNormal: nrandom < " +
             boost::lexical_cast<std::string>(N32));
     }
     // Set the random seed
     init_gen_rand(seed);
     if(!initialized || idx != N32) {
-        throw RuntimeError("Random::fillArrayNormal: init_gen_rand failed.");
+        throw RuntimeError("Random::fillFloatArrayNormal: init_gen_rand failed.");
     }
+    */
     // Allocate the shared array
     boost::shared_array<float> sarray = allocateAlignedFloatArray(nrandom);
     float *array = sarray.get();
     // Generate the random numbers
     gen_rand_array((w128_t *)array, nrandom / 4);
     idx = N32;
-    // Convert each 32-bit integer to a normally-distributed float using the ziggurat
-    // algorithm described at http://www.seehuhn.de/pages/ziggurat
     uint32_t *ptr((uint32_t*)array);
-    uint32_t U,i,j,sign;
-    double x, y;
     for(int index = 0; index < nrandom; ++index) {
-        U = *ptr++;
-        while(1) {
-            i = U & 0x0000007F;		/* 7 bit to choose the step */
-            sign = U & 0x00000080;	/* 1 bit for the sign */
-            j = U>>8;   		    /* 24 bit for the x-value */
-
-            x = j*_ziggurat_wtab[i];
-            if (j < _ziggurat_ktab[i])  break;
-
-            if (i<127) {
-                double  y0, y1;
-                y0 = _ziggurat_ytab[i];
-                y1 = _ziggurat_ytab[i+1];
-                y = y1+(y0-y1)*genrand_res53();
-            }
-            else {
-                x = PARAM_R - std::log(1.0-genrand_res53())/PARAM_R;
-                y = std::exp(-PARAM_R*(x-0.5*PARAM_R))*genrand_res53();
-            }
-            if (y < std::exp(-0.5*x*x))  break;
-            // If we get here, we need a new 32-bit random number in U.
-            // We actually generate a 64-bit random integer to stay in synch.
-            U = gen_rand64() & 0xffffffff;
-        }
-        array[index] = sign ? (float)(+x) : (float)(-x);
+        array[index] = (float)_zigguratConvert(*ptr++);
     }
     return sarray;
+}
+
+/* position of right-most step */
+#define PARAM_R 3.44428647676
+
+double local::Random::_zigguratConvert(uint32_t U) {
+    uint32_t i,j,sign;
+    double x, y;
+    while(1) {
+        i = U & 0x0000007F;		/* 7 bit to choose the step */
+        sign = U & 0x00000080;	/* 1 bit for the sign */
+        j = U>>8;   		    /* 24 bit for the x-value */
+
+        x = j*_ziggurat_wtab[i];
+        if (j < _ziggurat_ktab[i])  break;
+
+        if (i<127) {
+            double  y0, y1;
+            y0 = _ziggurat_ytab[i];
+            y1 = _ziggurat_ytab[i+1];
+            y = y1+(y0-y1)*genrand_res53();
+        }
+        else {
+            x = PARAM_R - std::log(1.0-genrand_res53())/PARAM_R;
+            y = std::exp(-PARAM_R*(x-0.5*PARAM_R))*genrand_res53();
+        }
+        if (y < std::exp(-0.5*x*x))  break;
+        // If we get here, we need a new 32-bit random number in U.
+        // We actually generate a 64-bit random integer to stay in synch.
+        U = gen_rand64() & 0xffffffff;
+    }
+    return sign ? +x : -x;
 }
 
 /* tabulated values for the heigt of the Ziggurat levels */

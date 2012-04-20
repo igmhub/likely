@@ -37,7 +37,7 @@ double elapsed(struct rusage const &before, struct rusage const &after) {
 int main(int argc, char **argv) {
     double rval;
     struct rusage before,after;
-    boost::format results("%20s: %6.3f nanosecs/call\n");
+    boost::format results("%22s: %6.3f nanosecs/call\n");
     int repeat(1<<24); //  = 16M
     std::cout << "Testing generation of " << repeat << " random numbers." << std::endl;
     
@@ -49,10 +49,10 @@ int main(int argc, char **argv) {
     BENCHMARK_LOOP(getFastUniform);
 
     boost::shared_array<double> dbuffer;
-    BENCHMARK_ASSIGN(dbuffer,fillArrayUniform,(repeat,123));
+    BENCHMARK_ASSIGN(dbuffer,fillDoubleArrayUniform,(repeat,123));
     
     boost::shared_array<float> fbuffer;
-    BENCHMARK_ASSIGN(fbuffer,fillArrayNormal,(repeat,123));
+    BENCHMARK_ASSIGN(fbuffer,fillFloatArrayNormal,(repeat,123));
 
     lk::WeightedAccumulator stats;
     lk::QuantileAccumulator median, sigma(1-0.5*0.317310508);
