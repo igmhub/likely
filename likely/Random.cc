@@ -102,14 +102,14 @@ int seed, int stride, int minimum) {
     return ngen;
 }
 
-boost::shared_array<double> local::Random::fillDoubleArrayUniform(std::size_t nrandom, int seed) {
+boost::shared_array<double> local::Random::fillDoubleArrayUniform(std::size_t &nrandom, int seed) {
     // Get the number of random 64-bit integers to generate.
-    std::size_t ngen = _initializeFill(nrandom,seed,2,N64);
+    nrandom = _initializeFill(nrandom,seed,2,N64);
     // Allocate the shared array.
-    boost::shared_array<double> sarray = allocateAlignedDoubleArray(ngen);
+    boost::shared_array<double> sarray = allocateAlignedDoubleArray(nrandom);
     double *array = sarray.get();
     // Fill the array with random bits.
-    gen_rand_array((w128_t *)array, ngen/2);
+    gen_rand_array((w128_t *)array, nrandom/2);
     idx = N32;
 #if defined(BIG_ENDIAN64)
     swap((w128_t *)array, nrandom /2);
@@ -121,7 +121,7 @@ boost::shared_array<double> local::Random::fillDoubleArrayUniform(std::size_t nr
     return sarray;
 }
 
-boost::shared_array<double> local::Random::fillDoubleArrayNormal(std::size_t nrandom, int seed) {
+boost::shared_array<double> local::Random::fillDoubleArrayNormal(std::size_t &nrandom, int seed) {
     // Round nrandom up to an even number to simplify alignment issues.
     if(nrandom % 2) nrandom++;
     // Get the number of random 32-bit integers to generate.
@@ -152,14 +152,14 @@ boost::shared_array<double> local::Random::fillDoubleArrayNormal(std::size_t nra
     return sarray;
 }
 
-boost::shared_array<float> local::Random::fillFloatArrayNormal(std::size_t nrandom, int seed) {
+boost::shared_array<float> local::Random::fillFloatArrayNormal(std::size_t &nrandom, int seed) {
     // Get the number of random 32-bit integers to generate.
-    std::size_t ngen = _initializeFill(nrandom,seed,4,N32);
+    nrandom = _initializeFill(nrandom,seed,4,N32);
     // Allocate the shared array
-    boost::shared_array<float> sarray = allocateAlignedFloatArray(ngen);
+    boost::shared_array<float> sarray = allocateAlignedFloatArray(nrandom);
     float *array = sarray.get();
     // Fill the array with random bits.
-    gen_rand_array((w128_t *)array, ngen/4);
+    gen_rand_array((w128_t *)array, nrandom/4);
     idx = N32;
     // Read random integers and convert them to normally distributed floats.
     uint32_t *ptr((uint32_t*)array);

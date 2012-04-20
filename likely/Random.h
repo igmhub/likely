@@ -24,15 +24,15 @@ namespace likely {
         // Returns a shared array filled with at least nrandom double-precision values uniformly
         // sampled from [0,1) using the specified seed (that is independent of the seed used by
         // getUniform and getNormal). The returned array size will be a multiple of 2 and >= 312.
-        static boost::shared_array<double> fillDoubleArrayUniform(std::size_t nrandom, int seed);
+        static boost::shared_array<double> fillDoubleArrayUniform(std::size_t &nrandom, int seed);
         // Returns a shared array filled with at least nrandom double-precision values normally
         // distributed with mean 0 and RMS 1 using the specified seed (that is independent of the
         // seed used by getUniform and getNormal). The return array size will be a multiple of 4
         // and >= 624.
-        static boost::shared_array<double> fillDoubleArrayNormal(std::size_t nrandom, int seed);
+        static boost::shared_array<double> fillDoubleArrayNormal(std::size_t &nrandom, int seed);
         // Returns the same values as fillDoubleArrayNormal, but with each value truncated to
         // a float.
-        static boost::shared_array<float> fillFloatArrayNormal(std::size_t nrandom, int seed);        
+        static boost::shared_array<float> fillFloatArrayNormal(std::size_t &nrandom, int seed);        
         // Returns a reference to this object's internal generator, so that it
         // can be used for other distributions. This should only be used on the
         // global shared instance.

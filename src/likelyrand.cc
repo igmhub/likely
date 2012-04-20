@@ -48,13 +48,28 @@ int main(int argc, char **argv) {
     BENCHMARK_LOOP(getNormal);
     BENCHMARK_LOOP(getFastUniform);
 
+    int seed = 123;
     {
+        std::size_t nrandom(repeat);
         boost::shared_array<double> dbuffer;
-        BENCHMARK_ASSIGN(dbuffer,fillDoubleArrayUniform,(repeat,123));
+        BENCHMARK_ASSIGN(dbuffer,fillDoubleArrayUniform,(nrandom,seed));
+        lk::WeightedAccumulator stats;
+        lk::QuantileAccumulator median, q90(0.9);
+        for(int i = 0; i < repeat; ++i) {
+            double value(dbuffer[i]);
+            if(i < 10) std::cout << i << ' ' << value << std::endl;
+            stats.accumulate(value);
+            median.accumulate(value);
+            q90.accumulate(value);
+        }
+        std::cout << "mean = " << stats.mean() << ", variance = " << stats.variance() << std::endl;
+        std::cout << "median = " << median.getQuantile() << ", 90% quantile = "
+            << q90.getQuantile() << std::endl;
     }    
     {
+        std::size_t nrandom(repeat);
         boost::shared_array<float> fbuffer;
-        BENCHMARK_ASSIGN(fbuffer,fillFloatArrayNormal,(repeat,123));
+        BENCHMARK_ASSIGN(fbuffer,fillFloatArrayNormal,(nrandom,seed));
         lk::WeightedAccumulator stats;
         lk::QuantileAccumulator median, sigma(1-0.5*0.317310508);
         for(int i = 0; i < repeat; ++i) {
@@ -69,8 +84,9 @@ int main(int argc, char **argv) {
             << sigma.getQuantile() << std::endl;
     }
     {
+        std::size_t nrandom(repeat);
         boost::shared_array<double> dbuffer;
-        BENCHMARK_ASSIGN(dbuffer,fillDoubleArrayNormal,(repeat,123));
+        BENCHMARK_ASSIGN(dbuffer,fillDoubleArrayNormal,(nrandom,seed));
         lk::WeightedAccumulator stats;
         lk::QuantileAccumulator median, sigma(1-0.5*0.317310508);
         for(int i = 0; i < repeat; ++i) {
@@ -83,5 +99,24 @@ int main(int argc, char **argv) {
         std::cout << "mean = " << stats.mean() << ", variance = " << stats.variance() << std::endl;
         std::cout << "median = " << median.getQuantile() << ", 1-sigma quantile = "
             << sigma.getQuantile() << std::endl;
+    }
+    
+    // Compare the requested and returned nrandom for each array-filling method.
+    for(int size = 1; size < 700; size += 25) {
+        double sum;
+        std::size_t nrand1 = size,nrand2 = size,nrand3 = size;
+        {
+            boost::shared_array<double> buf = lk::Random::fillDoubleArrayUniform(nrand1,seed);
+            for(int k = 0; k < nrand1; ++k) sum += buf[k];
+        }
+        {
+            boost::shared_array<double> buf = lk::Random::fillDoubleArrayNormal(nrand2,seed);
+            for(int k = 0; k < nrand2; ++k) sum += buf[k];
+        }
+        {
+            boost::shared_array<float> buf = lk::Random::fillFloatArrayNormal(nrand3,seed);
+            for(int k = 0; k < nrand3; ++k) sum += buf[k];
+        }
+        std::cout << size << ' ' << nrand1 << ' ' << nrand2 << ' ' << nrand3 << std::endl;
     }
 }
