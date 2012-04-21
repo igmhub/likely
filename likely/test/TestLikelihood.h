@@ -20,6 +20,9 @@ namespace test {
 	    // parameters to the internal Gaussian parameters.
 	    // The function has a single global minimum at the origin where the function
 	    // value is zero.
+	    //
+	    // TODO: try out http://en.wikipedia.org/wiki/Rosenbrock_function ?
+	    //
 		TestLikelihood(int npar, double sigma = 1, double rho = 0, double alpha = 0);
 		virtual ~TestLikelihood();
 		// Evaluates this NLL function at the specified parameter values.
