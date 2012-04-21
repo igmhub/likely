@@ -3,6 +3,7 @@
 #ifndef LIKELY_COVARIANCE_MATRIX
 #define LIKELY_COVARIANCE_MATRIX
 
+#include "boost/utility.hpp"
 #include "boost/smart_ptr.hpp"
 
 #include <vector>
@@ -12,7 +13,7 @@
 
 namespace likely {
     // Represents a covariance matrix.
-	class CovarianceMatrix {
+	class CovarianceMatrix : public boost::noncopyable {
 	public:
 	    // Creates a new size-by-size covariance matrix with all elements initialized to zero.
 	    // Throws a RuntimeError if size <= 0. Note that the matrix created by this constructor
