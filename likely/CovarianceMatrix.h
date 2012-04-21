@@ -19,6 +19,17 @@ namespace likely {
 	    // Throws a RuntimeError if size <= 0. Note that the matrix created by this constructor
 	    // is not valid until sufficient elements have been set to make it positive definite.
 		explicit CovarianceMatrix(int size);
+		// Creates a new covariance matrix initialized with the specified elements, provided
+		// as a column-wise packed vector:
+		//
+		// m00 m01 m02 ... 
+		//     m11 m12 ...  ==> { m00, m01, m11, m02, m12, m22, ... }
+		//         m22 ...
+		//             ...
+		//
+		// The corresponding index calculation is m(i,j) = array[i+j*(j+1)/2] for i<=j. The
+		// matrix size will be inferred from the input vector size using symmetricMatrixSize.
+        explicit CovarianceMatrix(std::vector<double> packed);
 		virtual ~CovarianceMatrix();
 		// Returns the fixed size of this covariance matrix.
         int getSize() const;

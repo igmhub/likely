@@ -38,6 +38,23 @@ local::CovarianceMatrix::CovarianceMatrix(int size)
     // necessary, and we know wether to allocate _cov or _icov.
 }
 
+local::CovarianceMatrix::CovarianceMatrix(std::vector<double> packed)
+: _ncov(packed.size()), _compressed(false), _nextSeed(0)
+{
+    if(_ncov == 0) {
+        throw RuntimeError("CovarianceMatrix: expected packed size > 0.");
+    }
+    _size = symmetricMatrixSize(_ncov);
+    // Copy elements from the input array to our internal storage now. The first
+    // call to setCovariance triggers the allocation of our internal storage.
+    int index(0);
+    for(int col = 0; col < _size; ++col) {
+        for(int row = 0; row <= col; ++row) {
+            setCovariance(row,col,packed[index++]);
+        }
+    }
+}
+
 local::CovarianceMatrix::~CovarianceMatrix() { }
 
 size_t local::CovarianceMatrix::getMemoryUsage() const {
