@@ -23,6 +23,7 @@
 #include "likely/NonUniformSampling.h"
 
 #include "likely/CovarianceMatrix.h"
+#include "likely/CovarianceAccumulator.h"
 
 #include "likely/AbsEngine.h"
 #include "likely/FunctionMinimum.h"
