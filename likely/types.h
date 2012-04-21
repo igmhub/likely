@@ -16,12 +16,6 @@ namespace likely {
     // Represents a gradient vector of function partial derivatives.
     typedef std::vector<double> Gradient;
 
-    // Represents a column-wise packed covariance matrix near a local minimum.
-    typedef std::vector<double> PackedCovariance;
-    
-    // Declares a smart pointer to a packed covariance matrix.
-    typedef boost::shared_ptr<PackedCovariance> PackedCovariancePtr;
-    
     // Declares a smart pointer to a const binning object.
     class AbsBinning;
     typedef boost::shared_ptr<const AbsBinning> AbsBinningCPtr;

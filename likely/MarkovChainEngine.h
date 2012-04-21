@@ -37,7 +37,6 @@ namespace likely {
         bool _haveMinimum;
         double _minNLL;
         Parameters _current, _trial, _minParams;
-        PackedCovariance _covariance;
         Random &_random;
 	}; // MarkovChainEngine
 

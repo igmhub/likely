@@ -3,6 +3,7 @@
 #include "likely/MinuitEngine.h"
 #include "likely/FunctionMinimum.h"
 #include "likely/EngineRegistry.h"
+#include "likely/CovarianceMatrix.h"
 #include "likely/RuntimeError.h"
 
 #include "Minuit2/VariableMetricMinimizer.h"
@@ -151,8 +152,9 @@ Parameters const &errors, double prec, int maxfcn, int strategy) {
         if(mnmin.HasValidCovariance()) {
             // The Minuit packing of covariance matrix elements is directly
             // compatible with what the FunctionMinimum ctor expects.
+            CovarianceMatrixCPtr covariance(new CovarianceMatrix(mnmin.UserCovariance().Data()));
             fmin.reset(new FunctionMinimum(mnmin.Fval(),
-                mnmin.UserParameters().Params(),mnmin.UserCovariance().Data()));
+                mnmin.UserParameters().Params(),covariance));
         }
         else {
             fmin.reset(new FunctionMinimum(mnmin.Fval(),

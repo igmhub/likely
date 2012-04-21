@@ -4,6 +4,8 @@
 #include "likely/FunctionMinimum.h"
 #include "likely/Random.h"
 #include "likely/EngineRegistry.h"
+#include "likely/CovarianceMatrix.h"
+#include "likely/CovarianceAccumulator.h"
 #include "likely/RuntimeError.h"
 
 #include "boost/accumulators/accumulators.hpp"
@@ -29,7 +31,7 @@ namespace local = likely;
 local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, GradientCalculatorPtr gc,
 int nPar, std::string const &algorithm)
 : _f(f), _nPar(nPar), _current(nPar), _trial(nPar), _minParams(nPar), _haveMinimum(false),
-_covariance(nPar*(nPar+1)/2), _random(Random::instance())
+_random(Random::instance())
 {
     if(_nPar <= 0) {
         throw RuntimeError("MarkovChainEngine: number of parameters must be > 0.");
@@ -69,8 +71,7 @@ int maxTrials, Callback callback) {
         _haveMinimum = true;
     }
     // Initialize our statistics accumulators.
-    int nCov(_nPar*(_nPar+1)/2);
-    Accumulators accumulators(nCov);
+    CovarianceAccumulator accumulator(_nPar);
     Parameters residual(_nPar);
     // Loop over the requested samples.
     int nTrials(0),remaining(nAccepts);
@@ -103,20 +104,15 @@ int maxTrials, Callback callback) {
         nTrials++;
         // Use the initial guess at the minimum for caculating residuals that are
         // hopefully small, to minimize round-off error.
-        Accumulators::iterator accumulate(accumulators.begin());
         for(int j = 0; j < _nPar; ++j) {
-            double jResidual(_current[j]-initial[j]);
-            residual[j] = jResidual; // save for the inner loop
-            for(int i = 0; i <= j; ++i) {
-                (*accumulate++)(jResidual, covariate1 = residual[i]);
-            }
+            residual[j] = _current[j]-initial[j];
         }
+        accumulator.accumulate(residual);
     }
     // Record the best minimum found so far (rather than the sample mean).
     fmin->updateParameters(_minParams, _minNLL);
-    // Calculate and record the covariance of the samples we have generated.
-    for(int k = 0; k < nCov; ++k) _covariance[k] = covariance(accumulators[k]);
-    fmin->updateCovariance(_covariance);
+    // Record the covariance of the samples we have generated.
+    fmin->updateCovariance(accumulator.getCovariance());
     // Return the number of samples generated.
     return nTrials;
 }
@@ -127,7 +123,11 @@ int acceptsPerParam, int maxTrialsPerParam) {
     // Build an initial diagonal convariance using the errors provided.
     double fval((*_f)(initial));
     incrementEvalCount();
-    FunctionMinimumPtr fmin(new FunctionMinimum(fval,initial,errors,true));
+    boost::shared_ptr<CovarianceMatrix> covariance(new CovarianceMatrix(_nPar));
+    for(int k = 0; k < _nPar; ++k) {
+        covariance->setCovariance(k,k,errors[k]);
+    }
+    FunctionMinimumPtr fmin(new FunctionMinimum(fval,initial,covariance));
     // Configure our cycles.
     int nAccepts(acceptsPerParam*_nPar), maxTrials(maxTrialsPerParam*_nPar), trials(0);
     while(maxSteps == 0 || trials < maxSteps) {

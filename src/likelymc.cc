@@ -32,14 +32,13 @@ void printSummary(lk::FunctionMinimumPtr fmin, int index, std::string const &tag
     resultsOut << boost::format("min%d[\"%s\"] = { %.5f") % index % tag % where[0];
     for(int i = 1; i < npar; ++i) resultsOut << ',' << valueFmt % where[i];
     resultsOut << " };" << std::endl;
-    lk::PackedCovariancePtr covar(fmin->getCovariance());
+    lk::CovarianceMatrixCPtr covar(fmin->getCovariance());
     resultsOut << boost::format("covar%d[\"%s\"] = {\n") % index % tag;
     for(int i = 0; i < npar; ++i) {
         int index = i*(i+1)/2;
-        resultsOut << "  {" << valueFmt % (*covar)[index];
+        resultsOut << "  {" << valueFmt % covar->getCovariance(i,0);
         for(int j = 1; j < npar; ++j) {
-            index = (i <= j) ? i+j*(j+1)/2 : j+i*(i+1)/2;
-            resultsOut << ',' << valueFmt % (*covar)[index];
+            resultsOut << ',' << valueFmt % covar->getCovariance(i,j);
         }
         resultsOut << " }" << (i == npar-1 ? ' ':',') << std::endl;
     }
@@ -113,11 +112,11 @@ int main(int argc, char **argv) {
         // Set the initial parameters and errors.
         lk::Parameters params(npar,0);
         params[0] = initial;
-        lk::PackedCovariance errors(npar,1.3);
+        boost::shared_ptr<lk::CovarianceMatrix> covariance(new lk::CovarianceMatrix(npar));
+        for(int k = 0; k < npar; ++k) covariance->setCovariance(k,k,1.3);
         
         // Set the initial function minimum to use.
-        lk::FunctionMinimumPtr fmin(new lk::FunctionMinimum(
-            (*f)(params),params,errors,true));
+        lk::FunctionMinimumPtr fmin(new lk::FunctionMinimum((*f)(params),params,covariance));
         printSummary(fmin,0,tag);
         
         // Create an MCMC engine to use.
