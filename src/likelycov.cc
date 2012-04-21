@@ -4,8 +4,17 @@
 #include "likely/likely.h"
 
 #include <iostream>
+#include <sys/resource.h>
 
 namespace lk = likely;
+
+// Returns the number of elapsed microseconds from before to after.
+double elapsed(struct timeval const &before, struct timeval const &after) {
+    return (after.tv_sec - before.tv_sec)*1e6 + (after.tv_usec - before.tv_usec);
+}
+double elapsed(struct rusage const &before, struct rusage const &after) {
+    return elapsed(before.ru_utime,after.ru_utime) + elapsed(before.ru_stime,after.ru_stime);
+}
 
 int main(int argc, char **argv) {
     int size(3);
@@ -69,15 +78,22 @@ int main(int argc, char **argv) {
     std::cout << cov.getMemoryState() << std::endl;
     cov.printToStream(std::cout);
 
-    int nsample(100000);
-    lk::CovarianceAccumulator accum(size);
+    int nsample(1000000);
+    struct rusage t1,t2,t3;
+    
+    getrusage(RUSAGE_SELF,&t1);
     boost::shared_array<double> residuals = cov.sample(nsample);
+    getrusage(RUSAGE_SELF,&t2);
+    lk::CovarianceAccumulator accum(size);
     for(int row = 0; row < nsample; ++row) {
         accum.accumulate(&residuals[size*row]);
     }
-    std::cout << cov.getMemoryState() << std::endl;
-    
     lk::CovarianceMatrixCPtr cptr = accum.getCovariance();
-    std::cout << cptr->getMemoryState() << std::endl;
+    getrusage(RUSAGE_SELF,&t3);    
     cptr->printToStream(std::cout);
+
+    int nelem = nsample*size;
+    double t12 = 1e3*elapsed(t1,t2)/nelem, t23 = 1e3*elapsed(t2,t3)/nelem;
+    std::cout << "sample = " << t12 << " ns/elem, accumulate = " << t23
+        << " ns/elem, accumulate/sample = " << t23/t12 << std::endl;
 }
