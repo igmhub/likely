@@ -51,8 +51,14 @@ local::MarkovChainEngine::~MarkovChainEngine() { }
 
 int local::MarkovChainEngine::generate(FunctionMinimumPtr fmin, int nAccepts,
 int maxTrials, Callback callback) {
+    // We are using the standard Metropolis-Hastings algorithm here. The only subtlety is
+    // that we don't generate trials by taking a random step from our current location,
+    // so our proposal pdf Q(p',p) for moving from p (current) to p' (trial) is
+    // W(p') = exp(-delta.Cinv.delta/2) and the ratio Q(p,p')/Q(p',p) is not 1, as
+    // usually assumed, but W(current)/W(trial).
+
     // Set our initial parameters to the estimated function minimum, where the
-    // NLW = -log(weight) is zero, by definition.
+    // NLW = -log(W(current)) is zero, by definition.
     Parameters const &initial(fmin->getParameters());
     _current = initial;
     double currentNLL(fmin->getMinValue()), currentNLW(0);
@@ -70,6 +76,7 @@ int maxTrials, Callback callback) {
     int nTrials(0),remaining(nAccepts);
     while(remaining > 0 && (maxTrials == 0 || nTrials < maxTrials)) {
         // Take a trial step sampled from the estimated function minimum's covariance.
+        // The setRandomParameters method returns the value -log(W(trial)).
         double trialNLW(fmin->setRandomParameters(_trial));
         // Evaluate the true NLL at this trial point.
         double trialNLL((*_f)(_trial));
