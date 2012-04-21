@@ -67,14 +67,17 @@ int main(int argc, char **argv) {
     cov.setCovariance(0,2,0.5);
     cov.setCovariance(1,2,0.5);
     std::cout << cov.getMemoryState() << std::endl;
+    cov.printToStream(std::cout);
 
-    int nsample(10);
+    int nsample(100000);
+    lk::CovarianceAccumulator accum(size);
     boost::shared_array<double> residuals = cov.sample(nsample);
     for(int row = 0; row < nsample; ++row) {
-        for(int col = 0; col < size; ++col) {
-            std::cout << ' ' << residuals[size*row + col];
-        }
-        std::cout << std::endl;
+        accum.accumulate(&residuals[size*row]);
     }
     std::cout << cov.getMemoryState() << std::endl;
+    
+    lk::CovarianceMatrixCPtr cptr = accum.getCovariance();
+    std::cout << cptr->getMemoryState() << std::endl;
+    cptr->printToStream(std::cout);
 }
