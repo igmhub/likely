@@ -81,19 +81,56 @@ int main(int argc, char **argv) {
     int nsample(1000000);
     struct rusage t1,t2,t3;
     
-    getrusage(RUSAGE_SELF,&t1);
-    boost::shared_array<double> residuals = cov.sample(nsample);
-    getrusage(RUSAGE_SELF,&t2);
-    lk::CovarianceAccumulator accum(size);
-    for(int row = 0; row < nsample; ++row) {
-        accum.accumulate(&residuals[size*row]);
-    }
-    lk::CovarianceMatrixCPtr cptr = accum.getCovariance();
-    getrusage(RUSAGE_SELF,&t3);    
-    cptr->printToStream(std::cout);
+    {
+        getrusage(RUSAGE_SELF,&t1);
+        boost::shared_array<double> residuals = cov.sample(nsample);
+        getrusage(RUSAGE_SELF,&t2);
+        lk::CovarianceAccumulator accum(size);
+        for(int row = 0; row < nsample; ++row) {
+            accum.accumulate(&residuals[size*row]);
+        }
+        lk::CovarianceMatrixCPtr cptr = accum.getCovariance();
+        getrusage(RUSAGE_SELF,&t3);    
+        cptr->printToStream(std::cout);
 
-    int nelem = nsample*size;
-    double t12 = 1e3*elapsed(t1,t2)/nelem, t23 = 1e3*elapsed(t2,t3)/nelem;
-    std::cout << "sample = " << t12 << " ns/elem, accumulate = " << t23
-        << " ns/elem, accumulate/sample = " << t23/t12 << std::endl;
+        int nelem = nsample*size;
+        double t12 = 1e3*elapsed(t1,t2)/nelem, t23 = 1e3*elapsed(t2,t3)/nelem;
+        std::cout << "sample = " << t12 << " ns/elem, accumulate = " << t23
+            << " ns/elem, accumulate/sample = " << t23/t12 << std::endl;
+        std::cout << cov.getMemoryState() << std::endl;
+    }
+
+    // Validate single samples
+    {
+        std::vector<double> delta(size);
+        lk::CovarianceAccumulator accum(size);
+        for(int k = 0; k < nsample; ++k) {
+            cov.sample(delta);
+            accum.accumulate(delta);
+        }
+        accum.getCovariance()->printToStream(std::cout);
+    }
+
+    // Benchmark single samples
+    int ntrial = 10000;
+    {
+        std::vector<double> delta(size);
+        boost::shared_array<double> delta2;
+        for(nsample = 1; nsample <= 50; ++nsample) {
+            getrusage(RUSAGE_SELF,&t1);
+            for(int trial = 0; trial < ntrial; ++trial) {
+                for(int k = 0; k < nsample; ++k) {
+                    cov.sample(delta);
+                }
+            }
+            getrusage(RUSAGE_SELF,&t2);
+            for(int trial = 0; trial < ntrial; ++trial) {
+                delta2 = cov.sample(nsample);
+            }
+            getrusage(RUSAGE_SELF,&t3);
+            int ntot(nsample*ntrial);
+            std::cout << "nsample = " << nsample << ": " << 1e3*elapsed(t1,t2)/ntot << ", "
+                << 1e3*elapsed(t2,t3)/ntot << std::endl;
+        }
+    }
 }

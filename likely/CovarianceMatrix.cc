@@ -361,6 +361,42 @@ double local::CovarianceMatrix::chiSquare(std::vector<double> const &delta) cons
     return result;
 }
 
+double local::CovarianceMatrix::sample(std::vector<double> &delta, Random *random) const {
+    // Use the default generator if none was specified.
+    if(0 == random) random = &Random::instance();
+    // Clear the vector and prepare for filling.
+    delta.resize(0);
+    delta.reserve(_size);
+    // Fill a vector delta' with uncorrelated random numbers and calculate the
+    // -log(L) = delta.Cinv.delta/2 = (Linv.delta).(Linv.delta)/2 where delta'=Linv.delta
+    // is the vector of uncorrelated values generated below and L is the lower-diagonal
+    // Cholesky decomposition of the covariance matrix.
+    double nll(0);
+    std::vector<double> deltap;
+    deltap.reserve(_size);
+    for(int k = 0; k < _size; ++k) {
+        double r(random->getNormal());
+        deltap.push_back(r);
+        nll += r*r;
+    }
+    // Make sure we have a packed Cholesky decomposition available.
+    if(_cholesky.empty()) {
+        _readsCov();
+        _cholesky = _cov;
+        choleskyDecompose(_cholesky,_size);
+    }
+    // Add correlations via L.delta
+    int index(0);
+    for(int i = 0; i < _size; ++i) {
+        double result(0);
+        for(int j = 0; j <= i; ++j) {
+            result += _cholesky[index++]*deltap[j];
+        }
+        delta.push_back(result);
+    }
+    return nll/2;
+}
+
 boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int seed) const {
     if(nsample <= 0) {
         throw RuntimeError("CovarianceMatrix: expected nsample > 0.");
