@@ -300,6 +300,9 @@ double local::CovarianceMatrix::getInverseCovariance(int row, int col) const {
 }
 
 void local::CovarianceMatrix::setCovariance(int row, int col, double value) {
+    if(row == col && value <= 0) {
+        throw RuntimeError("CovarianceMatrix: diagonal elements must be > 0.");
+    }
     // Calculate the index corresponding to (row,col). This will throw a RuntimeError
     // in case of an invalid address, before we actually change anything.
     int index(symmetricMatrixIndex(row,col,_size));
@@ -311,6 +314,9 @@ void local::CovarianceMatrix::setCovariance(int row, int col, double value) {
 }
 
 void local::CovarianceMatrix::setInverseCovariance(int row, int col, double value) {
+    if(row == col && value <= 0) {
+        throw RuntimeError("CovarianceMatrix: diagonal elements must be > 0.");
+    }
     // Calculate the index corresponding to (row,col). This will throw a RuntimeError
     // in case of an invalid address, before we actually change anything.
     int index(symmetricMatrixIndex(row,col,_size));

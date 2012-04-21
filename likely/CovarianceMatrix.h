@@ -27,7 +27,8 @@ namespace likely {
         double getInverseCovariance(int row, int col) const;
         // Sets the specified (inverse) covariance matrix element or throws a RuntimeError.
         // Row and column indices should be in the range [0,size-1]. Setting any element with
-        // row != col will also set the symmetric element in the matrix.
+        // row != col will also set the symmetric element in the matrix. Diagonal elements
+        // (row == col) must be positive.
         void setCovariance(int row, int col, double value);
         void setInverseCovariance(int row, int col, double value);
         // Multiplies the specified vector by the inverse covariance or throws a RuntimeError.
