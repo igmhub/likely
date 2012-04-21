@@ -8,6 +8,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <iostream>
 
 // Declare bindings to BLAS,LAPACK routines we need
 extern "C" {
@@ -372,4 +373,15 @@ boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int see
     dtrmm_(&side,&uplo,&transa,&diag,&_size,&nsample,&alpha,
         expanded.get(),&_size,array.get(),&_size);
     return array;
+}
+
+void local::CovarianceMatrix::printToStream(std::ostream &os, std::string format) const {
+    boost::format indexFormat("%5d"),valueFormat(format);
+    for(int row = 0; row < _size; ++row) {
+        os << (indexFormat % row);
+        for(int col = 0; col <= row; ++col) {
+            os << ' ' << (valueFormat % getCovariance(row,col));
+        }
+        os << std::endl;
+    }
 }
