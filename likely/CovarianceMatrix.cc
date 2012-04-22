@@ -256,8 +256,9 @@ void local::CovarianceMatrix::_changesICov() {
         }
     }
     else {
-        // Delete the covariance now in case we had both in memory.
+        // Delete and covariance and Cholesky decomposition.
         if(!_cov.empty()) std::vector<double>().swap(_cov);
+        if(!_cholesky.empty()) std::vector<double>().swap(_cholesky);
     }
     assert(!_icov.empty());
     assert(0 == _cov.capacity());
@@ -459,5 +460,21 @@ void local::CovarianceMatrix::printToStream(std::ostream &os, std::string format
             os << ' ' << (valueFormat % getCovariance(row,col));
         }
         os << std::endl;
+    }
+}
+
+void local::CovarianceMatrix::addInverse(CovarianceMatrix const &other, double weight) {
+    if(weight <= 0) {
+        throw RuntimeError("CovarianceMatrix::addInverse: expected weight > 0.");
+    }
+    if(other.getSize() != _size) {
+        throw RuntimeError("CovarianceMatrix::addInverse: incompatible sizes.");
+    }
+    for(int col = 0; col < _size; ++col) {
+        for(int row = 0; row <= col; ++row) {
+            double otherValue = other.getInverseCovariance(row,col);
+            double myValue = getInverseCovariance(row,col);
+            setInverseCovariance(row,col,myValue+weight*otherValue);
+        }
     }
 }
