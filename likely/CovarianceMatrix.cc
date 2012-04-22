@@ -237,14 +237,22 @@ void local::CovarianceMatrix::_changesICov() {
         else {
             // Try to invert the existing covariance in place. This will throw a
             // RuntimeError in case the existing covariance is only partially filled in.
-            choleskyDecompose(_cov,_size);
-            // (don't save the Cholesky decomposition since it will become invalid)
-            invertCholesky(_cov,_size);
-            // Remove the existing covariance (by swapping with _icov), since it will
-            // become invalid after we update the the covariance.
-            _icov.swap(_cov);
-            // Remove any existing Cholesky decomposition since it will become invalid.
-            if(!_cholesky.empty()) std::vector<double>().swap(_cholesky);
+            if(_cholesky.empty()) {
+                choleskyDecompose(_cov,_size);
+                invertCholesky(_cov,_size);
+                // Remove the existing covariance (by swapping with _icov), since it will
+                // become invalid after we update the the covariance.
+                _icov.swap(_cov);
+            }
+            else {
+                // Use the cached Cholesky decomposition to invert the covariance. This
+                // will clobber _cholesky but it is now invalid anyway.
+                invertCholesky(_cholesky,_size);
+                // Remove the existing _cholesky by swapping with _icov.
+                _icov.swap(_cholesky);
+                // Remove the existing _cov.
+                std::vector<double>().swap(_cov);
+            }
         }
     }
     else {
@@ -287,13 +295,32 @@ bool local::CovarianceMatrix::_readsICov() const {
         else {
             // Try to invert the existing covariance into _icov. This will throw a
             // RuntimeError in case the existing inverse covariance is only partially filled in.
-            _icov = _cov;
-            choleskyDecompose(_icov,_size);
-            _cholesky = _icov; // remember this
+            if(_cholesky.empty()) {
+                // Calculate and save the covariance Cholesky decomposition.
+                _icov = _cov;
+                choleskyDecompose(_icov,_size);
+                _cholesky = _icov;
+            }
+            else {
+                // Use the cached Cholesky decomposition.
+                _icov = _cholesky;
+            }
             invertCholesky(_icov,_size);
         }
     }
     return true;
+}
+
+void local::CovarianceMatrix::_readsCholesky() const {
+    // Make sure we have a packed Cholesky decomposition available.
+    if(_cholesky.empty()) {
+        if(!_readsCov()) {
+            throw RuntimeError(
+                "CovarianceMatrix: invalid Cholesky decomposition (no elements set yet).");
+        }
+        _cholesky = _cov;
+        choleskyDecompose(_cholesky,_size);
+    }    
 }
 
 double local::CovarianceMatrix::getCovariance(int row, int col) const {
@@ -379,12 +406,7 @@ double local::CovarianceMatrix::sample(std::vector<double> &delta, Random *rando
         deltap.push_back(r);
         nll += r*r;
     }
-    // Make sure we have a packed Cholesky decomposition available.
-    if(_cholesky.empty()) {
-        _readsCov();
-        _cholesky = _cov;
-        choleskyDecompose(_cholesky,_size);
-    }
+    _readsCholesky();
     // Add correlations via L.delta
     int index(0);
     for(int i = 0; i < _size; ++i) {
@@ -401,12 +423,7 @@ boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int see
     if(nsample <= 0) {
         throw RuntimeError("CovarianceMatrix: expected nsample > 0.");
     }
-    // Make sure we have a packed Cholesky decomposition available.
-    if(_cholesky.empty()) {
-        _readsCov();
-        _cholesky = _cov;
-        choleskyDecompose(_cholesky,_size);
-    }
+    _readsCholesky();
     // Temporarily transpose and expand the packed Cholesky matrix.
     boost::shared_array<double> expanded(new double[_size*_size]);
     double *ptr(&_cholesky[0]);

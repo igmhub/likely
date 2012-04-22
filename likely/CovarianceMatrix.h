@@ -113,6 +113,8 @@ namespace likely {
 	    // been allocated yet, or else returns true. Always uncompresses.
         bool _readsCov() const;
         bool _readsICov() const;
+        // Prepares to read the Cholesky decomposition of the covariance stored in _cholesky.
+        void _readsCholesky() const;
         // Prepares to change at least one element of _cov or _icov.
         void _changesCov();
         void _changesICov();
