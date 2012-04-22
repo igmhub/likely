@@ -50,6 +50,10 @@ namespace likely {
         // Calculates the chi-square = delta.Cinv.delta for the specified residuals vector delta
         // or throws a RuntimeError.
         double chiSquare(std::vector<double> const &delta) const;
+        // Adds each element of the inverse of the specified CovarianceMatrix to our inverse
+        // elements, using the specified weight (which must be positive in order to preserve
+        // our positive-definiteness).
+        void addInverse(CovarianceMatrix const &other, double weight = 1);
         // Fills the vector provided with a single random sampling of the Gausian probability
         // density implied by this object, or throws a RuntimeError. Returns the value of
         // delta.Cinv.delta/2 which is the negative log-likelihood of the generated sample.

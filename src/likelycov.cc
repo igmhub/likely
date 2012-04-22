@@ -27,7 +27,12 @@ int main(int argc, char **argv) {
     cov.setCovariance(1,2,-0.2);
     std::cout << cov.getMemoryState() << std::endl;
     cov.sample(1);
-    std::cout << cov.getMemoryState() << std::endl;    
+    std::cout << cov.getMemoryState() << std::endl;
+    
+    lk::CovarianceMatrix empty(size);
+    cov.addInverse(empty,2);
+    std::cout << cov.getMemoryState() << std::endl;
+    
     cov.setInverseCovariance(2,2,0.3);
     std::cout << cov.getMemoryState() << std::endl;
     for(int row = 0; row < size; ++row) {
