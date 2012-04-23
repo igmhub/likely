@@ -477,11 +477,22 @@ void local::CovarianceMatrix::addInverse(CovarianceMatrix const &other, double w
     if(other.getSize() != _size) {
         throw RuntimeError("CovarianceMatrix::addInverse: incompatible sizes.");
     }
-    for(int col = 0; col < _size; ++col) {
-        for(int row = 0; row <= col; ++row) {
-            double otherValue = other.getInverseCovariance(row,col);
-            double myValue = getInverseCovariance(row,col);
-            setInverseCovariance(row,col,myValue+weight*otherValue);
+    if(other.isCompressed()) {
+        _changesICov();
+        for(int k = 0; k < _size; ++k) {
+            _icov[(k*(k+3))/2] += weight*other._diag[k];
+        }
+        for(int k = 0; k < other._offdiagIndex.size(); ++k) {
+            _icov[other._offdiagIndex[k]] += weight*other._offdiagValue[k];
+        }
+    }
+    else {
+        for(int col = 0; col < _size; ++col) {
+            for(int row = 0; row <= col; ++row) {
+                double otherValue = other.getInverseCovariance(row,col);
+                double myValue = getInverseCovariance(row,col);
+                setInverseCovariance(row,col,myValue+weight*otherValue);
+            }
         }
     }
 }

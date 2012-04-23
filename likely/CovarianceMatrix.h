@@ -53,7 +53,8 @@ namespace likely {
         double chiSquare(std::vector<double> const &delta) const;
         // Adds each element of the inverse of the specified CovarianceMatrix to our inverse
         // elements, using the specified weight (which must be positive in order to preserve
-        // our positive-definiteness).
+        // our positive-definiteness). If the other matrix is compressed, this method will
+        // not uncompress it.
         void addInverse(CovarianceMatrix const &other, double weight = 1);
         // Fills the vector provided with a single random sampling of the Gausian probability
         // density implied by this object, or throws a RuntimeError. Returns the value of
@@ -80,9 +81,10 @@ namespace likely {
         void printToStream(std::ostream &os, std::string format = std::string("%+10.3lg")) const;
         // Requests that this covariance matrix be compressed to reduce its memory usage,
         // if possible. Returns immediately if we are already compressed. Any compression
-        // is lossless. The next call to any method except getSize(), compress(), or
-        // isCompressed() will automatically trigger a decompression. Return value indicates
-        // if any compression was actually performed.
+        // is lossless. The next call to any method except getSize(), compress(), or isCompressed().
+        // will automatically trigger a decompression. However, a compressed matrix can be
+        // added to another matrix (via addInverse) without being uncompressed. Return value
+        // indicates if any compression was actually performed.
         bool compress() const;
         // Returns true if this covariance matrix is currently compressed.
         bool isCompressed() const;
