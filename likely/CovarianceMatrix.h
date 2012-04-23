@@ -44,8 +44,9 @@ namespace likely {
         // (row == col) must be positive.
         void setCovariance(int row, int col, double value);
         void setInverseCovariance(int row, int col, double value);
-        // Multiplies the specified vector by the inverse covariance or throws a RuntimeError.
+        // Multiplies the specified vector by the (inverse) covariance or throws a RuntimeError.
         // The result is stored in the input vector, overwriting its original contents.
+        void multiplyByCovariance(std::vector<double> &vector) const;
         void multiplyByInverseCovariance(std::vector<double> &vector) const;
         // Calculates the chi-square = delta.Cinv.delta for the specified residuals vector delta
         // or throws a RuntimeError.

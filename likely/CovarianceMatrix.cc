@@ -372,6 +372,13 @@ void local::CovarianceMatrix::setInverseCovariance(int row, int col, double valu
     _icov[index] = value;        
 }
 
+void local::CovarianceMatrix::multiplyByCovariance(std::vector<double> &vector) const {
+    _readsCov();
+    std::vector<double> result;
+    symmetricMatrixMultiply(_cov,vector,result);
+    vector.swap(result);
+}
+
 void local::CovarianceMatrix::multiplyByInverseCovariance(std::vector<double> &vector) const {
     _readsICov();
     std::vector<double> result;
