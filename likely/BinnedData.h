@@ -21,12 +21,20 @@ namespace likely {
         BinnedData(AbsBinningCPtr axis1, AbsBinningCPtr axis2, AbsBinningCPtr axis3);
 		virtual ~BinnedData();
 		// Returns the number of axes used to bin this data.
-        int getDimension() const;
+        int getNAxes() const;
+        // Returns the total number of bins covering the rectangular volume of our axes.
+        int getNBinsTotal() const;
+        // Returns the number of bins with data, which is never more than getNumBinsTotal().
+        int getNBinsWithData() const;
 	private:
         std::vector<AbsBinningCPtr> _axisBinning;
+        int _nbins, _ndata;
+        void _initialize();
 	}; // BinnedData
 	
-    inline int BinnedData::getDimension() const { return _axisBinning.size(); }
+    inline int BinnedData::getNAxes() const { return _axisBinning.size(); }
+    inline int BinnedData::getNBinsTotal() const { return _nbins; }
+    inline int BinnedData::getNBinsWithData() const { return _ndata; }
 
 } // likely
 
