@@ -1,4 +1,4 @@
-// Created 18-Aug-2012 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
+// Created 18-Apr-2012 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 // Demonstates the CovarianceMatrix class.
 
 #include "likely/likely.h"
