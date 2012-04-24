@@ -26,6 +26,15 @@ namespace likely {
         int getNBinsTotal() const;
         // Returns the number of bins with data, which is never more than getNumBinsTotal().
         int getNBinsWithData() const;
+        // Fills the vector provided with the bin index values along each axis for the specified
+        // global index.
+        void getBinIndices(int index, std::vector<int> &binIndices) const;
+        // Fills the vector provided with the bin centers along each axis for the specified
+        // global index.
+        void getBinCenters(int index, std::vector<double> &binCenters) const;
+        // Fills the vector provided with the full bin widths along each axis for the specified
+        // global index.
+        void getBinWidths(int index, std::vector<double> &binWidths) const;
 	private:
         std::vector<AbsBinningCPtr> _axisBinning;
         int _nbins, _ndata;

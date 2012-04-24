@@ -56,3 +56,26 @@ void local::BinnedData::_initialize() {
 }
 
 local::BinnedData::~BinnedData() { }
+
+void local::BinnedData::getBinIndices(int index, std::vector<int> &binIndices) const {
+    binIndices.resize(0);
+    binIndices.reserve(getNAxes());
+    int partial(index);
+    BOOST_FOREACH(AbsBinningCPtr binning, _axisBinning) {
+        int nBins(binning->getNBins()), binIndex(partial % nBins);
+        binIndices.push_back(binIndex);
+        partial = (partial - binIndex)/nBins;
+    }
+    assert(0 == partial);
+}
+
+void local::BinnedData::getBinCenters(int index, std::vector<double> &binCenters) const {
+    binCenters.resize(0);
+    binCenters.reserve(getNAxes());
+    BOOST_FOREACH(AbsBinningCPtr binning, _axisBinning) {
+        //binCenters.push_back(binning->getBinCenter(axisIndex));
+    }
+}
+
+void local::BinnedData::getBinWidths(int index, std::vector<double> &binWidths) const {
+}
