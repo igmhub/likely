@@ -75,7 +75,6 @@ int main(int argc, char **argv) {
     cov.compress();
     std::cout << cov.getMemoryState() << std::endl;
 
-    // Test random sampling...
     cov.setCovariance(0,0,1);
     cov.setCovariance(1,1,1);
     cov.setCovariance(2,2,1);
@@ -85,6 +84,24 @@ int main(int argc, char **argv) {
     std::cout << cov.getMemoryState() << std::endl;
     cov.printToStream(std::cout);
 
+    // Test triple product
+    lk::CovarianceMatrix cov2(size);
+    cov2.setCovariance(0,0,1);
+    cov2.setCovariance(1,1,1);
+    cov2.setCovariance(2,2,1);
+    cov2.setCovariance(0,1,0.5);
+    cov2.setCovariance(0,2,0.5);
+    cov2.setCovariance(1,2,0.5);
+    std::cout << cov2.getMemoryState() << std::endl;
+    cov2.printToStream(std::cout);
+
+    cov2.replaceWithTripleProduct(cov);
+    std::cout << cov2.getMemoryState() << std::endl;
+    cov2.printToStream(std::cout); // should be the same as cov
+    
+    return 0;
+
+    // Test random sampling...
     int nsample(1000000);
     struct rusage t1,t2,t3;
     

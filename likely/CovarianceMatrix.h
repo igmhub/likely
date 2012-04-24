@@ -51,6 +51,10 @@ namespace likely {
         // Calculates the chi-square = delta.Cinv.delta for the specified residuals vector delta
         // or throws a RuntimeError.
         double chiSquare(std::vector<double> const &delta) const;
+        // Replaces the original covariance matrix contents C with the triple matrix
+        // product A.Cinv.A for the specified other covariance matrix A. For A,C both positive
+        // definite, the result is a new (positive definite) covariance matrix.
+        void replaceWithTripleProduct(CovarianceMatrix const &other);
         // Adds each element of the inverse of the specified CovarianceMatrix to our inverse
         // elements, using the specified weight (which must be positive in order to preserve
         // our positive-definiteness). If the other matrix is compressed, this method will

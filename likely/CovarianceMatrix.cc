@@ -22,7 +22,11 @@ extern "C" {
     // http://www.netlib.org/blas/dtrmm.f
     void dtrmm_(char const *side, char const *uplo, char const *transa, const char *diag,
         int const *m, int const *n, double const *alpha, double const *a, int const *lda,
-        double *b, int const *ldb);        
+        double *b, int const *ldb);
+    // http://www.netlib.org/blas/dsyrk.f
+    void dsyrk_(char const *uplo, char const *trans, int const *n, int const *k,
+        double const *alpha, double const *a, int const *lda, double const *beta,
+        double *c, int const *ldc);
 }
 
 namespace local = likely;
@@ -425,6 +429,74 @@ double local::CovarianceMatrix::sample(std::vector<double> &delta, Random *rando
         delta.push_back(result);
     }
     return nll/2;
+}
+
+void local::CovarianceMatrix::replaceWithTripleProduct(CovarianceMatrix const &other) {
+    if(other.getSize() != _size) {
+        throw RuntimeError("CovarianceMatrix::addInverse: incompatible sizes.");
+    }
+    // Any cached compressed matrix data is now invalid so delete it.
+    if(!_diag.empty()) {
+        // TODO: use resize(0) instead?
+        std::vector<double>().swap(_diag);
+        std::vector<double>().swap(_offdiagIndex);
+        std::vector<double>().swap(_offdiagValue);
+    }
+    // Instead of calculating C -> A.Cinv.A we calculate Cinv -> Ainv.C.Ainv using:
+    //
+    //   Ainv.C.Ainv = Ainv.U*.U.Ainv = (U.Ainv)*.(U.Ainv)
+    //
+    // where U is the upper-diagonal Cholesky decomposition of C that we store in _cholesky.
+    // First, calculate the elements of U = _cholesky, if necessary.
+    _readsCholesky();
+    
+    // Free up any _cov or _icov storage now, before we allocate new temporary storage.
+    if(!_cov.empty()) std::vector<double>().swap(_cov);
+    if(!_icov.empty()) std::vector<double>().swap(_icov);
+
+    // Next, multiply U.Ainv using the BLAS DTRMM routine which is optimized for the
+    // upper triangular form of U, but not optimized for the symmetry of Ainv.
+    // DTRMM needs both matrices to be unpacked first. Do this in two separate loops
+    // so we can free the _cholesky memory before allocating the second temporary array.
+    boost::shared_array<double> unpackedCholesky(new double [_size*_size]);
+    double *choleskyPtr(&_cholesky[0]);
+    for(int col = 0; col < _size; ++col) {
+        for(int row = 0; row <= col; ++row) {
+            unpackedCholesky[col*_size + row] = *choleskyPtr++;
+        }
+    }
+    std::vector<double>().swap(_cholesky);
+    boost::shared_array<double> unpackedOther(new double [_size*_size]);
+    for(int col = 0; col < _size; ++col) {
+        for(int row = 0; row < col; ++row) {
+            unpackedOther[row*_size + col] = unpackedOther[col*_size + row] =
+                other.getInverseCovariance(row,col);
+        }
+        unpackedOther[col*_size + col] = other.getInverseCovariance(col,col);
+    }
+
+    double alpha(1);
+    char side = 'L', uplo = 'U', transa = 'N', diag = 'N';
+    dtrmm_(&side,&uplo,&transa,&diag,&_size,&_size,&alpha,
+        unpackedCholesky.get(),&_size,unpackedOther.get(),&_size);
+
+    // Now calculate B*.B where B = U.Ainv is the contents of unpackedOther. Use the
+    // BLAS DSYRK routine which knows that the result is symmetric. Save the result
+    // into the same memory that we allocated above for the unpackedCholesky decomposition.
+    double *unpackedResult = unpackedCholesky.get();
+    char trans = 'T';
+    double beta(0);
+    dsyrk_(&uplo,&trans,&_size,&_size,&alpha,unpackedOther.get(),&_size,
+        &beta,unpackedResult,&_size);
+    
+    // Finally, pack the result back into our inverse covariance.
+    _icov.resize(0);
+    _icov.reserve(_ncov);
+    for(int col = 0; col < _size; ++col) {
+        for(int row = 0; row <= col; ++row) {
+            _icov.push_back(unpackedResult[col*_size + row]);
+        }
+    }
 }
 
 boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int seed) const {
