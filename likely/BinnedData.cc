@@ -72,10 +72,23 @@ void local::BinnedData::getBinIndices(int index, std::vector<int> &binIndices) c
 void local::BinnedData::getBinCenters(int index, std::vector<double> &binCenters) const {
     binCenters.resize(0);
     binCenters.reserve(getNAxes());
-    BOOST_FOREACH(AbsBinningCPtr binning, _axisBinning) {
-        //binCenters.push_back(binning->getBinCenter(axisIndex));
+    std::vector<int> binIndices;
+    getBinIndices(index,binIndices);
+    int nAxes(getNAxes());
+    for(int axis = 0; axis < nAxes; ++axis) {
+        AbsBinningCPtr binning = _axisBinning[axis];
+        binCenters.push_back(binning->getBinCenter(binIndices[axis]));
     }
 }
 
 void local::BinnedData::getBinWidths(int index, std::vector<double> &binWidths) const {
+    binWidths.resize(0);
+    binWidths.reserve(getNAxes());
+    std::vector<int> binIndices;
+    getBinIndices(index,binIndices);
+    int nAxes(getNAxes());
+    for(int axis = 0; axis < nAxes; ++axis) {
+        AbsBinningCPtr binning = _axisBinning[axis];
+        binWidths.push_back(binning->getBinWidth(binIndices[axis]));
+    }
 }

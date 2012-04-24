@@ -17,5 +17,27 @@ double elapsed(struct rusage const &before, struct rusage const &after) {
 }
 
 int main(int argc, char **argv) {
+    std::vector<double> bins(4);
+    bins[0] = 0; bins[1] = 0.25; bins[2] = 0.35; bins[3] = 1;
+    lk::AbsBinningCPtr
+        axis1(new lk::UniformBinning(0.,1.,3)),
+        axis2(new lk::UniformSampling(0.,1.,3)),
+        axis3(new lk::NonUniformBinning(bins));
+
+    lk::BinnedData data(axis1,axis2,axis3);
+    int nAxes(data.getNAxes()), nBins(data.getNBinsTotal());
+    std::cout << "naxes = " << nAxes << ", nbins = " << nBins << std::endl;
+    std::vector<int> idx(nAxes);
+    std::vector<double> centers(nAxes), widths(nAxes);
+    for(int index = 0; index < data.getNBinsTotal(); ++index) {
+        std::cout << "[" << index << "] =>";
+        data.getBinIndices(index,idx);
+        for(int k = 0; k < nAxes; ++k) std::cout << ' ' << idx[k];
+        data.getBinCenters(index,centers);
+        for(int k = 0; k < nAxes; ++k) std::cout << ' ' << centers[k];
+        data.getBinWidths(index,widths);
+        for(int k = 0; k < nAxes; ++k) std::cout << ' ' << widths[k];
+        std::cout << std::endl;
+    }
     return 0;
 }
