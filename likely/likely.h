@@ -14,6 +14,7 @@
 #include "likely/WeightedAccumulator.h"
 #include "likely/WeightedCombiner.h"
 #include "likely/QuantileAccumulator.h"
+#include "likely/CovarianceAccumulator.h"
 
 #include "likely/AbsBinning.h"
 #include "likely/BinningError.h"
@@ -23,7 +24,7 @@
 #include "likely/NonUniformSampling.h"
 
 #include "likely/CovarianceMatrix.h"
-#include "likely/CovarianceAccumulator.h"
+#include "likely/BinnedData.h"
 
 #include "likely/AbsEngine.h"
 #include "likely/FunctionMinimum.h"
