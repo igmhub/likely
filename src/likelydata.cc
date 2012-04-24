@@ -4,6 +4,7 @@
 #include "likely/likely.h"
 
 #include <iostream>
+#include <cassert>
 #include <sys/resource.h>
 
 namespace lk = likely;
@@ -32,8 +33,10 @@ int main(int argc, char **argv) {
     for(int index = 0; index < data.getNBinsTotal(); ++index) {
         std::cout << "[" << index << "] =>";
         data.getBinIndices(index,idx);
+        assert(data.getIndex(idx) == index);
         for(int k = 0; k < nAxes; ++k) std::cout << ' ' << idx[k];
         data.getBinCenters(index,centers);
+        assert(data.getIndex(centers) == index);
         for(int k = 0; k < nAxes; ++k) std::cout << ' ' << centers[k];
         data.getBinWidths(index,widths);
         for(int k = 0; k < nAxes; ++k) std::cout << ' ' << widths[k];

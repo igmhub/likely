@@ -57,6 +57,33 @@ void local::BinnedData::_initialize() {
 
 local::BinnedData::~BinnedData() { }
 
+int local::BinnedData::getIndex(std::vector<int> const &binIndices) const {
+    int index(0), nAxes(getNAxes());
+    if(binIndices.size() != nAxes) {
+        throw RuntimeError("BinnedData::getIndex: invalid input vector size.");
+    }
+    for(int axis = nAxes-1; axis >= 0; --axis) {
+        int binIndex(binIndices[axis]), nBins(_axisBinning[axis]->getNBins());
+        if(binIndex < 0 || binIndex >= nBins) {
+            throw RuntimeError("BinnedData::getIndex: invalid bin index.");
+        }
+        index = binIndices[axis] + index*nBins;
+    }
+    return index;
+}
+
+int local::BinnedData::getIndex(std::vector<double> const &values) const {
+    int index(0), nAxes(getNAxes());
+    if(values.size() != nAxes) {
+        throw RuntimeError("BinnedData::getIndex: invalid input vector size.");
+    }
+    std::vector<int> binIndices;
+    for(int axis = 0; axis < nAxes; ++axis) {
+        binIndices.push_back(_axisBinning[axis]->getBinIndex(values[axis]));
+    }
+    return getIndex(binIndices);
+}
+
 void local::BinnedData::getBinIndices(int index, std::vector<int> &binIndices) const {
     binIndices.resize(0);
     binIndices.reserve(getNAxes());
@@ -66,7 +93,6 @@ void local::BinnedData::getBinIndices(int index, std::vector<int> &binIndices) c
         binIndices.push_back(binIndex);
         partial = (partial - binIndex)/nBins;
     }
-    assert(0 == partial);
 }
 
 void local::BinnedData::getBinCenters(int index, std::vector<double> &binCenters) const {

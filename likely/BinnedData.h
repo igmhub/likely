@@ -26,6 +26,14 @@ namespace likely {
         int getNBinsTotal() const;
         // Returns the number of bins with data, which is never more than getNumBinsTotal().
         int getNBinsWithData() const;
+        // Returns the global index corresponding to the specified bin index values along each
+        // axis. The global index is defined as i0 + n0*(i1 + n1*(i2 + n2*(...))) where
+        // ik, nk are the bin index and number of bins for axis k, respectively. The global
+        // index will always be >= 0 and < getNBinsTotal().
+        int getIndex(std::vector<int> const &binIndices) const;
+        // Returns the global index corresponding to the specified coordinate values along each
+        // axis.
+        int getIndex(std::vector<double> const &values) const;
         // Fills the vector provided with the bin index values along each axis for the specified
         // global index.
         void getBinIndices(int index, std::vector<int> &binIndices) const;
