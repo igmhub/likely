@@ -41,6 +41,10 @@ int main(int argc, char **argv) {
         data.getBinWidths(index,widths);
         for(int k = 0; k < nAxes; ++k) std::cout << ' ' << widths[k];
         std::cout << std::endl;
+        assert(data.hasData(index) == false);
     }
+    std::cout << "size = " << data.getMemoryUsage() << std::endl;
+    data.compress();
+    std::cout << "compressed size = " << data.getMemoryUsage() << std::endl;    
     return 0;
 }
