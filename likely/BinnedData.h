@@ -27,6 +27,10 @@ namespace likely {
         BinnedData(AbsBinningCPtr axis1, AbsBinningCPtr axis2, AbsBinningCPtr axis3);
 		virtual ~BinnedData();
 		
+		// Assignment operator.
+        BinnedData& operator=(BinnedData other);
+        friend void swap(BinnedData& a, BinnedData& b);
+		
 		// Returns the number of axes used to bin this data.
         int getNAxes() const;
         // Returns the total number of bins covering the rectangular volume of our axes.
@@ -111,6 +115,8 @@ namespace likely {
         void _initialize();
         void _checkIndex(int index) const;
 	}; // BinnedData
+	
+    void swap(BinnedData& a, BinnedData& b);
 	
     inline int BinnedData::getNAxes() const { return _axisBinning.size(); }
     inline int BinnedData::getNBinsTotal() const { return _nbins; }

@@ -45,6 +45,8 @@ int main(int argc, char **argv) {
     }
     std::cout << "size = " << data.getMemoryUsage() << std::endl;
     data.compress();
-    std::cout << "compressed size = " << data.getMemoryUsage() << std::endl;    
+    std::cout << "compressed size = " << data.getMemoryUsage() << std::endl;
+    lk::BinnedData copy = data;
+    std::cout << "copy size = " << copy.getMemoryUsage() << std::endl;
     return 0;
 }
