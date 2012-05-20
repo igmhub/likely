@@ -87,6 +87,13 @@ int local::BinnedData::getIndex(std::vector<double> const &values) const {
     return getIndex(binIndices);
 }
 
+int local::BinnedData::getIndexAtOffset(int offset) const {
+    if(offset < 0 || offset >= _index.size()) {
+        throw RuntimeError("BinnedData::getIndexAtOffset: invalid offset.");
+    }
+    return _index[offset];
+}
+
 void local::BinnedData::_checkIndex(int index) const {
     if(index < 0 || index >= _nbins) {
         throw RuntimeError("BinnedData: invalid index " +

@@ -43,6 +43,11 @@ namespace likely {
         // Returns the global index corresponding to the specified coordinate values along each
         // axis.
         int getIndex(std::vector<double> const &values) const;
+        // Returns the global index corresponding to the specified offset, where offset = 0
+        // is the first data value loaded by setData, offset = 1 is the next data value, etc.
+        // This method is useful for matching up BinnedData entries with an ordered list of
+        // values that was used to create it.
+        int getIndexAtOffset(int offset) const;
         
         // Fills the vector provided with the bin index values along each axis for the specified
         // global index.
