@@ -61,16 +61,17 @@ void local::BinnedData::_initialize() {
 local::BinnedData::~BinnedData() { }
 
 int local::BinnedData::getIndex(std::vector<int> const &binIndices) const {
-    int index(0), nAxes(getNAxes());
+    int nAxes(getNAxes());
     if(binIndices.size() != nAxes) {
         throw RuntimeError("BinnedData::getIndex: invalid input vector size.");
     }
-    for(int axis = nAxes-1; axis >= 0; --axis) {
+    int index(0);
+    for(int axis = 0; axis < nAxes; ++axis) {
         int binIndex(binIndices[axis]), nBins(_axisBinning[axis]->getNBins());
         if(binIndex < 0 || binIndex >= nBins) {
             throw RuntimeError("BinnedData::getIndex: invalid bin index.");
         }
-        index = binIndices[axis] + index*nBins;
+        index = binIndex + index*nBins;
     }
     return index;
 }
@@ -103,12 +104,13 @@ void local::BinnedData::_checkIndex(int index) const {
 
 void local::BinnedData::getBinIndices(int index, std::vector<int> &binIndices) const {
     _checkIndex(index);
-    binIndices.resize(0);
-    binIndices.reserve(getNAxes());
+    int nAxes(getNAxes());
+    binIndices.resize(nAxes,0);
     int partial(index);
-    BOOST_FOREACH(AbsBinningCPtr binning, _axisBinning) {
+    for(int axis = nAxes-1; axis >= 0; --axis) {
+        AbsBinningCPtr binning = _axisBinning[axis];
         int nBins(binning->getNBins()), binIndex(partial % nBins);
-        binIndices.push_back(binIndex);
+        binIndices[axis] = binIndex;
         partial = (partial - binIndex)/nBins;
     }
 }
