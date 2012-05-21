@@ -48,5 +48,7 @@ int main(int argc, char **argv) {
     std::cout << "compressed size = " << data.getMemoryUsage() << std::endl;
     lk::BinnedData copy = data;
     std::cout << "copy size = " << copy.getMemoryUsage() << std::endl;
+    assert(copy.isCongruent(data));
+    copy += data;
     return 0;
 }
