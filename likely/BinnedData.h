@@ -30,6 +30,11 @@ namespace likely {
 		// Assignment operator.
         BinnedData& operator=(BinnedData other);
         friend void swap(BinnedData& a, BinnedData& b);
+        
+        // Adds another binned dataset to our dataset.
+        BinnedData& operator+=(BinnedData const& other);
+        // Tests if another binned dataset is congruent with ours.
+        bool isCongruent(BinnedData const& other);
 		
 		// Returns the number of axes used to bin this data.
         int getNAxes() const;

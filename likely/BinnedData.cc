@@ -77,6 +77,41 @@ void local::swap(BinnedData& a, BinnedData& b) {
     swap(a._covariance,b._covariance);
 }
 
+local::BinnedData& local::BinnedData::operator+=(BinnedData const& other) {
+    if(!isCongruent(other)) {
+        throw RuntimeError("BinnedData::operator+=: datasets are not congruent.");
+    }
+    if(!hasCovariance()) {
+        // Add data bin by bin.
+        for(int offset = 0; offset < _index.size(); ++offset) {
+            _data[offset] += other._data[offset];
+        }
+    }
+    else {
+        throw RuntimeError("BinnedData::operator+=: covariance weights not implemented yet.");
+    }
+    return *this;
+}
+
+bool local::BinnedData::isCongruent(BinnedData const& other) {
+    // Must have same number of axes.
+    int nAxes(getNAxes());
+    if(other.getNAxes() != nAxes) return false;
+    // Binning must be represented by the same (not equivalent) object along each axis.
+    for(int axis = 0; axis < nAxes; ++axis) {
+        if(other._axisBinning[axis] != _axisBinning[axis]) return false;
+    }
+    // Both must have or not have an associated covariance matrix.
+    if(other.hasCovariance() && !hasCovariance()) return false;
+    if(!other.hasCovariance() && hasCovariance()) return false;
+    // List (not set) of bins with data must be the same.
+    if(other.getNBinsWithData() != getNBinsWithData()) return false;
+    for(int offset = 0; offset < _index.size(); ++offset) {
+        if(other._index[offset] != _index[offset]) return false;
+    }
+    return true;
+}
+
 int local::BinnedData::getIndex(std::vector<int> const &binIndices) const {
     int nAxes(getNAxes());
     if(binIndices.size() != nAxes) {
