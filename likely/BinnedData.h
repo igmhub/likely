@@ -14,7 +14,10 @@ namespace likely {
     // bins within the rectangular volumed defined by the binning are assumed to be filled.
     // The binned data may have an associated covariance matrix. Most of this class' methods
     // refer to multidimensional bins with the single integer "global index" defined by
-    // the getIndex method.
+    // the getIndex method. BinnedData may be copied (using the default copy constructor or
+    // the provided assignment operator), in which case the copy will have smart pointers
+    // the the same underlying binning objects and covariance matrix (if one is present in
+    // the original).
 	class BinnedData {
 	public:
 	    // Creates a new dataset with an arbitrary number of axes.
@@ -86,6 +89,13 @@ namespace likely {
 
         // Returns true if covariance data is available.
         bool hasCovariance() const;
+        // Returns true if covariance data can be modified. Covariance data
+        // might be present but not modifiable if we are sharing our matrix (via a smart pointer)
+        // with some other consumer. This will generally be the case when a BinnedData object
+        // has been copied (via the copy ctor or assignment operator). Note that our modifiable
+        // state depends on the creation and destruction of smart pointers in other objects, so
+        // might change even when nothing changes internally within this object itself.
+        bool isCovarianceModifiable() const;
         // Returns the (inverse) covariance matrix element for the specified pair of global
         // indices, or throws a RuntimeError if either of the corresponding bins has no data,
         // or if no covariance has been specified for this data.
@@ -95,16 +105,21 @@ namespace likely {
         // indices, or throws a RuntimeError if either of the corresponding bins has no data.
         // After the first call to one of these methods, hasCovariance() == true and no
         // further calls to setData are allowed for bins that do not already have data.
+        // Throws a RuntimeError if we have an unmodifiable covariance matrix.
         void setCovariance(int index1, int index2, double value);
         void setInverseCovariance(int index1, int index2, double value);
 
         // Requests that this object be compressed to reduce its memory usage,
         // if possible. Returns immediately if we are already compressed. Any compression
         // is lossless. Any subsequent reading or writing of covariance matrix elements
-        // will automatically trigger a decompression. Return value
-        // indicates if any compression was actually performed.
+        // will automatically trigger a decompression. Return value indicates if any
+        // compression was actually performed. Compression is considered a logically-const
+        // operation since it is lossless, and an unmodifiable covariance matrix can still
+        // be compressed.
         bool compress() const;
-        // Returns true if this covariance matrix is currently compressed.
+        // Returns true if this covariance matrix is currently compressed. Note that uncompression
+        // happens automatically, on demand, so there is no guarantee that a compressed object
+        // will remain compressed.
         bool isCompressed() const;
         // Returns the memory usage of this object. Does not include the memory used by
         // the binning objects whose pointers are passed to our constructor.
@@ -127,6 +142,9 @@ namespace likely {
     inline int BinnedData::getNBinsTotal() const { return _nbins; }
     inline int BinnedData::getNBinsWithData() const { return _ndata; }
     inline bool BinnedData::hasCovariance() const { return _covariance.get() != 0; }
+    inline bool BinnedData::isCovarianceModifiable() const {
+        return 0 == _covariance.get() || _covariance.unique();
+    }
 
 } // likely
 

@@ -60,6 +60,8 @@ void local::BinnedData::_initialize() {
 
 local::BinnedData::~BinnedData() { }
 
+// The pass-by-value semantics used here are not a mistake: see
+// http://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
 local::BinnedData& local::BinnedData::operator=(BinnedData other) {
     swap(*this,other);
     return *this;
@@ -88,6 +90,9 @@ local::BinnedData& local::BinnedData::operator+=(BinnedData const& other) {
         }
     }
     else {
+        if(!isCovarianceModifiable()) {
+            throw RuntimeError("BinnedData::operator+=: cannot modify shared covariance.");
+        }
         throw RuntimeError("BinnedData::operator+=: covariance weights not implemented yet.");
     }
     return *this;
@@ -254,6 +259,9 @@ void local::BinnedData::setCovariance(int index1, int index2, double value) {
         // Create a new covariance matrix sized to the number of bins with data.
         _covariance.reset(new CovarianceMatrix(_ndata));
     }
+    if(!isCovarianceModifiable()) {
+        throw RuntimeError("BinnedData::setCovariance: cannot modify shared covariance.");
+    }
     _covariance->setCovariance(_offset[index1],_offset[index2],value);
 }
 
@@ -264,6 +272,9 @@ void local::BinnedData::setInverseCovariance(int index1, int index2, double valu
     if(!hasCovariance()) {
         // Create a new covariance matrix sized to the number of bins with data.
         _covariance.reset(new CovarianceMatrix(_ndata));
+    }
+    if(!isCovarianceModifiable()) {
+        throw RuntimeError("BinnedData::setInverseCovariance: cannot modify shared covariance.");
     }
     _covariance->setInverseCovariance(_offset[index1],_offset[index2],value);
 }
