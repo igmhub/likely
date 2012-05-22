@@ -126,7 +126,7 @@ namespace likely {
         std::size_t getMemoryUsage() const;
 
 	private:
-        int _nbins, _ndata;
+        int _nbins;
         std::vector<AbsBinningCPtr> _axisBinning;
         enum { EMPTY_BIN = -1 };
         std::vector<int> _offset, _index;
@@ -140,7 +140,7 @@ namespace likely {
 	
     inline int BinnedData::getNAxes() const { return _axisBinning.size(); }
     inline int BinnedData::getNBinsTotal() const { return _nbins; }
-    inline int BinnedData::getNBinsWithData() const { return _ndata; }
+    inline int BinnedData::getNBinsWithData() const { return _index.size(); }
     inline bool BinnedData::hasCovariance() const { return _covariance.get() != 0; }
     inline bool BinnedData::isCovarianceModifiable() const {
         return 0 == _covariance.get() || _covariance.unique();

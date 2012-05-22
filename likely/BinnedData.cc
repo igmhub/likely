@@ -50,7 +50,6 @@ local::BinnedData::BinnedData(AbsBinningCPtr axis1, AbsBinningCPtr axis2, AbsBin
 }
 
 void local::BinnedData::_initialize() {
-    _ndata = 0;
     _nbins = 1;
     BOOST_FOREACH(AbsBinningCPtr binning, _axisBinning) {
         _nbins *= binning->getNBins();
@@ -71,7 +70,6 @@ void local::swap(BinnedData& a, BinnedData& b) {
     // Enable argument-dependent lookup (ADL)
     using std::swap;
     swap(a._nbins,b._nbins);
-    swap(a._ndata,b._ndata);
     swap(a._axisBinning,b._axisBinning);
     swap(a._offset,b._offset);
     swap(a._index,b._index);
@@ -257,7 +255,7 @@ void local::BinnedData::setCovariance(int index1, int index2, double value) {
     }
     if(!hasCovariance()) {
         // Create a new covariance matrix sized to the number of bins with data.
-        _covariance.reset(new CovarianceMatrix(_ndata));
+        _covariance.reset(new CovarianceMatrix(getNBinsWithData()));
     }
     if(!isCovarianceModifiable()) {
         throw RuntimeError("BinnedData::setCovariance: cannot modify shared covariance.");
@@ -271,7 +269,7 @@ void local::BinnedData::setInverseCovariance(int index1, int index2, double valu
     }
     if(!hasCovariance()) {
         // Create a new covariance matrix sized to the number of bins with data.
-        _covariance.reset(new CovarianceMatrix(_ndata));
+        _covariance.reset(new CovarianceMatrix(getNBinsWithData()));
     }
     if(!isCovarianceModifiable()) {
         throw RuntimeError("BinnedData::setInverseCovariance: cannot modify shared covariance.");
