@@ -77,6 +77,14 @@ void local::swap(BinnedData& a, BinnedData& b) {
     swap(a._covariance,b._covariance);
 }
 
+void local::BinnedData::cloneCovariance() {
+    if(hasCovariance()) {
+        // Release our reference to the original covariance matrix and reset our
+        // smart pointer to a copy of the original covariance matrix.
+        _covariance.reset(new CovarianceMatrix(*_covariance));
+    }
+}
+
 local::BinnedData& local::BinnedData::operator+=(BinnedData const& other) {
     if(!isCongruent(other)) {
         throw RuntimeError("BinnedData::operator+=: datasets are not congruent.");
@@ -289,6 +297,6 @@ std::size_t local::BinnedData::getMemoryUsage() const {
     std::size_t size = sizeof(*this) +
         sizeof(int)*(_offset.capacity() + _index.capacity()) +
         sizeof(double)*_data.capacity();
-    if(_covariance.get()) size += _covariance->getMemoryUsage();
+    if(isCovarianceModifiable()) size += _covariance->getMemoryUsage();
     return size;
 }

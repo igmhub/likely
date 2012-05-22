@@ -30,10 +30,18 @@ namespace likely {
         BinnedData(AbsBinningCPtr axis1, AbsBinningCPtr axis2, AbsBinningCPtr axis3);
 		virtual ~BinnedData();
 		
-		// Assignment operator.
+		// Shallow copying is supported via the default copy constructor, which makes copies of
+		// our data, but just adds smart pointer references to the original object's binning
+		// objects and covariance matrix (if any). Any covariance matrix with more than one
+		// reference count is being shared and cannot be modified via the newly created object
+		// or the original. Use the isCovarianceModifiable() method to test for this condition.
+		// See the cloneCovariance() method if you actually want each object to have separate
+		// and modifiable covariance matrices.
+		
+		// Assignment operator supports the same shallow copy semantics.
         BinnedData& operator=(BinnedData other);
         friend void swap(BinnedData& a, BinnedData& b);
-        
+
         // Adds another binned dataset to our dataset.
         BinnedData& operator+=(BinnedData const& other);
         // Tests if another binned dataset is congruent with ours.
@@ -96,6 +104,11 @@ namespace likely {
         // state depends on the creation and destruction of smart pointers in other objects, so
         // might change even when nothing changes internally within this object itself.
         bool isCovarianceModifiable() const;
+        // Replaces our covariance, if any, with a clone of itself. Since a covariance matrix
+        // cannot be modified via this class when its reference count is greater than one, this
+        // method allows an object created via the copy constructor or assignment operator to
+        // modify its covariance matrix, with a corresponding increase in memory usage.
+        void cloneCovariance();
         // Returns the (inverse) covariance matrix element for the specified pair of global
         // indices, or throws a RuntimeError if either of the corresponding bins has no data,
         // or if no covariance has been specified for this data.
@@ -122,7 +135,8 @@ namespace likely {
         // will remain compressed.
         bool isCompressed() const;
         // Returns the memory usage of this object. Does not include the memory used by
-        // the binning objects whose pointers are passed to our constructor.
+        // the binning objects whose pointers are passed to our constructor. The memory usage
+        // of any covariance matrix is only included if isCovarianceModifiable() returns true.
         std::size_t getMemoryUsage() const;
 
 	private:
