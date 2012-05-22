@@ -61,6 +61,26 @@ local::CovarianceMatrix::CovarianceMatrix(std::vector<double> packed)
 
 local::CovarianceMatrix::~CovarianceMatrix() { }
 
+local::CovarianceMatrix& local::CovarianceMatrix::operator=(CovarianceMatrix other) {
+    swap(*this,other);
+    return *this;
+}
+
+void local::swap(CovarianceMatrix& a, CovarianceMatrix& b) {
+    // Enable argument-dependent lookup (ADL)
+    using std::swap;
+    swap(a._size,b._size);
+    swap(a._ncov,b._ncov);
+    swap(a._compressed,b._compressed);
+    swap(a._cov,b._cov);
+    swap(a._icov,b._icov);
+    swap(a._cholesky,b._cholesky);
+    swap(a._diag,b._diag);
+    swap(a._offdiagIndex,b._offdiagIndex);
+    swap(a._offdiagValue,b._offdiagValue);
+    swap(a._nextSeed,b._nextSeed);
+}
+
 size_t local::CovarianceMatrix::getMemoryUsage() const {
     return sizeof(*this) + sizeof(double)*(
         _cov.capacity() + _icov.capacity() + _cholesky.capacity() +

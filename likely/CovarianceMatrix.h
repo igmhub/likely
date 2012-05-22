@@ -3,7 +3,6 @@
 #ifndef LIKELY_COVARIANCE_MATRIX
 #define LIKELY_COVARIANCE_MATRIX
 
-#include "boost/utility.hpp"
 #include "boost/smart_ptr.hpp"
 
 #include <vector>
@@ -14,7 +13,7 @@
 namespace likely {
     class Random;
     // Represents a covariance matrix.
-	class CovarianceMatrix : public boost::noncopyable {
+	class CovarianceMatrix {
 	public:
 	    // Creates a new size-by-size covariance matrix with all elements initialized to zero.
 	    // Throws a RuntimeError if size <= 0. Note that the matrix created by this constructor
@@ -32,6 +31,11 @@ namespace likely {
 		// matrix size will be inferred from the input vector size using symmetricMatrixSize.
         explicit CovarianceMatrix(std::vector<double> packed);
 		virtual ~CovarianceMatrix();
+
+		// Assignment operator.
+        CovarianceMatrix& operator=(CovarianceMatrix other);
+        friend void swap(CovarianceMatrix& a, CovarianceMatrix& b);
+
 		// Returns the fixed size of this covariance matrix.
         int getSize() const;
         // Returns the specified (inverse) covariance matrix element or throws a RuntimeError.
@@ -44,6 +48,7 @@ namespace likely {
         // (row == col) must be positive.
         void setCovariance(int row, int col, double value);
         void setInverseCovariance(int row, int col, double value);
+
         // Multiplies the specified vector by the (inverse) covariance or throws a RuntimeError.
         // The result is stored in the input vector, overwriting its original contents.
         void multiplyByCovariance(std::vector<double> &vector) const;
@@ -51,6 +56,7 @@ namespace likely {
         // Calculates the chi-square = delta.Cinv.delta for the specified residuals vector delta
         // or throws a RuntimeError.
         double chiSquare(std::vector<double> const &delta) const;
+
         // Replaces the original covariance matrix contents C with the triple matrix
         // product A.Cinv.A for the specified other covariance matrix A. For A,C both positive
         // definite, the result is a new (positive definite) covariance matrix.
@@ -60,6 +66,7 @@ namespace likely {
         // our positive-definiteness). If the other matrix is compressed, this method will
         // not uncompress it.
         void addInverse(CovarianceMatrix const &other, double weight = 1);
+
         // Fills the vector provided with a single random sampling of the Gausian probability
         // density implied by this object, or throws a RuntimeError. Returns the value of
         // delta.Cinv.delta/2 which is the negative log-likelihood of the generated sample.
@@ -80,6 +87,7 @@ namespace likely {
         // the single-sample method above for small values of nsample (on a macbookpro, the
         // crossover is around nsample = 32 and this method is ~4x faster for large nsample).
         boost::shared_array<double> sample(int nsample, int seed = 0) const;
+
         // Prints our covariance matrix elements to the specified output stream, using the
         // specified printf format for each element.
         void printToStream(std::ostream &os, std::string format = std::string("%+10.3lg")) const;
@@ -115,6 +123,7 @@ namespace likely {
         // [...D--] : Matrix is diagonal and compressed
         // [...DZV] : Matrix is non-diagonal and compressed
         std::string getMemoryState() const;
+        
     private:
         // Undoes any compression. Returns immediately if we are already uncompressed.
         // There is usually no need to call this method explicitly, since it is called
@@ -146,6 +155,8 @@ namespace likely {
         mutable int _nextSeed;
 	}; // CovarianceMatrix
 	
+    void swap(CovarianceMatrix& a, CovarianceMatrix& b);
+
     inline int CovarianceMatrix::getSize() const { return _size; }
     
     inline bool CovarianceMatrix::isCompressed() const { return _compressed; }

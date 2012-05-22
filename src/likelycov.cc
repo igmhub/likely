@@ -99,11 +99,19 @@ int main(int argc, char **argv) {
     std::cout << cov2.getMemoryState() << std::endl;
     cov2.printToStream(std::cout); // should be the same as cov
     
-    return 0;
+    // Test copying and assignment.
+    std::cout << "== Copy & assignment:" << std::endl;
+    lk::CovarianceMatrix copy1(cov);
+    std::cout << copy1.getMemoryState() << std::endl;
+    copy1.printToStream(std::cout);
+    lk::CovarianceMatrix copy2 = copy1;
+    std::cout << copy2.getMemoryState() << std::endl;
+    copy2.printToStream(std::cout);
 
     // Test random sampling...
     int nsample(1000000);
     struct rusage t1,t2,t3;
+    std::cout << "== Random sampling:" << std::endl;
     
     {
         getrusage(RUSAGE_SELF,&t1);
