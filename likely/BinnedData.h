@@ -135,9 +135,9 @@ namespace likely {
         // will remain compressed.
         bool isCompressed() const;
         // Returns the memory usage of this object. Does not include the memory used by
-        // the binning objects whose pointers are passed to our constructor. The memory usage
-        // of any covariance matrix is only included if isCovarianceModifiable() returns true.
-        std::size_t getMemoryUsage() const;
+        // the binning objects whose pointers are passed to our constructor. Use includeCovariance
+        // to specify if the memory usage of any covariance matrix should be included in the result.
+        std::size_t getMemoryUsage(bool includeCovariance = true) const;
 
 	private:
         int _nbins;

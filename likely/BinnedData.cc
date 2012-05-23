@@ -293,10 +293,10 @@ bool local::BinnedData::isCompressed() const {
     return _covariance.get() ? _covariance->isCompressed() : false;
 }
 
-std::size_t local::BinnedData::getMemoryUsage() const {
+std::size_t local::BinnedData::getMemoryUsage(bool includeCovariance) const {
     std::size_t size = sizeof(*this) +
         sizeof(int)*(_offset.capacity() + _index.capacity()) +
-        sizeof(double)*_data.capacity();
-    if(isCovarianceModifiable()) size += _covariance->getMemoryUsage();
+        sizeof(double)*(_data.capacity() + _cinvDataCache.capacity());
+    if(hasCovariance() && includeCovariance) size += _covariance->getMemoryUsage();
     return size;
 }
