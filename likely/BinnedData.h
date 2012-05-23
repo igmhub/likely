@@ -146,6 +146,12 @@ namespace likely {
         std::vector<int> _offset, _index;
         std::vector<double> _data;
         boost::shared_ptr<CovarianceMatrix> _covariance;
+        // A cached Cinv.data vector to optimize a sequence of operator+=() calls.
+        // Whenever this vector has non-zero size, it must be valid. This requires
+        // that any method that changes either _data or _covariance must reset it
+        // using the _changed() method below.
+        std::vector<double> _cinvDataCache;
+        void _changed();
         void _initialize();
         void _checkIndex(int index) const;
 	}; // BinnedData
@@ -159,6 +165,7 @@ namespace likely {
     inline bool BinnedData::isCovarianceModifiable() const {
         return 0 == _covariance.get() || _covariance.unique();
     }
+    inline void BinnedData::_changed() { _cinvDataCache.resize(0); }
 
 } // likely
 

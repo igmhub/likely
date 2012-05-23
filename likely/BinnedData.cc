@@ -75,6 +75,7 @@ void local::swap(BinnedData& a, BinnedData& b) {
     swap(a._index,b._index);
     swap(a._data,b._data);
     swap(a._covariance,b._covariance);
+    swap(a._cinvDataCache,b._cinvDataCache);
 }
 
 void local::BinnedData::cloneCovariance() {
@@ -228,6 +229,7 @@ void local::BinnedData::setData(int index, double value) {
         _index.push_back(index);
         _data.push_back(value);
     }
+    _changed();
 }
 
 void local::BinnedData::addData(int index, double offset) {
@@ -235,6 +237,7 @@ void local::BinnedData::addData(int index, double offset) {
         throw RuntimeError("BinnedData::addData: bin is empty.");        
     }
     _data[_offset[index]] += offset;
+    _changed();
 }
 
 double local::BinnedData::getCovariance(int index1, int index2) const {
@@ -269,6 +272,7 @@ void local::BinnedData::setCovariance(int index1, int index2, double value) {
         throw RuntimeError("BinnedData::setCovariance: cannot modify shared covariance.");
     }
     _covariance->setCovariance(_offset[index1],_offset[index2],value);
+    _changed();
 }
 
 void local::BinnedData::setInverseCovariance(int index1, int index2, double value) {
@@ -283,6 +287,7 @@ void local::BinnedData::setInverseCovariance(int index1, int index2, double valu
         throw RuntimeError("BinnedData::setInverseCovariance: cannot modify shared covariance.");
     }
     _covariance->setInverseCovariance(_offset[index1],_offset[index2],value);
+    _changed();
 }
 
 bool local::BinnedData::compress() const {
