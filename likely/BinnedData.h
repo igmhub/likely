@@ -144,15 +144,17 @@ namespace likely {
         std::vector<AbsBinningCPtr> _axisBinning;
         enum { EMPTY_BIN = -1 };
         std::vector<int> _offset, _index;
-        std::vector<double> _data;
+        // Our data vector which might be weighted.
+        mutable std::vector<double> _data;
         boost::shared_ptr<CovarianceMatrix> _covariance;
-        // A cached Cinv.data vector to optimize a sequence of operator+=() calls.
-        // Whenever this vector has non-zero size, it must be valid. This requires
-        // that any method that changes either _data or _covariance must reset it
-        // using the _changed() method below.
-        std::vector<double> _cinvDataCache;
-        void _changed();
+        // Is our _data vector weighted by _Cinv?
+        mutable bool _weighted;
+        // Changes whether our _data vector is weighted by _Cinv by multiplying
+        // by Cinv or C, as needed.
+        void _setWeighted(bool weighted) const;
+        // Initializes a new object.
         void _initialize();
+        // Throws a RuntimeError unless the specified global index is valid.
         void _checkIndex(int index) const;
 	}; // BinnedData
 	
@@ -165,7 +167,6 @@ namespace likely {
     inline bool BinnedData::isCovarianceModifiable() const {
         return 0 == _covariance.get() || _covariance.unique();
     }
-    inline void BinnedData::_changed() { _cinvDataCache.resize(0); }
 
 } // likely
 
