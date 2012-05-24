@@ -6,6 +6,7 @@
 #include "boost/smart_ptr.hpp"
 
 #include <vector>
+#include <set>
 #include <string>
 #include <cstddef>
 #include <iosfwd>
@@ -87,6 +88,11 @@ namespace likely {
         // the single-sample method above for small values of nsample (on a macbookpro, the
         // crossover is around nsample = 32 and this method is ~4x faster for large nsample).
         boost::shared_array<double> sample(int nsample, int seed = 0) const;
+        
+        // Prunes this covariance matrix by eliminating any rows and columns corresponding to
+        // indices not specified in the keep set. Throws a RuntimeError if any indices are
+        // out of range. Pruning is done in place and does not require any new memory allocation.
+        void prune(std::set<int> const &keep);
 
         // Prints our covariance matrix elements to the specified output stream, using the
         // specified printf format for each element.

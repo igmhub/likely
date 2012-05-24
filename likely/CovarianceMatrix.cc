@@ -203,6 +203,42 @@ std::vector<double> const &vector, std::vector<double> &result) {
     dspmv_(&uplo,&size,&alpha,&matrix[0],&vector[0],&incr,&beta,&result[0],&incr);
 }
 
+void local::CovarianceMatrix::prune(std::set<int> const &keep) {
+    int newSize(keep.size());
+    if(newSize == getSize()) return;
+    
+    if(!_readsCov()) {
+        throw RuntimeError("CovarianceMatrix::prune: no elements have been set.");
+    }
+    _changesCov();
+    
+    std::set<int>::const_iterator nextOldCol(keep.begin());
+    for(int newCol = 0; newCol < newSize; ++newCol) {
+        int oldCol = *nextOldCol++;        
+        std::set<int>::const_iterator nextOldRow(keep.begin());
+        for(int newRow = 0; newRow <= newCol; ++newRow) {
+            int oldRow = *nextOldRow++;
+            int newIndex = symmetricMatrixIndex(newRow, newCol, newSize);            
+            int oldIndex = symmetricMatrixIndex(oldRow, oldCol, getSize());
+
+            //std::cout << "prune: " << newCol << ',' << newRow << ' ' << oldCol << ',' << oldRow
+            //    << ' ' << newIndex << ',' << oldIndex << std::endl;
+            assert(oldIndex >= newIndex);
+
+            _cov[newIndex] = _cov[oldIndex];
+        }
+    }
+    _size = newSize;
+    _ncov = (newSize*(newSize+1))/2;
+    _cov.resize(_ncov);
+
+    assert(0 == _icov.capacity());
+    assert(0 == _cholesky.capacity());
+    assert(0 == _diag.capacity());
+    assert(0 == _offdiagIndex.capacity());
+    assert(0 == _offdiagValue.capacity());
+}
+
 void local::CovarianceMatrix::_changesCov() {
     _uncompress();
     // Any cached compressed matrix data is now invalid so delete it.

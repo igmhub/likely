@@ -108,6 +108,14 @@ int main(int argc, char **argv) {
     std::cout << copy2.getMemoryState() << std::endl;
     copy2.printToStream(std::cout);
 
+    // Test pruning.
+    std::cout << "== Pruning:" << std::endl;
+    std::set<int> keep;
+    keep.insert(2);
+    keep.insert(0);
+    copy2.prune(keep);
+    copy2.printToStream(std::cout);
+
     // Test random sampling...
     int nsample(1000000);
     struct rusage t1,t2,t3;
