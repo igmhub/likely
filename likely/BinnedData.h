@@ -8,6 +8,7 @@
 #include "boost/smart_ptr.hpp"
 
 #include <vector>
+#include <set>
 
 namespace likely {
     // Represents data that is binned independently along one or more axes. Not all possible
@@ -121,6 +122,14 @@ namespace likely {
         // Throws a RuntimeError if we have an unmodifiable covariance matrix.
         void setCovariance(int index1, int index2, double value);
         void setInverseCovariance(int index1, int index2, double value);
+        
+        // Prunes our data to the subset of bins listed by their global index in the
+        // specified keep vector. Throws a RuntimeError if any indices are out of range.
+        // Pruning is done in place and does not require any new memory allocation.
+        // The axis binning is unchanged by pruning. A covariance matrix, if present,
+        // will be changed. If an existing covariance matrix is not modifiable, it will
+        // be cloned before pruning.
+        void prune(std::set<int> const &keep);
 
         // Requests that this object be compressed to reduce its memory usage,
         // if possible. Returns immediately if we are already compressed. Any compression

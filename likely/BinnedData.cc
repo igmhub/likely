@@ -331,3 +331,39 @@ std::size_t local::BinnedData::getMemoryUsage(bool includeCovariance) const {
     if(hasCovariance() && includeCovariance) size += _covariance->getMemoryUsage();
     return size;
 }
+
+void local::BinnedData::prune(std::set<int> const &keep) {
+    // Create a parallel set of internal offsets for each global index, checking that
+    // all indices are valid.
+    std::set<int> offsets;
+    BOOST_FOREACH(int index, keep) {
+        _checkIndex(index);
+        offsets.insert(_offset[index]);
+    }
+    // Are we actually removing anything?
+    int newSize(offsets.size());
+    if(newSize == getNBinsWithData()) return;
+    // Reset our vector of offset for each index with data.
+    _offset.assign(_nbins,EMPTY_BIN);
+    // Shift our (unweighted) data vector elements down to compress out any elements
+    // we are not keeping. We are using the fact that std::set guarantees that iteration
+    // follows sort order, from smallest to largest key value.
+    _setWeighted(false);
+    int newOffset(0);
+    BOOST_FOREACH(int oldOffset, offsets) {
+        // oldOffset >= newOffset so we will never clobber an element that we still need
+        assert(oldOffset >= newOffset);
+        int index = _index[oldOffset];
+        _offset[index] = newOffset;
+        _index[newOffset] = index;
+        _data[newOffset] = _data[oldOffset];
+        newOffset++;
+    }
+    _index.resize(newSize);
+    _data.resize(newSize);
+    // Prune our covariance matrix, if any.
+    if(hasCovariance()) {
+        if(!isCovarianceModifiable()) cloneCovariance();
+        _covariance->prune(offsets);
+    }
+}
