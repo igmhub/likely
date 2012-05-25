@@ -46,7 +46,7 @@ namespace likely {
         // Adds another binned dataset to our dataset.
         BinnedData& operator+=(BinnedData const& other);
         // Tests if another binned dataset is congruent with ours.
-        bool isCongruent(BinnedData const& other);
+        bool isCongruent(BinnedData const& other) const;
 		
 		// Returns the number of axes used to bin this data.
         int getNAxes() const;

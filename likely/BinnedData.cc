@@ -129,7 +129,7 @@ void local::BinnedData::_setWeighted(bool weighted) const {
     _weighted = weighted;
 }
 
-bool local::BinnedData::isCongruent(BinnedData const& other) {
+bool local::BinnedData::isCongruent(BinnedData const& other) const {
     // Must have same number of axes.
     int nAxes(getNAxes());
     if(other.getNAxes() != nAxes) return false;
