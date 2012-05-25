@@ -110,6 +110,8 @@ namespace likely {
         // method allows an object created via the copy constructor or assignment operator to
         // modify its covariance matrix, with a corresponding increase in memory usage.
         void cloneCovariance();
+        // Drops any covariance matrix.
+        void dropCovariance();
         // Returns the (inverse) covariance matrix element for the specified pair of global
         // indices, or throws a RuntimeError if either of the corresponding bins has no data,
         // or if no covariance has been specified for this data.

@@ -87,6 +87,10 @@ void local::BinnedData::cloneCovariance() {
     }
 }
 
+void local::BinnedData::dropCovariance() {
+    _covariance.reset();
+}
+
 local::BinnedData& local::BinnedData::operator+=(BinnedData const& other) {
     if(!isCongruent(other)) {
         throw RuntimeError("BinnedData::operator+=: datasets are not congruent.");
