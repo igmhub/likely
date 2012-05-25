@@ -187,6 +187,13 @@ int local::BinnedData::getIndexAtOffset(int offset) const {
     return _index[offset];
 }
 
+int local::BinnedData::getOffsetForIndex(int index) const {
+    if(!hasData(index)) {
+        throw RuntimeError("BinnedData::getOffsetForIndex: no data at index.");
+    }
+    return _offset[index];
+}
+
 void local::BinnedData::_checkIndex(int index) const {
     if(index < 0 || index >= _nbins) {
         throw RuntimeError("BinnedData: invalid index " +

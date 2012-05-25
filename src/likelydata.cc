@@ -42,6 +42,7 @@ int main(int argc, char **argv) {
         for(int k = 0; k < nAxes; ++k) std::cout << ' ' << widths[k];
         std::cout << std::endl;
         assert(data.hasData(index) == false);
+        data.setData(index,index);
     }
     std::cout << "size = " << data.getMemoryUsage() << std::endl;
     data.compress();
@@ -50,5 +51,11 @@ int main(int argc, char **argv) {
     std::cout << "copy size = " << copy.getMemoryUsage() << std::endl;
     assert(copy.isCongruent(data));
     copy += data;
+    
+    lk::BinnedData::IndexIterator ptr = data.begin();
+    for(lk::BinnedData::IndexIterator iter = data.begin(); iter != data.end(); ++iter) {
+        std::cout << "[" << *iter << "] = " << data.getData(*iter) << std::endl;
+    }
+    
     return 0;
 }

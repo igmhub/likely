@@ -64,11 +64,22 @@ namespace likely {
         // Returns the global index corresponding to the specified coordinate values along each
         // axis.
         int getIndex(std::vector<double> const &values) const;
+        
+        // Returns iterators pointing to the first and last global indices for bins with data.
+        // Iteration order is defined by the order of setData(...) calls, and not by the global
+        // index value.
+        typedef std::vector<int>::const_iterator IndexIterator;
+        IndexIterator begin() const;
+        IndexIterator end() const;
+
         // Returns the global index corresponding to the specified offset, where offset = 0
         // is the first data value loaded by setData, offset = 1 is the next data value, etc.
         // This method is useful for matching up BinnedData entries with an ordered list of
-        // values that was used to create it.
+        // values that was used to create it. Throws a RuntimeError if offset is out of range.
         int getIndexAtOffset(int offset) const;
+        // Returns the offset corresponding to a global index, or throws a RuntimeError for
+        // an index with no associated data or out of range.
+        int getOffsetForIndex(int index) const;
         
         // Fills the vector provided with the bin index values along each axis for the specified
         // global index.
@@ -178,6 +189,8 @@ namespace likely {
     inline bool BinnedData::isCovarianceModifiable() const {
         return 0 == _covariance.get() || _covariance.unique();
     }
+    inline BinnedData::IndexIterator BinnedData::begin() const { return _index.begin(); }
+    inline BinnedData::IndexIterator BinnedData::end() const { return _index.end(); }
 
 } // likely
 
