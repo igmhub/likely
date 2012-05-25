@@ -157,7 +157,7 @@ namespace likely {
         std::vector<int> _offset, _index;
         // Our data vector which might be weighted.
         mutable std::vector<double> _data;
-        boost::shared_ptr<CovarianceMatrix> _covariance;
+        CovarianceMatrixPtr _covariance;
         // Is our _data vector weighted by _Cinv?
         mutable bool _weighted;
         // Changes whether our _data vector is weighted by _Cinv by multiplying
