@@ -149,7 +149,7 @@ namespace likely {
         // dropped, a new covariance cannot be created, and previously unused bins
         // cannot be used. A finalized object cannot be pruned but it can be compressed.
         // The index iteration sequence of a finalized object is guaranteed never to change.
-        void finalize() const;
+        void finalize();
         // Retrurns true if this object has been finalized, or else false.
         bool isFinalized() const;
         
@@ -181,7 +181,7 @@ namespace likely {
         // Is our _data vector weighted by _Cinv?
         mutable bool _weighted;
         // Have we been finalized?
-        mutable bool _finalized;
+        bool _finalized;
         // Changes whether our _data vector is weighted by _Cinv by multiplying
         // by Cinv or C, as needed.
         void _setWeighted(bool weighted) const;
@@ -202,7 +202,7 @@ namespace likely {
     }
     inline BinnedData::IndexIterator BinnedData::begin() const { return _index.begin(); }
     inline BinnedData::IndexIterator BinnedData::end() const { return _index.end(); }
-    inline void BinnedData::finalize() const { _finalized = true; }
+    inline void BinnedData::finalize() { _finalized = true; }
     inline bool BinnedData::isFinalized() const { return _finalized; }
 
 } // likely
