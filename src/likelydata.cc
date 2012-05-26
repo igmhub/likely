@@ -57,5 +57,13 @@ int main(int argc, char **argv) {
         std::cout << "[" << *iter << "] = " << data.getData(*iter) << std::endl;
     }
     
+    data.finalize();
+    try {
+        data.setCovariance(0,0,0);
+    }
+    catch(likely::RuntimeError const &e) {
+        std::cout << e.what() << std::endl;
+    }
+    
     return 0;
 }

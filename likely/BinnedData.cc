@@ -56,6 +56,7 @@ void local::BinnedData::_initialize() {
     }
     _offset.resize(_nbins,EMPTY_BIN);
     _weighted = false;
+    _finalized = false;
 }
 
 local::BinnedData::~BinnedData() { }
@@ -77,6 +78,7 @@ void local::swap(BinnedData& a, BinnedData& b) {
     swap(a._data,b._data);
     swap(a._covariance,b._covariance);
     swap(a._weighted,b._weighted);
+    swap(a._finalized,b._finalized);
 }
 
 void local::BinnedData::cloneCovariance() {
@@ -88,6 +90,9 @@ void local::BinnedData::cloneCovariance() {
 }
 
 void local::BinnedData::dropCovariance() {
+    if(hasCovariance() && isFinalized()) {
+        throw RuntimeError("BinnedData::dropCovariance: object is finalized.");
+    }
     _covariance.reset();
 }
 
@@ -262,6 +267,9 @@ void local::BinnedData::setData(int index, double value) {
         if(hasCovariance()) {
             throw RuntimeError("BinnedData::setData: cannot add data after covariance.");
         }
+        if(isFinalized()) {
+            throw RuntimeError("BinnedData::setData: object is finalized.");
+        }
         _offset[index] = _index.size();
         _index.push_back(index);
         _data.push_back(value);
@@ -301,6 +309,9 @@ void local::BinnedData::setCovariance(int index1, int index2, double value) {
         throw RuntimeError("BinnedData::setCovariance: bin is empty.");
     }
     if(!hasCovariance()) {
+        if(isFinalized()) {
+            throw RuntimeError("BinnedData::setCovariance: object is finalized.");
+        }
         // Create a new covariance matrix sized to the number of bins with data.
         _covariance.reset(new CovarianceMatrix(getNBinsWithData()));
     }
@@ -317,6 +328,9 @@ void local::BinnedData::setInverseCovariance(int index1, int index2, double valu
         throw RuntimeError("BinnedData::setInverseCovariance: bin is empty.");
     }
     if(!hasCovariance()) {
+        if(isFinalized()) {
+            throw RuntimeError("BinnedData::setInverseCovariance: object is finalized.");
+        }
         // Create a new covariance matrix sized to the number of bins with data.
         _covariance.reset(new CovarianceMatrix(getNBinsWithData()));
     }
@@ -344,6 +358,9 @@ std::size_t local::BinnedData::getMemoryUsage(bool includeCovariance) const {
 }
 
 void local::BinnedData::prune(std::set<int> const &keep) {
+    if(isFinalized()) {
+        throw RuntimeError("BinnedData::prune: object is finalized.");
+    }
     // Create a parallel set of internal offsets for each global index, checking that
     // all indices are valid.
     std::set<int> offsets;
