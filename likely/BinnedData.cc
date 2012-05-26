@@ -395,3 +395,20 @@ void local::BinnedData::prune(std::set<int> const &keep) {
         _covariance->prune(offsets);
     }
 }
+
+double local::BinnedData::chiSquare(std::vector<double> pred) const {
+    if(!hasCovariance()) {
+        throw RuntimeError("BinnedData::chiSquare: no covariance available.");
+    }
+    if(pred.size() != getNBinsWithData()) {
+        throw RuntimeError("BinnedData::chiSquare: prediction vector has wrong size.");
+    }
+    // Subtract our data vector from the prediction.
+    IndexIterator nextIndex(begin());
+    std::vector<double>::iterator nextPred(pred.begin());
+    while(nextIndex != end()) {
+        *nextPred++ -= getData(*nextIndex++);
+    }
+    // Our input vector now holds deltas. Our covariance does the rest of the work.
+    return _covariance->chiSquare(pred);
+}

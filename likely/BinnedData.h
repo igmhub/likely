@@ -135,6 +135,12 @@ namespace likely {
         // Throws a RuntimeError if we have an unmodifiable covariance matrix.
         void setCovariance(int index1, int index2, double value);
         void setInverseCovariance(int index1, int index2, double value);
+
+        // Calculates the chi-square = (data-pred).Cinv.(data-pred) for the specified
+        // vector of predicted data, or throws a RuntimeError. The predicted data vector
+        // must use the same index sequence as our index iterator. (The copy by value
+        // used here is an optimization, not a mistake.)
+        double chiSquare(std::vector<double> pred) const;
         
         // Prunes our data to the subset of bins listed by their global index in the
         // specified keep vector. Throws a RuntimeError if any indices are out of range.
