@@ -26,6 +26,7 @@
 #include "likely/CovarianceMatrix.h"
 #include "likely/BinnedData.h"
 
+#include "likely/FitParameter.h"
 #include "likely/AbsEngine.h"
 #include "likely/FunctionMinimum.h"
 

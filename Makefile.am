@@ -44,6 +44,7 @@ nobase_include_HEADERS = \
 	likely/function.h \
 	likely/function_impl.h \
 	likely/RuntimeError.h \
+	likely/FitParameter.h \
 	likely/FunctionMinimum.h \
 	likely/AbsEngine.h \
 	likely/EngineRegistry.h \
