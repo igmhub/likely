@@ -14,17 +14,16 @@ local::AbsEngine::AbsEngine()
 local::AbsEngine::~AbsEngine() { }
 
 local::FunctionMinimumPtr local::findMinimum(FunctionPtr f, GradientCalculatorPtr gc,
-Parameters const &initial, Parameters const &errors, std::string const &methodName,
+FitParameters const &parameters, std::string const &methodName,
 double precision, long maxIterations) {
-    // Check that the input vectors have the same length.
-    int nPar(initial.size());
-    if(errors.size() != nPar) {
-        throw RuntimeError(
-            "findMinimum: initial parameter and error vectors have different sizes.");
-    }
     // Create a new engine for this function.
-    AbsEnginePtr engine = getEngine(methodName,f,gc,nPar);
+    AbsEnginePtr engine = getEngine(methodName,f,gc,parameters.size());
     // Run the algorithm.
+    std::vector<double> initial,errors;
+    for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
+        initial.push_back(iter->getValue());
+        errors.push_back(iter->getError());
+    }
     FunctionMinimumPtr fmin(engine->minimumFinder(initial,errors,precision,maxIterations));
     // Save the evaluation counts.
     lastMinEvalCount = engine->getEvalCount();
@@ -33,11 +32,11 @@ double precision, long maxIterations) {
 }
 
 local::FunctionMinimumPtr local::findMinimum(FunctionPtr f,
-Parameters const &initial, Parameters const &errors, std::string const &methodName,
+FitParameters const &parameters, std::string const &methodName,
 double precision, long maxIterations) {
     // Use a null gradient calculator.
     GradientCalculatorPtr gc;
-    return findMinimum(f,gc,initial,errors,methodName,precision,maxIterations);
+    return findMinimum(f,gc,parameters,methodName,precision,maxIterations);
 }
 
 // Initialize the global evaluation counters.

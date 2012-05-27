@@ -4,6 +4,7 @@
 #define LIKELY_ABS_ENGINE
 
 #include "likely/types.h"
+#include "likely/FitParameter.h"
 
 #include "boost/utility.hpp"
 #include "boost/function.hpp"
@@ -23,9 +24,9 @@ namespace likely {
         
         // The findMinimum functions can access our internals.
         friend FunctionMinimumPtr findMinimum(FunctionPtr,
-    	    Parameters const &, Parameters const &, std::string const &, double, long);
+    	    FitParameters const &, std::string const &, double, long);
         friend FunctionMinimumPtr findMinimum(FunctionPtr, GradientCalculatorPtr,
-    	    Parameters const &, Parameters const &, std::string const &, double, long);
+    	    FitParameters const &, std::string const &, double, long);
 
     protected:
         // Subclass API for managing evaluation counts.
@@ -57,11 +58,11 @@ namespace likely {
     // and provide a more precise minimum. Use a positive value for maxIterations to
     // request a maximum number of times that the function is called.
 	FunctionMinimumPtr findMinimum(FunctionPtr f,
-	    Parameters const &initial, Parameters const &errors, std::string const &methodName,
+	    FitParameters const &parameters, std::string const &methodName,
         double precision = 1e-3, long maxIterations = 0);
     // Same as above, but using a gradient calculator.
 	FunctionMinimumPtr findMinimum(FunctionPtr f, GradientCalculatorPtr gc,
-	    Parameters const &initial, Parameters const &errors, std::string const &methodName,
+	    FitParameters const &parameters, std::string const &methodName,
         double precision = 1e-3, long maxIterations = 0);
         
     // Remembers the number of function and gradient evaluations from the last call

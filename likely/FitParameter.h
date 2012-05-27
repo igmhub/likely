@@ -26,6 +26,8 @@ namespace likely {
     inline std::string FitParameter::getName() const { return _name; }
     inline double FitParameter::getValue() const { return _value; }
     inline double FitParameter::getError() const { return _error; }
+    
+    typedef std::vector<FitParameter> FitParameters;
 
 } // likely
 

@@ -19,17 +19,16 @@ namespace lk = likely;
 namespace test = likely::test;
 namespace po = boost::program_options;
 
-void useMethod(int methodId, std::string const &methodName,
-lk::FunctionPtr f, lk::GradientCalculatorPtr gc, lk::Parameters const &initial,
-lk::Parameters const &errors, double prec) {
+void useMethod(int methodId, std::string const &methodName, lk::FunctionPtr f,
+lk::GradientCalculatorPtr gc, lk::FitParameters const &parameters, double prec) {
     lk::FunctionMinimumPtr fmin;
     long maxIterations(1000000); //1e6
     if(gc) {
         // Use an algorithm that requires a gradient calculator.
-        fmin = lk::findMinimum(f,gc,initial,errors,methodName,prec,maxIterations);
+        fmin = lk::findMinimum(f,gc,parameters,methodName,prec,maxIterations);
     }
     else {
-        fmin = lk::findMinimum(f,initial,errors,methodName,prec,maxIterations);
+        fmin = lk::findMinimum(f,parameters,methodName,prec,maxIterations);
     }
     double error(0);
     if(fmin->haveCovariance()) error = fmin->getErrors()[0];
@@ -137,39 +136,44 @@ int main(int argc, char **argv) {
 
         // Use fixed initial error estimates of 1.3 for each parameter, which
         // overestimate the true error, which is exactly 1 for alpha = 0.
-        lk::Parameters errors(npar,1.3);
+        double fixedError = 1.3;
 
         // Loop over minimization trials.
         for(int trial = 0; trial < ntrial; ++trial) {
             // Choose a random point on a sphere (in npar dimensions)
             // for the initial parameter values.
             lk::Parameters initial(randomOnSphere());
-            for(int i = 0; i < initial.size(); ++i) initial[i] *= radius;
+            lk::FitParameters parameters;
+            boost::format pname("PAR%d");
+            for(int i = 0; i < initial.size(); ++i) {
+                parameters.push_back(
+                    lk::FitParameter(boost::str(pname % i),initial[i]*radius,fixedError));
+            }
            // Loop over precision goals.
             for(int precIndex = 0; precIndex < precision.size(); ++precIndex) {
                 double precValue(precision[precIndex]);
                 // Use methods that do not use the function gradient.
 #ifdef HAVE_LIBGSL
-                useMethod(1,"gsl::nmsimplex2",f,noGC,initial,errors,precValue);
-                useMethod(2,"gsl::nmsimplex2rand",f,noGC,initial,errors,precValue);
+                useMethod(1,"gsl::nmsimplex2",f,noGC,parameters,precValue);
+                useMethod(2,"gsl::nmsimplex2rand",f,noGC,parameters,precValue);
 #endif
 #ifdef HAVE_LIBMINUIT2
-                useMethod(3,"mn2::simplex",f,noGC,initial,errors,precValue);
-                useMethod(4,"mn2::vmetric",f,noGC,initial,errors,precValue);
-                useMethod(5,"mn2::vmetric_fast",f,noGC,initial,errors,precValue);
+                useMethod(3,"mn2::simplex",f,noGC,parameters,precValue);
+                useMethod(4,"mn2::vmetric",f,noGC,parameters,precValue);
+                useMethod(5,"mn2::vmetric_fast",f,noGC,parameters,precValue);
 #endif
-                useMethod(6,"mc::saunter",f,noGC,initial,errors,precValue);
-                useMethod(7,"mc::stroll",f,noGC,initial,errors,precValue);
+                useMethod(6,"mc::saunter",f,noGC,parameters,precValue);
+                useMethod(7,"mc::stroll",f,noGC,parameters,precValue);
                 // Use methods that require a gradient calculator.
 #ifdef HAVE_LIBGSL
-                useMethod(11,"gsl::conjugate_fr",f,gc,initial,errors,precValue);
-                useMethod(12,"gsl::conjugate_pr",f,gc,initial,errors,precValue);
-                useMethod(13,"gsl::vector_bfgs2",f,gc,initial,errors,precValue);
-                useMethod(14,"gsl::steepest_descent",f,gc,initial,errors,precValue);
+                useMethod(11,"gsl::conjugate_fr",f,gc,parameters,precValue);
+                useMethod(12,"gsl::conjugate_pr",f,gc,parameters,precValue);
+                useMethod(13,"gsl::vector_bfgs2",f,gc,parameters,precValue);
+                useMethod(14,"gsl::steepest_descent",f,gc,parameters,precValue);
 #endif
 #ifdef HAVE_LIBMINUIT2
-                useMethod(15,"mn2::vmetric_grad",f,gc,initial,errors,precValue);
-                useMethod(16,"mn2::vmetric_grad_fast",f,gc,initial,errors,precValue);
+                useMethod(15,"mn2::vmetric_grad",f,gc,parameters,precValue);
+                useMethod(16,"mn2::vmetric_grad_fast",f,gc,parameters,precValue);
 #endif
             }
         }
