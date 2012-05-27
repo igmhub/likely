@@ -15,8 +15,8 @@
 namespace local = likely;
 
 local::GslEngine::GslEngine(FunctionPtr f, GradientCalculatorPtr gc,
-int nPar, std::string const &algorithm)
-: _nPar(nPar), _f(f), _gc(gc)
+FitParameters const &parameters, std::string const &algorithm)
+: _nPar(parameters.size()), _f(f), _gc(gc)
 {
     if(_nPar <= 0) {
         throw RuntimeError("GslEngine: number of parameters must be > 0.");
@@ -77,20 +77,20 @@ int nPar, std::string const &algorithm)
                 "GslEngine: selected algorithm needs a gradient calculator.");
         }
         // Bind this function and its gradient calculator to our GSL global function
-        _funcWithGradient.n = nPar;
+        _funcWithGradient.n = _nPar;
         _funcWithGradient.f = _evaluate;
         _funcWithGradient.df = _evaluateGradient;
         _funcWithGradient.fdf = _evaluateBoth;
         _funcWithGradient.params = 0;
-        _grad = Gradient(nPar);        
+        _grad = Gradient(_nPar);        
     }
     else {
         // Bind this function to our GSL global function
-        _func.n = nPar;
+        _func.n = _nPar;
         _func.f = _evaluate;
         _func.params = 0;
     }
-    _params = Parameters(nPar);
+    _params = Parameters(_nPar);
     _getEngineStack().push(this);        
 }
 

@@ -17,7 +17,7 @@ local::FunctionMinimumPtr local::findMinimum(FunctionPtr f, GradientCalculatorPt
 FitParameters const &parameters, std::string const &methodName,
 double precision, long maxIterations) {
     // Create a new engine for this function.
-    AbsEnginePtr engine = getEngine(methodName,f,gc,parameters.size());
+    AbsEnginePtr engine = getEngine(methodName,f,gc,parameters);
     // Run the algorithm.
     std::vector<double> initial,errors;
     for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {

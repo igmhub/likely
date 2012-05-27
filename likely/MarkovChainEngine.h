@@ -14,7 +14,7 @@ namespace likely {
 	public:
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters.
-		MarkovChainEngine(FunctionPtr f, GradientCalculatorPtr gc, int nPar,
+		MarkovChainEngine(FunctionPtr f, GradientCalculatorPtr gc, FitParameters const &parameters,
             std::string const &algorithm);
 		virtual ~MarkovChainEngine();
         // Searches for a minimum by taking a sequence of random steps.

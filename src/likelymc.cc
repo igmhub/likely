@@ -112,15 +112,20 @@ int main(int argc, char **argv) {
         // Set the initial parameters and errors.
         lk::Parameters params(npar,0);
         params[0] = initial;
+        lk::FitParameters parameters;
+        boost::format pname("PAR%d");
         boost::shared_ptr<lk::CovarianceMatrix> covariance(new lk::CovarianceMatrix(npar));
-        for(int k = 0; k < npar; ++k) covariance->setCovariance(k,k,1.3);
+        for(int k = 0; k < npar; ++k) {
+            parameters.push_back(lk::FitParameter(boost::str(pname % k),params[k]));
+            covariance->setCovariance(k,k,1.3);
+        }
         
         // Set the initial function minimum to use.
         lk::FunctionMinimumPtr fmin(new lk::FunctionMinimum((*f)(params),params,covariance));
         printSummary(fmin,0,tag);
         
         // Create an MCMC engine to use.
-        lk::MarkovChainEngine mcmc(f,lk::GradientCalculatorPtr(),npar,"saunter");
+        lk::MarkovChainEngine mcmc(f,lk::GradientCalculatorPtr(),parameters,"saunter");
         
         // Loop over MCMC cycles.
         boost::format cycleOutName("%s/cycle-%d.dat"),valueFmt(" %.5f");

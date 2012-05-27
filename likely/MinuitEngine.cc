@@ -26,8 +26,8 @@ namespace local = likely;
 namespace mn = ROOT::Minuit2;
 
 local::MinuitEngine::MinuitEngine(FunctionPtr f, GradientCalculatorPtr gc,
-int nPar, std::string const &algorithm)
-: _nPar(nPar), _f(f), _gc(gc), _initialState(new mn::MnUserParameterState())
+FitParameters const &parameters, std::string const &algorithm)
+: _nPar(parameters.size()), _f(f), _gc(gc), _initialState(new mn::MnUserParameterState())
 {
     if(_nPar <= 0) {
         throw RuntimeError("MinuitEngine: number of parameters must be > 0.");

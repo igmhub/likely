@@ -18,8 +18,7 @@ namespace likely {
 	public:
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters.
-		GslEngine(FunctionPtr f, int nPar, std::string const &algorithm);
-        GslEngine(FunctionPtr f, GradientCalculatorPtr g, int nPar,
+        GslEngine(FunctionPtr f, GradientCalculatorPtr g, FitParameters const &parameters,
             std::string const &algorithm);
 		virtual ~GslEngine();
         // Performs a minimization without derivatives, using the specified initial

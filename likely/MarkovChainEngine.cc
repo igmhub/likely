@@ -29,8 +29,8 @@ typedef std::vector<Accumulator> Accumulators;
 namespace local = likely;
 
 local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, GradientCalculatorPtr gc,
-int nPar, std::string const &algorithm)
-: _f(f), _nPar(nPar), _current(nPar), _trial(nPar), _minParams(nPar), _haveMinimum(false),
+FitParameters const &parameters, std::string const &algorithm)
+: _f(f), _nPar(parameters.size()), _current(_nPar), _trial(_nPar), _minParams(_nPar), _haveMinimum(false),
 _random(Random::instance())
 {
     if(_nPar <= 0) {

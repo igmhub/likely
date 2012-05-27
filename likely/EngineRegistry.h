@@ -4,6 +4,7 @@
 #define LIKELY_ENGINE_REGISTRY
 
 #include "likely/types.h"
+#include "likely/FitParameter.h"
 
 #include "boost/function.hpp"
 
@@ -15,7 +16,7 @@ namespace likely {
     // Declares a global registry for creating engines by name.
     class AbsEngine;
     typedef boost::function<AbsEngine* (FunctionPtr, GradientCalculatorPtr,
-        int, std::string const&)> EngineFactory;
+        FitParameters const&, std::string const&)> EngineFactory;
     typedef std::map<std::string, EngineFactory> EngineRegistry;
     
     // Returns the unique engine registry.
@@ -25,7 +26,7 @@ namespace likely {
     // of the form <engine>::<algorithm> or throws a RuntimeError. The engine is
     // created using the specified function, gradient calculator and number of parameters.
     AbsEnginePtr getEngine(std::string const methodName,
-        FunctionPtr f, GradientCalculatorPtr gc, int nPar);
+        FunctionPtr f, GradientCalculatorPtr gc, FitParameters const &parameters);
 
 } // likely
 

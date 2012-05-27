@@ -23,8 +23,7 @@ namespace likely {
 	public:
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters.
-		MinuitEngine(FunctionPtr f, int nPar, std::string const &algorithm);
-		MinuitEngine(FunctionPtr f, GradientCalculatorPtr gc, int nPar,
+		MinuitEngine(FunctionPtr f, GradientCalculatorPtr gc, FitParameters const &parameters,
 		    std::string const &algorithm);
 		virtual ~MinuitEngine();
 		// Evaluates the engine's function for the specified input parameter values.
