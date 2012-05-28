@@ -140,14 +140,23 @@ void local::MinuitEngine::minimize(FunctionMinimumPtr fmin, double prec, int max
             // compatible with what the FunctionMinimum ctor expects.
             CovarianceMatrixCPtr covariance(new CovarianceMatrix(mnmin.UserCovariance().Data()));
             fmin->updateCovariance(covariance);
+            if(!mnmin.HasAccurateCovar()) {
+                fmin->setStatus(FunctionMinimum::WARNING,"Covariance estimate is not accurate.");
+            }
         }
         else {
-            // Flag that we could not estimate a covariance matrix!
+            if(!mnmin.HasCovariance()) {
+                fmin->setStatus(FunctionMinimum::WARNING,"No covariance estimate available.");
+            }
+            else {
+                fmin->setStatus(FunctionMinimum::WARNING,"Covariance estimate is invalid.");
+            }
         }
         fmin->updateParameterValues(mnmin.Fval(),mnmin.UserParameters().Params());
     }
     else {
         // Flag that we could not find a minimum!
+        fmin->setStatus(FunctionMinimum::ERROR,"Minimization failed.");
     }
 }
 
