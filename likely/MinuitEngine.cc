@@ -15,7 +15,6 @@
 #include "Minuit2/FunctionMinimum.h"
 #include "Minuit2/MnPrint.h"
 
-#include "boost/format.hpp"
 #include "boost/functional/factory.hpp"
 #include "boost/bind.hpp"
 
@@ -32,12 +31,11 @@ FitParameters const &parameters, std::string const &algorithm)
     if(_nPar <= 0) {
         throw RuntimeError("MinuitEngine: number of parameters must be > 0.");
     }
-    boost::format fmt("p%d");
     // Minuit2 crashes during the fit if a parameter is initially defined fixed and
     // then later released, so we always create the parameter as floating with
     // zero error below.
-    for(int i = 0; i < _nPar; ++i) {
-        _initialState->Add(boost::str(fmt % i),0,0);
+    for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
+        _initialState->Add(iter->getName(),0,0);
     }
     // Select the requested algorithm (last parameter is the MnStrategy value)
     bool useGradient(false);
