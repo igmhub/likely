@@ -90,23 +90,24 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 liblikely_la_LIBADD =
-am__liblikely_la_SOURCES_DIST = likely/FunctionMinimum.cc \
-	likely/AbsEngine.cc likely/EngineRegistry.cc \
-	likely/MarkovChainEngine.cc likely/Interpolator.cc \
-	likely/Integrator.cc likely/Random.cc likely/AbsAccumulator.cc \
-	likely/WeightedAccumulator.cc likely/WeightedCombiner.cc \
-	likely/QuantileAccumulator.cc likely/TriCubicInterpolator.cc \
-	likely/AbsBinning.cc likely/UniformBinning.cc \
-	likely/NonUniformBinning.cc likely/UniformSampling.cc \
-	likely/NonUniformSampling.cc likely/CovarianceMatrix.cc \
-	likely/CovarianceAccumulator.cc likely/BinnedData.cc \
-	likely/test/TestLikelihood.cc likely/GslEngine.cc \
-	likely/GslErrorHandler.cc likely/MinuitEngine.cc
+am__liblikely_la_SOURCES_DIST = likely/FitParameter.cc \
+	likely/FunctionMinimum.cc likely/AbsEngine.cc \
+	likely/EngineRegistry.cc likely/MarkovChainEngine.cc \
+	likely/Interpolator.cc likely/Integrator.cc likely/Random.cc \
+	likely/AbsAccumulator.cc likely/WeightedAccumulator.cc \
+	likely/WeightedCombiner.cc likely/QuantileAccumulator.cc \
+	likely/TriCubicInterpolator.cc likely/AbsBinning.cc \
+	likely/UniformBinning.cc likely/NonUniformBinning.cc \
+	likely/UniformSampling.cc likely/NonUniformSampling.cc \
+	likely/CovarianceMatrix.cc likely/CovarianceAccumulator.cc \
+	likely/BinnedData.cc likely/test/TestLikelihood.cc \
+	likely/GslEngine.cc likely/GslErrorHandler.cc \
+	likely/MinuitEngine.cc
 @USE_GSL_TRUE@am__objects_1 = GslEngine.lo GslErrorHandler.lo
 @USE_MINUIT2_TRUE@am__objects_2 = MinuitEngine.lo
-am_liblikely_la_OBJECTS = FunctionMinimum.lo AbsEngine.lo \
-	EngineRegistry.lo MarkovChainEngine.lo Interpolator.lo \
-	Integrator.lo Random.lo AbsAccumulator.lo \
+am_liblikely_la_OBJECTS = FitParameter.lo FunctionMinimum.lo \
+	AbsEngine.lo EngineRegistry.lo MarkovChainEngine.lo \
+	Interpolator.lo Integrator.lo Random.lo AbsAccumulator.lo \
 	WeightedAccumulator.lo WeightedCombiner.lo \
 	QuantileAccumulator.lo TriCubicInterpolator.lo AbsBinning.lo \
 	UniformBinning.lo NonUniformBinning.lo UniformSampling.lo \
@@ -323,7 +324,8 @@ AM_LDFLAGS = -lboost_regex
 lib_LTLIBRARIES = liblikely.la
 
 # instructions for building the library
-liblikely_la_SOURCES = likely/FunctionMinimum.cc likely/AbsEngine.cc \
+liblikely_la_SOURCES = likely/FitParameter.cc \
+	likely/FunctionMinimum.cc likely/AbsEngine.cc \
 	likely/EngineRegistry.cc likely/MarkovChainEngine.cc \
 	likely/Interpolator.cc likely/Integrator.cc likely/Random.cc \
 	likely/AbsAccumulator.cc likely/WeightedAccumulator.cc \
@@ -575,6 +577,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceMatrix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EngineRegistry.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitParameter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FunctionMinimum.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslErrorHandler.Plo@am__quote@
@@ -624,6 +627,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+
+FitParameter.lo: likely/FitParameter.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FitParameter.lo -MD -MP -MF $(DEPDIR)/FitParameter.Tpo -c -o FitParameter.lo `test -f 'likely/FitParameter.cc' || echo '$(srcdir)/'`likely/FitParameter.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FitParameter.Tpo $(DEPDIR)/FitParameter.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/FitParameter.cc' object='FitParameter.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FitParameter.lo `test -f 'likely/FitParameter.cc' || echo '$(srcdir)/'`likely/FitParameter.cc
 
 FunctionMinimum.lo: likely/FunctionMinimum.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FunctionMinimum.lo -MD -MP -MF $(DEPDIR)/FunctionMinimum.Tpo -c -o FunctionMinimum.lo `test -f 'likely/FunctionMinimum.cc' || echo '$(srcdir)/'`likely/FunctionMinimum.cc

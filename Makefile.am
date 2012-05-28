@@ -13,6 +13,7 @@ noinst_PROGRAMS = demo1 demo2
 
 # instructions for building the library
 liblikely_la_SOURCES = \
+	likely/FitParameter.cc \
 	likely/FunctionMinimum.cc \
 	likely/AbsEngine.cc \
 	likely/EngineRegistry.cc \
