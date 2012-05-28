@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     lk::FitParameters parameters;
     parameters.push_back(lk::FitParameter("x0",1,1));
     parameters.push_back(lk::FitParameter("x1",1,1));
-    parameters.push_back(lk::FitParameter("x2",1,1));
+    parameters.push_back(lk::FitParameter("x2",1,0)); // error = 0 means parameter is fixed
     parameters.push_back(lk::FitParameter("x3",1,1));
 
     // Results for all algorithms are returned as a FunctionMinimum object.
