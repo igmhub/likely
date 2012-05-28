@@ -114,10 +114,11 @@ int main(int argc, char **argv) {
         params[0] = initial;
         lk::FitParameters parameters;
         boost::format pname("PAR%d");
+        double fixedError(1.1);
         boost::shared_ptr<lk::CovarianceMatrix> covariance(new lk::CovarianceMatrix(npar));
         for(int k = 0; k < npar; ++k) {
-            parameters.push_back(lk::FitParameter(boost::str(pname % k),params[k]));
-            covariance->setCovariance(k,k,1.3);
+            parameters.push_back(lk::FitParameter(boost::str(pname % k),params[k],fixedError));
+            covariance->setCovariance(k,k,fixedError*fixedError);
         }
         
         // Set the initial function minimum to use.
