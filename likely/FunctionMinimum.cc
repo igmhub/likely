@@ -117,14 +117,18 @@ double local::FunctionMinimum::setRandomParameters(Parameters &params) const {
 
 void local::FunctionMinimum::printToStream(std::ostream &os, std::string formatSpec) const {
     boost::format formatter(formatSpec), label("%20s = ");
+    std::vector<std::string> labels;
     os << "FMIN = " << formatter % _minValue << " at:" << std::endl;
     for(FitParameters::const_iterator iter = _parameters.begin(); iter != _parameters.end(); ++iter) {
         os << (label % iter->getName()) << (formatter % iter->getValue());
-        if(iter->isFloating()) os << " +/- " << formatter % iter->getError();
+        if(iter->isFloating()) {
+            os << " +/- " << formatter % iter->getError();
+            labels.push_back(iter->getName());
+        }
         os << std::endl;
     }
     if(hasCovariance()) {
         os << std::endl << "COVARIANCE:" << std::endl;
-        _covar->printToStream(os,formatSpec);
+        _covar->printToStream(os,formatSpec,labels);
     }
 }
