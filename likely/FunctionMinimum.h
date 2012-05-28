@@ -56,6 +56,12 @@ namespace likely {
         void setCounts(long nEvalCount, long nGradCount);
         long getNEvalCount() const;
         long getNGradCount() const;
+        // Sets the status of this function minimum estimate. A newly created object has
+        // status of OK.
+        enum Status { OK, WARNING, ERROR };
+        void setStatus(Status status, std::string const &message = std::string());
+        Status getStatus() const;
+        std::string getStatusMessage() const;
         // Ouptuts a multiline description of this minimum to the specified stream using
         // the specified printf format for floating point values.
         void printToStream(std::ostream &os, std::string formatSpec = "%12.6f") const;
@@ -65,6 +71,8 @@ namespace likely {
         FitParameters _parameters;
         CovarianceMatrixCPtr _covar;
         long _nEvalCount, _nGradCount;
+        Status _status;
+        std::string _statusMessage;
 	}; // FunctionMinimum
 	
     inline double FunctionMinimum::getMinValue() const { return _minValue; }
@@ -76,6 +84,12 @@ namespace likely {
     }
     inline long FunctionMinimum::getNEvalCount() const { return _nEvalCount; }
     inline long FunctionMinimum::getNGradCount() const { return _nGradCount; }
+    inline void FunctionMinimum::setStatus(Status status, std::string const &message) {
+        _status = status;
+        _statusMessage = message;
+    }
+    inline FunctionMinimum::Status FunctionMinimum::getStatus() const { return _status; }
+    inline std::string FunctionMinimum::getStatusMessage() const { return _statusMessage; }
 	
 } // likely
 

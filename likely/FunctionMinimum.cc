@@ -15,12 +15,14 @@
 namespace local = likely;
 
 local::FunctionMinimum::FunctionMinimum(double minValue, FitParameters const &parameters)
+: _status(OK)
 {
     updateParameters(minValue, parameters);
 }
 
 local::FunctionMinimum::FunctionMinimum(double minValue, FitParameters const &parameters,
 CovarianceMatrixCPtr covariance)
+: _status(OK)
 {
     updateParameters(minValue, parameters);
     updateCovariance(covariance);
@@ -118,7 +120,16 @@ double local::FunctionMinimum::setRandomParameters(Parameters &params) const {
 void local::FunctionMinimum::printToStream(std::ostream &os, std::string formatSpec) const {
     boost::format formatter(formatSpec), label("%20s = ");
     std::vector<std::string> labels;
-    os << "FMIN = " << formatter % _minValue << " at:" << std::endl;
+    if(getStatus() == ERROR) {
+        os << "FMIN ERROR: " << getStatusMessage() << std::endl;
+        // Don't print out any more since it is presumably wrong.
+        return;
+    }
+    else if(getStatus() == WARNING) {
+        os << "FMIN WARNING: " << getStatusMessage() << std::endl;
+        // Keep going, after this warning...
+    }
+    os << "FMIN Value = " << formatter % _minValue << " at:" << std::endl;
     for(FitParameters::const_iterator iter = _parameters.begin(); iter != _parameters.end(); ++iter) {
         os << (label % iter->getName()) << (formatter % iter->getValue());
         if(iter->isFloating()) {
@@ -132,7 +143,7 @@ void local::FunctionMinimum::printToStream(std::ostream &os, std::string formatS
         os << "Number of gradient evaluations used: " << getNGradCount() << std::endl;
     }
     if(hasCovariance()) {
-        os << std::endl << "COVARIANCE:" << std::endl;
+        os << std::endl << "FMIN Covariance =" << std::endl;
         _covar->printToStream(os,formatSpec,labels);
     }
 }
