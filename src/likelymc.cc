@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
         }
         
         // Set the initial function minimum to use.
-        lk::FunctionMinimumPtr fmin(new lk::FunctionMinimum((*f)(params),params,covariance));
+        lk::FunctionMinimumPtr fmin(new lk::FunctionMinimum((*f)(params),parameters,covariance));
         printSummary(fmin,0,tag);
         
         // Create an MCMC engine to use.
