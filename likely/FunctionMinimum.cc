@@ -115,17 +115,14 @@ double local::FunctionMinimum::setRandomParameters(Parameters &params) const {
     return nlWeight;
 }
 
-void local::FunctionMinimum::printToStream(std::ostream &os,
-std::string formatSpec) const {
-    boost::format formatter(formatSpec);
-    os << "F(";
+void local::FunctionMinimum::printToStream(std::ostream &os, std::string formatSpec) const {
+    boost::format formatter(formatSpec), label("%20s = ");
+    os << "FMIN = " << formatter % _minValue << " at:" << std::endl;
     for(FitParameters::const_iterator iter = _parameters.begin(); iter != _parameters.end(); ++iter) {
-        if(iter != _parameters.begin()) os << ',';
-        os << iter->getName() << '=';
-        os << formatter % iter->getValue();
-        if(iter->isFloating()) os << "+/-" << formatter % iter->getError();
+        os << (label % iter->getName()) << (formatter % iter->getValue());
+        if(iter->isFloating()) os << " +/- " << formatter % iter->getError();
+        os << std::endl;
     }
-    os << ") = " << formatter % _minValue << std::endl;
     if(hasCovariance()) {
         os << std::endl << "COVARIANCE:" << std::endl;
         _covar->printToStream(os,formatSpec);
