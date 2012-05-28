@@ -29,42 +29,42 @@ FitParameters const &parameters, std::string const &algorithm)
     bool useGradient(true);
     if(algorithm == "nmsimplex") {
         minimumFinder = boost::bind(&GslEngine::minimize,this,
-            gsl_multimin_fminimizer_nmsimplex,_1,_2,_3,_4);
+            gsl_multimin_fminimizer_nmsimplex,_1,_2,_3);
         useGradient = false;
     }
     else if(algorithm == "nmsimplex2") {
         minimumFinder = boost::bind(&GslEngine::minimize,this,
-            gsl_multimin_fminimizer_nmsimplex2,_1,_2,_3,_4);
+            gsl_multimin_fminimizer_nmsimplex2,_1,_2,_3);
         useGradient = false;
     }
     else if(algorithm == "nmsimplex2rand") {
         minimumFinder = boost::bind(&GslEngine::minimize,this,
-            gsl_multimin_fminimizer_nmsimplex2rand,_1,_2,_3,_4);
+            gsl_multimin_fminimizer_nmsimplex2rand,_1,_2,_3);
         useGradient = false;
     }
     else if(algorithm == "conjugate_fr") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
-            gsl_multimin_fdfminimizer_conjugate_fr,_1,_2,_3,_4,lineMinTol);
+            gsl_multimin_fdfminimizer_conjugate_fr,_1,_2,_3,lineMinTol);
         useGradient = true;
     }
     else if(algorithm == "conjugate_pr") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
-            gsl_multimin_fdfminimizer_conjugate_pr,_1,_2,_3,_4,lineMinTol);
+            gsl_multimin_fdfminimizer_conjugate_pr,_1,_2,_3,lineMinTol);
         useGradient = true;
     }
     else if(algorithm == "vector_bfgs") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
-            gsl_multimin_fdfminimizer_vector_bfgs,_1,_2,_3,_4,lineMinTol);
+            gsl_multimin_fdfminimizer_vector_bfgs,_1,_2,_3,lineMinTol);
         useGradient = true;
     }
     else if(algorithm == "vector_bfgs2") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
-            gsl_multimin_fdfminimizer_vector_bfgs2,_1,_2,_3,_4,lineMinTol);
+            gsl_multimin_fdfminimizer_vector_bfgs2,_1,_2,_3,lineMinTol);
         useGradient = true;
     }
     else if(algorithm == "steepest_descent") {
         minimumFinder = boost::bind(&GslEngine::minimizeWithGradient,this,
-            gsl_multimin_fdfminimizer_steepest_descent,_1,_2,_3,_4,lineMinTol);
+            gsl_multimin_fdfminimizer_steepest_descent,_1,_2,_3,lineMinTol);
         useGradient = true;
     }
     else {
@@ -98,13 +98,13 @@ local::GslEngine::~GslEngine() {
     _getEngineStack().pop();
 }
 
-local::FunctionMinimumPtr local::GslEngine::minimizeWithGradient(fdfMethod method,
-Parameters const &initial, Parameters const &errors,
+void local::GslEngine::minimizeWithGradient(fdfMethod method, FunctionMinimumPtr fmin,
 double prec, long maxIterations, double lineMinTol) {
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::minimizeWithGradient");
     // Copy the input initial values to a GSL vector.
     gsl_vector *gsl_initial(gsl_vector_alloc(_nPar));
+    Parameters initial = fmin->getParameters(), errors = fmin->getErrors();
     for(int i = 0; i < _nPar; ++i) {
         gsl_vector_set(gsl_initial,i,initial[i]);
     }
@@ -137,21 +137,19 @@ double prec, long maxIterations, double lineMinTol) {
     for(int i = 0; i < _nPar; ++i) {
         final[i] = gsl_vector_get(state->x,i);
     }
-    FunctionMinimumPtr fmin(new FunctionMinimum(state->f,final));
+    fmin->updateParameterValues(state->f,final);
     // Clean up.
     gsl_vector_free(gsl_initial);
     gsl_multimin_fdfminimizer_free(state);
-
-    return fmin;    
 }
 
-local::FunctionMinimumPtr local::GslEngine::minimize(fMethod method,
-Parameters const &initial, Parameters const &errors,
+void local::GslEngine::minimize(fMethod method, FunctionMinimumPtr fmin,
 double prec, long maxIterations) {
     // Declare our error-handling context.
     GslErrorHandler eh("GslEngine::minimize");
     // Copy the input initial values and errors to GSL vectors.
     gsl_vector *gsl_initial(gsl_vector_alloc(_nPar)), *gsl_errors(gsl_vector_alloc(_nPar));
+    Parameters initial = fmin->getParameters(), errors = fmin->getErrors();
     for(int i = 0; i < _nPar; ++i) {
         gsl_vector_set(gsl_initial,i,initial[i]);
         gsl_vector_set(gsl_errors,i,errors[i]);
@@ -173,13 +171,11 @@ double prec, long maxIterations) {
     for(int i = 0; i < _nPar; ++i) {
         final[i] = gsl_vector_get(state->x,i);
     }
-    FunctionMinimumPtr fmin(new FunctionMinimum(state->fval,final));
+    fmin->updateParameterValues(state->fval,final);
     // Clean up.
     gsl_vector_free(gsl_errors);
     gsl_vector_free(gsl_initial);
     gsl_multimin_fminimizer_free(state);
-
-    return fmin;
 }
 
 double local::GslEngine::_evaluate(const gsl_vector *v, void *p) {

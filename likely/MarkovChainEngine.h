@@ -18,7 +18,7 @@ namespace likely {
             std::string const &algorithm);
 		virtual ~MarkovChainEngine();
         // Searches for a minimum by taking a sequence of random steps.
-        FunctionMinimumPtr minimize(Parameters const &initial, Parameters const &errors,
+        void minimize(FunctionMinimumPtr fmin,
             double prec, int maxSteps, int acceptsPerParam, int maxTrialsPerParam);
 	    // Generates samples using a FunctionMinimum's covariance to specify the proposal
 	    // function until the specified number of trials have been accepted or the specified
@@ -32,7 +32,7 @@ namespace likely {
         int generate(FunctionMinimumPtr fmin, int nAccepts, int maxTrials,
             Callback callback = Callback());
 	private:
-        int _nPar;
+        int _nParam,_nFloating;
         FunctionPtr _f;
         bool _haveMinimum;
         double _minNLL;

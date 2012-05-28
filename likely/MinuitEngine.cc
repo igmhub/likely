@@ -44,27 +44,27 @@ FitParameters const &parameters, std::string const &algorithm)
     int fast(0), normal(1);
     if(algorithm == "simplex") {
         minimumFinder = boost::bind(
-            &MinuitEngine::minimize<mn::SimplexMinimizer>,this,_1,_2,_3,_4,normal);
+            &MinuitEngine::minimize<mn::SimplexMinimizer>,this,_1,_2,_3,normal);
         useGradient = false;
     }
     else if(algorithm == "vmetric") {
         minimumFinder = boost::bind(
-            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,normal);
+            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,normal);
         useGradient = false;
     }
     else if(algorithm == "vmetric_fast") {
         minimumFinder = boost::bind(
-            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,fast);
+            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,fast);
         useGradient = false;
     }
     else if(algorithm == "vmetric_grad") {
         minimumFinder = boost::bind(
-            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,normal);
+            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,normal);
         useGradient = true;
     }
     else if(algorithm == "vmetric_grad_fast") {
         minimumFinder = boost::bind(
-            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,_4,fast);
+            &MinuitEngine::minimize<mn::VariableMetricMinimizer>,this,_1,_2,_3,fast);
         useGradient = true;
     }
     else {
@@ -102,18 +102,8 @@ double local::MinuitEngine::Up() const {
     return 0.5;
 }
 
-void local::MinuitEngine::_setInitialState(
-Parameters const &initial, Parameters const &errors) {
-    // Check for the expected input vector sizes.
-    if(initial.size() != _nPar) {
-        throw RuntimeError(
-            "MinuitEngine: got unexpected number of initial parameter values.");
-    }
-    if(errors.size() != _nPar) {
-        throw RuntimeError(
-            "MinuitEngine: got unexpected number of initial parameter errors.");
-    }
-    // Set the parameter values and error estimates from the input vectors.
+void local::MinuitEngine::_setInitialState(FunctionMinimumPtr fmin) {
+    Parameters initial = fmin->getParameters(), errors = fmin->getErrors();
     for(int i = 0; i < _nPar; ++i) {
         _initialState->SetValue(i,initial[i]);
         if(errors[i] > 0) {
@@ -128,9 +118,8 @@ Parameters const &initial, Parameters const &errors) {
 }
 
 template <class T>
-local::FunctionMinimumPtr local::MinuitEngine::minimize(Parameters const &initial,
-Parameters const &errors, double prec, int maxfcn, int strategy) {
-    _setInitialState(initial,errors);
+void local::MinuitEngine::minimize(FunctionMinimumPtr fmin, double prec, int maxfcn, int strategy) {
+    _setInitialState(fmin);
     // Minuit converts maxfcn = 0 to 200 + 100*npar + 5*npar*npar, but we want to
     // interpret zero as effectively unlimited calls.
     if(maxfcn == 0) maxfcn = 100*_nPar*_nPar;
@@ -147,30 +136,28 @@ Parameters const &errors, double prec, int maxfcn, int strategy) {
             *_initialState, mn::MnStrategy(strategy), maxfcn, edmTolerance);
     // Transfer the minimization results from the Minuit-specific return object
     // to our engine-neutral return object.
-    FunctionMinimumPtr fmin;
     if(mnmin.HasValidParameters()) {
         if(mnmin.HasValidCovariance()) {
             // The Minuit packing of covariance matrix elements is directly
             // compatible with what the FunctionMinimum ctor expects.
             CovarianceMatrixCPtr covariance(new CovarianceMatrix(mnmin.UserCovariance().Data()));
-            fmin.reset(new FunctionMinimum(mnmin.Fval(),
-                mnmin.UserParameters().Params(),covariance));
+            fmin->updateCovariance(covariance);
         }
         else {
-            fmin.reset(new FunctionMinimum(mnmin.Fval(),
-                mnmin.UserParameters().Params()));
+            // Flag that we could not estimate a covariance matrix!
         }
+        fmin->updateParameterValues(mnmin.Fval(),mnmin.UserParameters().Params());
     }
-    return fmin;
+    else {
+        // Flag that we could not find a minimum!
+    }
 }
 
 // Explicit template instantiations.
-template local::FunctionMinimumPtr
-    local::MinuitEngine::minimize<mn::SimplexMinimizer>
-    (Parameters const&,Parameters const&,double,int,int);
-template local::FunctionMinimumPtr
-    local::MinuitEngine::minimize<mn::VariableMetricMinimizer>
-    (Parameters const&,Parameters const&,double,int,int);
+template void local::MinuitEngine::minimize<mn::SimplexMinimizer>
+    (FunctionMinimumPtr fmin,double,int,int);
+template void local::MinuitEngine::minimize<mn::VariableMetricMinimizer>
+    (FunctionMinimumPtr fmin,double,int,int);
 
 void local::registerMinuitEngineMethods() {
     static bool registered = false;

@@ -18,13 +18,14 @@ FitParameters const &parameters, std::string const &methodName,
 double precision, long maxIterations) {
     // Create a new engine for this function.
     AbsEnginePtr engine = getEngine(methodName,f,gc,parameters);
+    // Initialize a result object (without any covariance) for the algorithm to update.
+    Parameters values;
+    getFitParameterValues(parameters,values);
+    double fval = (*f)(values);
+    engine->incrementEvalCount();
+    FunctionMinimumPtr fmin(new FunctionMinimum(fval,parameters));
     // Run the algorithm.
-    std::vector<double> initial,errors;
-    for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
-        initial.push_back(iter->getValue());
-        errors.push_back(iter->getError());
-    }
-    FunctionMinimumPtr fmin(engine->minimumFinder(initial,errors,precision,maxIterations));
+    engine->minimumFinder(fmin,precision,maxIterations);
     // Save the evaluation counts.
     lastMinEvalCount = engine->getEvalCount();
     lastMinGradCount = engine->getGradCount();

@@ -24,14 +24,11 @@ namespace likely {
         // Performs a minimization without derivatives, using the specified initial
         // parameter values and error estimates.
         typedef const gsl_multimin_fminimizer_type *fMethod;
-        FunctionMinimumPtr minimize(fMethod method,
-            Parameters const &initial, Parameters const &errors,
-            double prec, long maxIterations);
+        void minimize(fMethod method, FunctionMinimumPtr fmin, double prec, long maxIterations);
         // Performs a minimization with derivatives, using the specified initial
         // parameter values and error estimates.
         typedef const gsl_multimin_fdfminimizer_type *fdfMethod;
-        FunctionMinimumPtr minimizeWithGradient(fdfMethod method,
-            Parameters const &initial, Parameters const &errors,
+        void minimizeWithGradient(fdfMethod method, FunctionMinimumPtr fmin,
             double prec, long maxIterations, double lineMinTol);        
 	private:
         int _nPar;

@@ -10,58 +10,107 @@
 #include <algorithm>
 #include <cmath>
 
+#include <cassert>
+
 namespace local = likely;
 
-local::FunctionMinimum::FunctionMinimum(double minValue, Parameters const& where)
-: _minValue(minValue), _where(where)
+local::FunctionMinimum::FunctionMinimum(double minValue, FitParameters const &parameters)
 {
+    updateParameters(minValue, parameters);
 }
 
-local::FunctionMinimum::FunctionMinimum(double minValue, Parameters const& where,
+local::FunctionMinimum::FunctionMinimum(double minValue, FitParameters const &parameters,
 CovarianceMatrixCPtr covariance)
-: _minValue(minValue), _where(where)
 {
+    updateParameters(minValue, parameters);
     updateCovariance(covariance);
 }
 
 local::FunctionMinimum::~FunctionMinimum() { }
 
-void local::FunctionMinimum::updateParameters(Parameters const &params, double fval) {
-    _minValue = fval;
-    _where = params;
+void local::FunctionMinimum::updateParameters(double minValue, FitParameters const &parameters) {
+    if(_parameters.size() > 0) {
+        if(parameters.size() != _parameters.size()) {
+            throw RuntimeError("FunctionMinimum::updateParameters: unexpected parameters size.");
+        }
+        if(countFloatingFitParameters(parameters) != _nFloating) {
+            throw RuntimeError("FunctionMinimum::updateParameters: wrong number of floating parameters.");
+        }
+    }
+    else {
+        _nFloating = countFloatingFitParameters(parameters);
+    }
+    _parameters = parameters;
+    _minValue = minValue;
+}
+
+void local::FunctionMinimum::updateParameterValues(double minValue, Parameters const &values) {
+    if(_parameters.size() == 0) {
+        throw RuntimeError("FunctionMinimum::updateParameters: no parameters set yet.");
+    }
+    if(values.size() != _parameters.size()) {
+        throw RuntimeError("FunctionMinimum::updateParameters: unexpected number of values.");
+    }
+    FitParameters updated;
+    int nextFloatIndex(0);
+    updated.reserve(_parameters.size());
+    for(int k = 0; k < _parameters.size(); ++k) {
+        double error(_parameters[k].getError());
+        if(0 != error && hasCovariance()) {
+            error = std::sqrt(_covar->getCovariance(nextFloatIndex,nextFloatIndex));
+            nextFloatIndex++;
+        }
+        updated.push_back(FitParameter(_parameters[k].getName(),values[k],error));
+    }
+    _parameters = updated;
+    _minValue = minValue;
+}
+
+void local::FunctionMinimum::filterParameterValues(
+Parameters const &allValues, Parameters &floatingValues) const {
+    floatingValues.resize(0);
+    floatingValues.reserve(_nFloating);
+    for(int k = 0; k < _parameters.size(); ++k) {
+        if(_parameters[k].isFloating()) floatingValues.push_back(allValues[k]);
+    }
 }
 
 void local::FunctionMinimum::updateCovariance(CovarianceMatrixCPtr covariance) {
-    if(!covariance) return;
-    if(_where.size() != covariance->getSize()) {
-        throw RuntimeError("FunctionMinimum: incompatible sizes for parameters and covariance.");
+    if(covariance->getSize() != _nFloating) {
+        assert(0);
+        throw RuntimeError("FunctionMinimum: covariance size != number of floating parameters.");
     }
     _covar = covariance;
 }
 
-local::Parameters local::FunctionMinimum::getErrors() const {
-    if(!haveCovariance()) {
-        throw RuntimeError("FunctionMinimum::getErrors: no covariance matrix available.");
-    }
-    int nPar(_where.size());
-    Parameters errors(nPar);
-    for(int i = 0; i < nPar; ++i) {
-        double sigsq(_covar->getCovariance(i,i));
-        errors[i] = sigsq > 0 ? std::sqrt(sigsq) : 0;
-    }
+local::Parameters local::FunctionMinimum::getParameters(bool onlyFloating) const {
+    Parameters params;
+    getFitParameterValues(_parameters,params,onlyFloating);
+    return params;
+}
+
+local::Parameters local::FunctionMinimum::getErrors(bool onlyFloating) const {
+    Parameters errors;
+    getFitParameterErrors(_parameters,errors,onlyFloating);
     return errors;
 }
 
 double local::FunctionMinimum::setRandomParameters(Parameters &params) const {
-    if(!haveCovariance()) {
+    if(!hasCovariance()) {
         throw RuntimeError(
             "FunctionMinimum::getRandomParameters: no covariance matrix available.");
     }
-    int nPar(_where.size());
-    Parameters gauss(nPar);
-    double nlWeight = _covar->sample(params);
-    for(int i = 0; i < nPar; ++i) {
-        params[i] += _where[i];
+    // Generate random offsets for our floating parameters.
+    std::vector<double> floating;
+    double nlWeight = _covar->sample(floating);
+    std::vector<double>::const_iterator nextOffset(floating.begin());
+    // Prepare to fill the parameter values vector we are provided.
+    params.resize(0);
+    params.reserve(_parameters.size());
+    for(FitParameters::const_iterator iter = _parameters.begin(); iter != _parameters.end(); ++iter) {
+        double value(iter->getValue());
+        if(iter->isFloating()) value += *nextOffset++;
+        params.push_back(value);
     }
     return nlWeight;
 }
@@ -69,18 +118,15 @@ double local::FunctionMinimum::setRandomParameters(Parameters &params) const {
 void local::FunctionMinimum::printToStream(std::ostream &os,
 std::string formatSpec) const {
     boost::format formatter(formatSpec);
-    os << "F(" << formatter % _where[0];
-    int nPar(_where.size());
-    for(int i = 1; i < nPar; ++i) {
-        os << ',' << formatter % _where[i];
+    os << "F(";
+    for(FitParameters::const_iterator iter = _parameters.begin(); iter != _parameters.end(); ++iter) {
+        if(iter != _parameters.begin()) os << ',';
+        os << iter->getName() << '=';
+        os << formatter % iter->getValue();
+        if(iter->isFloating()) os << "+/-" << formatter % iter->getError();
     }
     os << ") = " << formatter % _minValue << std::endl;
-    if(haveCovariance()) {
-        Parameters errors(getErrors());
-        os << "ERRORS:";
-        for(int i = 0; i < nPar; ++i) {
-            os << ' ' << formatter % errors[i];
-        }
+    if(hasCovariance()) {
         os << std::endl << "COVARIANCE:" << std::endl;
         _covar->printToStream(os,formatSpec);
     }

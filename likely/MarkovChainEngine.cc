@@ -30,19 +30,20 @@ namespace local = likely;
 
 local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, GradientCalculatorPtr gc,
 FitParameters const &parameters, std::string const &algorithm)
-: _f(f), _nPar(parameters.size()), _current(_nPar), _trial(_nPar), _minParams(_nPar), _haveMinimum(false),
-_random(Random::instance())
+: _f(f), _haveMinimum(false), _random(Random::instance())
 {
-    if(_nPar <= 0) {
-        throw RuntimeError("MarkovChainEngine: number of parameters must be > 0.");
+    _nParam = parameters.size();
+    _nFloating = countFloatingFitParameters(parameters);
+    if(0 == _nFloating) {
+        throw RuntimeError("MarkovChainEngine: number of floating parameters must be > 0.");
     }
     if(algorithm == "saunter") {
         minimumFinder = boost::bind(&MarkovChainEngine::minimize,this,
-            _1,_2,_3,_4,100,1000);
+            _1,_2,_3,100,1000);
     }
     else if(algorithm == "stroll") {
         minimumFinder = boost::bind(&MarkovChainEngine::minimize,this,
-            _1,_2,_3,_4,50,5000);
+            _1,_2,_3,50,5000);
     }
     else {
         throw RuntimeError("MarkovChainEngine: unknown algorithm '" + algorithm + "'");
@@ -61,8 +62,8 @@ int maxTrials, Callback callback) {
 
     // Set our initial parameters to the estimated function minimum, where the
     // NLW = -log(W(current)) is zero, by definition.
-    Parameters const &initial(fmin->getParameters());
-    _current = initial;
+    _current = fmin->getParameters();
+    Parameters initialFloating(fmin->getParameters(true)), residual;
     double currentNLL(fmin->getMinValue()), currentNLW(0);
     // Initialize our minimum tracker, if necessary.
     if(!_haveMinimum) {
@@ -71,13 +72,13 @@ int maxTrials, Callback callback) {
         _haveMinimum = true;
     }
     // Initialize our statistics accumulators.
-    CovarianceAccumulator accumulator(_nPar);
-    Parameters residual(_nPar);
+    CovarianceAccumulator accumulator(_nFloating);
     // Loop over the requested samples.
     int nTrials(0),remaining(nAccepts);
     while(remaining > 0 && (maxTrials == 0 || nTrials < maxTrials)) {
         // Take a trial step sampled from the estimated function minimum's covariance.
-        // The setRandomParameters method returns the value -log(W(trial)).
+        // The setRandomParameters method returns the value of -log(W(trial)) and 
+        // includes any fixed parameters in _trial.
         double trialNLW(fmin->setRandomParameters(_trial));
         // Evaluate the true NLL at this trial point.
         double trialNLL((*_f)(_trial));
@@ -102,42 +103,42 @@ int maxTrials, Callback callback) {
         }
         // Accumulate covariance statistics...
         nTrials++;
-        // Use the initial guess at the minimum for caculating residuals that are
-        // hopefully small, to minimize round-off error.
-        for(int j = 0; j < _nPar; ++j) {
-            residual[j] = _current[j]-initial[j];
-        }
+        // Use the initial guess at the minimum for caculating residuals of our
+        // floating parameters that are hopefully small, to minimize round-off error.
+        fmin->filterParameterValues(_current,residual);
+        for(int j = 0; j < _nFloating; ++j) residual[j] -= initialFloating[j];
         accumulator.accumulate(residual);
     }
-    // Record the best minimum found so far (rather than the sample mean).
-    fmin->updateParameters(_minParams, _minNLL);
-    // Record the covariance of the samples we have generated.
+    // Record the covariance of the samples we have generated. Do this before updating
+    // the parameter values, so that the updated errors are available.
     fmin->updateCovariance(accumulator.getCovariance());
+    // Record the best minimum found so far (rather than the sample mean).
+    fmin->updateParameterValues(_minNLL, _minParams);
     // Return the number of samples generated.
     return nTrials;
 }
 
-local::FunctionMinimumPtr local::MarkovChainEngine::minimize(
-Parameters const &initial, Parameters const &errors, double prec, int maxSteps,
+void local::MarkovChainEngine::minimize(FunctionMinimumPtr fmin, double prec, int maxSteps,
 int acceptsPerParam, int maxTrialsPerParam) {
-    // Build an initial diagonal convariance using the errors provided.
-    double fval((*_f)(initial));
-    incrementEvalCount();
-    boost::shared_ptr<CovarianceMatrix> covariance(new CovarianceMatrix(_nPar));
-    for(int k = 0; k < _nPar; ++k) {
-        covariance->setCovariance(k,k,errors[k]);
+    
+    // Build an initial diagonal convariance using the fit parameter errors provided.
+    Parameters initialErrors = fmin->getErrors(true);
+    int nFloating(initialErrors.size());
+    CovarianceMatrixPtr covariance(new CovarianceMatrix(nFloating));
+    for(int k = 0; k < nFloating; ++k) {
+        covariance->setCovariance(k,k,initialErrors[k]*initialErrors[k]);
     }
-    FunctionMinimumPtr fmin(new FunctionMinimum(fval,initial,covariance));
+    fmin->updateCovariance(covariance);
+    
     // Configure our cycles.
-    int nAccepts(acceptsPerParam*_nPar), maxTrials(maxTrialsPerParam*_nPar), trials(0);
+    int nAccepts(acceptsPerParam*_nFloating), maxTrials(maxTrialsPerParam*_nFloating), trials(0);
     while(maxSteps == 0 || trials < maxSteps) {
         double initialFval(fmin->getMinValue());
         trials += generate(fmin, nAccepts, maxTrials);
         // Check if we have reached the requested "precision"
-        fval = fmin->getMinValue();
+        double fval = fmin->getMinValue();
         if(fval < initialFval && initialFval - fval < prec) break;
     }
-    return fmin;
 }
 
 void local::registerMarkovChainEngineMethods() {

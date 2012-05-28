@@ -39,17 +39,15 @@ namespace likely {
         // Returns a smart pointer to the initial parameter state.
         typedef boost::shared_ptr<ROOT::Minuit2::MnUserParameterState> StatePtr;
         StatePtr getInitialState();
-        // Runs a stateless minimization templated on a ROOT::Minuit2::FunctionMinimizer
-        // subclass.
+        // Runs a stateless minimization templated on a ROOT::Minuit2::FunctionMinimizer subclass.
         template<class T>
-        FunctionMinimumPtr minimize(Parameters const &initial, Parameters const &errors,
-            double prec, int maxfcn, int strategy);        
+        void minimize(FunctionMinimumPtr fmin, double prec, int maxfcn, int strategy);
 	private:
         int _nPar;
         FunctionPtr _f;
         GradientCalculatorPtr _gc;
         StatePtr _initialState;
-        void _setInitialState(Parameters const &initial, Parameters const &errors);
+        void _setInitialState(FunctionMinimumPtr fmin);
 	}; // MinuitEngine
 	
 	inline MinuitEngine::StatePtr MinuitEngine::getInitialState() {

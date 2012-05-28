@@ -34,9 +34,7 @@ namespace likely {
         void incrementGradCount() const;
 
 		// Declares our dynamic entry point for findMinimum.
-		typedef boost::function<FunctionMinimumPtr
-		    (Parameters const &pInitial, Parameters const &pErrors, double, long)>
-		    MinimumFinder;
+		typedef boost::function<void (FunctionMinimumPtr, double, long)> MinimumFinder;
         MinimumFinder minimumFinder;
 
     private:        
