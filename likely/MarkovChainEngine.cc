@@ -30,7 +30,7 @@ namespace local = likely;
 
 local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, GradientCalculatorPtr gc,
 FitParameters const &parameters, std::string const &algorithm)
-: _f(f), _haveMinimum(false), _random(Random::instance())
+: _f(f), _random(Random::instance())
 {
     _nParam = parameters.size();
     _nFloating = countFloatingFitParameters(parameters);
@@ -63,43 +63,47 @@ int maxTrials, Callback callback) {
     // Set our initial parameters to the estimated function minimum, where the
     // NLW = -log(W(current)) is zero, by definition.
     Parameters current(fmin->getParameters());
+    double currentNLL(fmin->getMinValue());
+    double currentNLW(0);
+    
+    // Our starting point is our current best guess at the minimum.
+    Parameters minParams(current);
+    double minNLL(currentNLL);
+
+    // Remember the initial floating parameters for calculating residuals later.
     Parameters initialFloating(fmin->getParameters(true)), residual;
-    double currentNLL(fmin->getMinValue()), currentNLW(0);
-    // Initialize our minimum tracker, if necessary.
-    if(!_haveMinimum) {
-        _minParams = current;
-        _minNLL = currentNLL;
-        _haveMinimum = true;
-    }
-    // Initialize our statistics accumulators.
+
+    // Initialize our covariance accumulator.
     CovarianceAccumulator accumulator(_nFloating);
+
     // Loop over the requested samples.
     int nTrials(0),remaining(nAccepts);
+    Parameters trial;
     while(remaining > 0 && (maxTrials == 0 || nTrials < maxTrials)) {
         // Take a trial step sampled from the estimated function minimum's covariance.
         // The setRandomParameters method returns the value of -log(W(trial)) and 
-        // includes any fixed parameters in _trial.
-        double trialNLW(fmin->setRandomParameters(_trial));
+        // includes any fixed parameters in trial.
+        double trialNLW(fmin->setRandomParameters(trial));
         // Evaluate the true NLL at this trial point.
-        double trialNLL((*_f)(_trial));
+        double trialNLL((*_f)(trial));
         incrementEvalCount();
         // Is this a new minimum?
-        if(trialNLL < _minNLL) {
-            _minParams = _trial;
-            _minNLL = trialNLL;
+        if(trialNLL < minNLL) {
+            minParams = trial;
+            minNLL = trialNLL;
         }
         // Calculate log( L(trial)/L(current) W(current)/W(trial) )
         double logProbRatio(currentNLL-trialNLL-currentNLW+trialNLW);
         // Do we accept this trial step?
         if(logProbRatio >= 0 || _random.getUniform() < std::exp(logProbRatio)) {
-            current.swap(_trial);
+            current.swap(trial);
             currentNLL = trialNLL;
             currentNLW = trialNLW;
-            if(callback) callback(_trial, trialNLL, true);
+            if(callback) callback(trial, trialNLL, true);
             remaining--;
         }
         else {
-            if(callback) callback(_trial, trialNLL, false);
+            if(callback) callback(trial, trialNLL, false);
         }
         // Accumulate covariance statistics...
         nTrials++;
@@ -113,7 +117,7 @@ int maxTrials, Callback callback) {
     // the parameter values, so that the updated errors are available.
     fmin->updateCovariance(accumulator.getCovariance());
     // Record the best minimum found so far (rather than the sample mean).
-    fmin->updateParameterValues(_minNLL, _minParams);
+    fmin->updateParameterValues(minNLL, minParams);
     // Return the number of samples generated.
     return nTrials;
 }

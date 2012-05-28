@@ -34,9 +34,6 @@ namespace likely {
 	private:
         int _nParam,_nFloating;
         FunctionPtr _f;
-        bool _haveMinimum;
-        double _minNLL;
-        Parameters _trial, _minParams;
         Random &_random;
 	}; // MarkovChainEngine
 
