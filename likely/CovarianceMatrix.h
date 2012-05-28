@@ -96,7 +96,8 @@ namespace likely {
 
         // Prints our covariance matrix elements to the specified output stream, using the
         // specified printf format for each element.
-        void printToStream(std::ostream &os, std::string format = std::string("%+10.3lg")) const;
+        void printToStream(std::ostream &os, std::string format = std::string("%+10.3lg"),
+            std::vector<std::string> const &labels = std::vector<std::string>()) const;
         // Requests that this covariance matrix be compressed to reduce its memory usage,
         // if possible. Returns immediately if we are already compressed. Any compression
         // is lossless. The next call to any method except getSize(), compress(), or isCompressed().

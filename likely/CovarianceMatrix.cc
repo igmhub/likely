@@ -587,10 +587,14 @@ boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int see
     return array;
 }
 
-void local::CovarianceMatrix::printToStream(std::ostream &os, std::string format) const {
-    boost::format indexFormat("%5d"),valueFormat(format);
+void local::CovarianceMatrix::printToStream(std::ostream &os, std::string format,
+std::vector<std::string> const &labels) const {
+    if(labels.size() > 0 && labels.size() != _size) {
+        throw RuntimeError("CovarianceMatrix::printToStream: unexpected number of labels.");
+    }
+    boost::format indexFormat("%5d :"),labelFormat("%20s :"),valueFormat(format);
     for(int row = 0; row < _size; ++row) {
-        os << (indexFormat % row);
+        os << ((labels.size() > 0) ? (labelFormat % labels[row]) : (indexFormat % row));
         for(int col = 0; col <= row; ++col) {
             os << ' ' << (valueFormat % getCovariance(row,col));
         }
