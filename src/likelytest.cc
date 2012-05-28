@@ -33,8 +33,8 @@ lk::GradientCalculatorPtr gc, lk::FitParameters const &parameters, double prec) 
     double error(0);
     if(fmin->hasCovariance()) error = fmin->getErrors()[0];
     boost::format fmt("%d %.4f %.4f %.4f %.4f\n");
-    std::cout << fmt % methodId % std::log10((double)lk::lastMinEvalCount)
-        % (lk::lastMinGradCount ? std::log10((double)lk::lastMinGradCount) : 0.)
+    std::cout << fmt % methodId % std::log10((double)fmin->getNEvalCount())
+        % (fmin->getNGradCount() ? std::log10((double)fmin->getNGradCount()) : 0.)
         % (fmin->getMinValue() > 0 ? -std::log10(fmin->getMinValue()) : 0) % error;
 }
 

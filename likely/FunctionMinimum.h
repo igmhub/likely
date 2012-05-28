@@ -51,6 +51,11 @@ namespace likely {
         // returns the -log(weight) associated with the chosen parameters. Parameters that
         // are not floating will be included in the result, but not varied.
         double setRandomParameters(Parameters &params) const;
+        // Sets the number of times the function and its gradient have been evaluated to
+        // obtain this estimate of the minimum.
+        void setCounts(long nEvalCount, long nGradCount);
+        long getNEvalCount() const;
+        long getNGradCount() const;
         // Ouptuts a multiline description of this minimum to the specified stream using
         // the specified printf format for floating point values.
         void printToStream(std::ostream &os, std::string formatSpec = "%12.6f") const;
@@ -59,11 +64,18 @@ namespace likely {
         int _nFloating;
         FitParameters _parameters;
         CovarianceMatrixCPtr _covar;
+        long _nEvalCount, _nGradCount;
 	}; // FunctionMinimum
 	
     inline double FunctionMinimum::getMinValue() const { return _minValue; }
     inline bool FunctionMinimum::hasCovariance() const { return bool(_covar); }
-    inline CovarianceMatrixCPtr FunctionMinimum::getCovariance() const { return _covar; }    
+    inline CovarianceMatrixCPtr FunctionMinimum::getCovariance() const { return _covar; }
+    inline void FunctionMinimum::setCounts(long nEvalCount, long nGradCount) {
+        _nEvalCount = nEvalCount;
+        _nGradCount = nGradCount;
+    }
+    inline long FunctionMinimum::getNEvalCount() const { return _nEvalCount; }
+    inline long FunctionMinimum::getNGradCount() const { return _nGradCount; }
 	
 } // likely
 

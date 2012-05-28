@@ -27,8 +27,7 @@ double precision, long maxIterations) {
     // Run the algorithm.
     engine->minimumFinder(fmin,precision,maxIterations);
     // Save the evaluation counts.
-    lastMinEvalCount = engine->getEvalCount();
-    lastMinGradCount = engine->getGradCount();
+    fmin->setCounts(engine->getEvalCount(),engine->getGradCount());
     return fmin;
 }
 
@@ -39,6 +38,3 @@ double precision, long maxIterations) {
     GradientCalculatorPtr gc;
     return findMinimum(f,gc,parameters,methodName,precision,maxIterations);
 }
-
-// Initialize the global evaluation counters.
-long local::lastMinEvalCount = 0, local::lastMinGradCount = 0;

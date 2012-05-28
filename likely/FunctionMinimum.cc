@@ -127,6 +127,10 @@ void local::FunctionMinimum::printToStream(std::ostream &os, std::string formatS
         }
         os << std::endl;
     }
+    os << std::endl << "Number of function evaluations used: " << getNEvalCount() << std::endl;
+    if(getNGradCount() > 0) {
+        os << "Number of gradient evaluations used: " << getNGradCount() << std::endl;
+    }
     if(hasCovariance()) {
         os << std::endl << "COVARIANCE:" << std::endl;
         _covar->printToStream(os,formatSpec,labels);
