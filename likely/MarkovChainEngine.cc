@@ -62,12 +62,12 @@ int maxTrials, Callback callback) {
 
     // Set our initial parameters to the estimated function minimum, where the
     // NLW = -log(W(current)) is zero, by definition.
-    _current = fmin->getParameters();
+    Parameters current(fmin->getParameters());
     Parameters initialFloating(fmin->getParameters(true)), residual;
     double currentNLL(fmin->getMinValue()), currentNLW(0);
     // Initialize our minimum tracker, if necessary.
     if(!_haveMinimum) {
-        _minParams = _current;
+        _minParams = current;
         _minNLL = currentNLL;
         _haveMinimum = true;
     }
@@ -92,7 +92,7 @@ int maxTrials, Callback callback) {
         double logProbRatio(currentNLL-trialNLL-currentNLW+trialNLW);
         // Do we accept this trial step?
         if(logProbRatio >= 0 || _random.getUniform() < std::exp(logProbRatio)) {
-            std::swap(_current,_trial);
+            current.swap(_trial);
             currentNLL = trialNLL;
             currentNLW = trialNLW;
             if(callback) callback(_trial, trialNLL, true);
@@ -105,7 +105,7 @@ int maxTrials, Callback callback) {
         nTrials++;
         // Use the initial guess at the minimum for caculating residuals of our
         // floating parameters that are hopefully small, to minimize round-off error.
-        fmin->filterParameterValues(_current,residual);
+        fmin->filterParameterValues(current,residual);
         for(int j = 0; j < _nFloating; ++j) residual[j] -= initialFloating[j];
         accumulator.accumulate(residual);
     }
