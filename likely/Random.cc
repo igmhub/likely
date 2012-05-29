@@ -43,14 +43,26 @@ int local::Random::getInteger(int min, int max) {
     return dist(_generator);
 }
 
-void local::Random::shuffle(std::vector<int> &sample, int size) {
+void local::Random::partialShuffle(std::vector<int> &sample, int size) {
     int ssize(sample.size());
     if(size <= 0 || size > ssize) {
-        throw RuntimeError("Random::shuffle: expected 0 < size <= sample.size().");
+        throw RuntimeError("Random::partialShuffle: expected 0 < size <= sample.size().");
     }
     for(int pos = 0; pos < size; ++pos) {
         int pick = getInteger(pos+1,ssize-1);
         std::swap(sample[pos],sample[pick]);
+    }
+}
+
+void local::Random::sampleWithReplacement(std::vector<int> &sample, int size) {
+    if(size <= 0) {
+        throw RuntimeError("Random::sampleWithReplacement: expected size > 0.");
+    }
+    int ssize(sample.size());
+    sample.assign(ssize,0);
+    boost::random::uniform_int_distribution<> dist(0,ssize-1);
+    for(int trial = 0; trial < size; ++trial) {
+        sample[dist(_generator)]++;
     }
 }
 

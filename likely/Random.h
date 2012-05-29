@@ -27,7 +27,13 @@ namespace likely {
         // to support partial shuffling with size < sample.size(), e.g., to efficiently
         // generate jackknife samples. For a complete shuffle, use the more general
         // std::random_shuffle() function.
-        void shuffle(std::vector<int> &sample, int size);
+        void partialShuffle(std::vector<int> &sample, int size);
+        // Generates a random sample with replacement of the integers [0,sample.size()-1]
+        // having the specified size, and fills the integer vector provided so that, on return,
+        // sample[i] gives the number of times that the value i appears in the random sample,
+        // which might be zero or larger than one. The sum of sample[i] values will equal size.
+        // This is provided to support efficient generation of bootstrap samples.
+        void sampleWithReplacement(std::vector<int> &sample, int size);
         
         // Returns a single-precision value uniformly sampled from [0,1) using
         // an inline coding of SFMT (http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT/)
