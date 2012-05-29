@@ -18,6 +18,8 @@ namespace likely {
         double getUniform();
         // Returns a double-precision value with mean 0 and RMS 1.
         double getNormal();
+        // Returns a random integer on the interval [min,max].
+        int getInteger(int min, int max);
         // Returns a single-precision value uniformly sampled from [0,1) using
         // an inline coding of SFMT (http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT/)
         float getFastUniform();

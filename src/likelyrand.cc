@@ -43,7 +43,20 @@ int main(int argc, char **argv) {
     
     lk::Random &random(lk::Random::instance());
     random.setSeed(1234);
-
+    
+    // Random integer tests
+    {
+        int size(6),ntrials(100000);
+        std::vector<int> counts(size,0);
+        for(int trial = 0; trial < ntrials; ++trial) {
+            counts[random.getInteger(1,size)-1]++;
+        }
+        std::cout << "integer counts:";
+        for(int k = 0; k < size; ++k) std::cout << ' ' << counts[k];
+        std::cout << std::endl;
+    }
+    
+    // Random real benchmarks
     BENCHMARK_LOOP(getUniform);
     BENCHMARK_LOOP(getNormal);
     BENCHMARK_LOOP(getFastUniform);

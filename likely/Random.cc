@@ -5,6 +5,7 @@
 
 #include "boost/random/uniform_01.hpp"
 #include "boost/random/normal_distribution.hpp"
+#include "boost/random/uniform_int_distribution.hpp"
 #include "boost/random/variate_generator.hpp"
 #include "boost/lexical_cast.hpp"
 
@@ -35,6 +36,11 @@ local::Random &local::Random::instance() {
 void local::Random::setSeed(int seedValue) {
     _generator.seed(seedValue);
     init_gen_rand(seedValue);
+}
+
+int local::Random::getInteger(int min, int max) {
+    boost::random::uniform_int_distribution<> dist(min,max);
+    return dist(_generator);
 }
 
 float local::Random::getFastUniform() {
