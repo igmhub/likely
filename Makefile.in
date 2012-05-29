@@ -100,9 +100,9 @@ am__liblikely_la_SOURCES_DIST = likely/FitParameter.cc \
 	likely/UniformBinning.cc likely/NonUniformBinning.cc \
 	likely/UniformSampling.cc likely/NonUniformSampling.cc \
 	likely/CovarianceMatrix.cc likely/CovarianceAccumulator.cc \
-	likely/BinnedData.cc likely/test/TestLikelihood.cc \
-	likely/GslEngine.cc likely/GslErrorHandler.cc \
-	likely/MinuitEngine.cc
+	likely/BinnedData.cc likely/BinnedDataResampler.cc \
+	likely/test/TestLikelihood.cc likely/GslEngine.cc \
+	likely/GslErrorHandler.cc likely/MinuitEngine.cc
 @USE_GSL_TRUE@am__objects_1 = GslEngine.lo GslErrorHandler.lo
 @USE_MINUIT2_TRUE@am__objects_2 = MinuitEngine.lo
 am_liblikely_la_OBJECTS = FitParameter.lo FunctionMinimum.lo \
@@ -112,8 +112,8 @@ am_liblikely_la_OBJECTS = FitParameter.lo FunctionMinimum.lo \
 	QuantileAccumulator.lo TriCubicInterpolator.lo AbsBinning.lo \
 	UniformBinning.lo NonUniformBinning.lo UniformSampling.lo \
 	NonUniformSampling.lo CovarianceMatrix.lo \
-	CovarianceAccumulator.lo BinnedData.lo TestLikelihood.lo \
-	$(am__objects_1) $(am__objects_2)
+	CovarianceAccumulator.lo BinnedData.lo BinnedDataResampler.lo \
+	TestLikelihood.lo $(am__objects_1) $(am__objects_2)
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am_demo1_OBJECTS = demo1.$(OBJEXT)
@@ -175,9 +175,9 @@ am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/UniformBinning.h likely/NonUniformBinning.h \
 	likely/UniformSampling.h likely/NonUniformSampling.h \
 	likely/CovarianceMatrix.h likely/CovarianceAccumulator.h \
-	likely/BinnedData.h likely/test/TestLikelihood.h \
-	likely/GslEngine.h likely/GslErrorHandler.h \
-	likely/MinuitEngine.h
+	likely/BinnedData.h likely/BinnedDataResampler.h \
+	likely/test/TestLikelihood.h likely/GslEngine.h \
+	likely/GslErrorHandler.h likely/MinuitEngine.h
 HEADERS = $(nobase_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -334,8 +334,8 @@ liblikely_la_SOURCES = likely/FitParameter.cc \
 	likely/UniformBinning.cc likely/NonUniformBinning.cc \
 	likely/UniformSampling.cc likely/NonUniformSampling.cc \
 	likely/CovarianceMatrix.cc likely/CovarianceAccumulator.cc \
-	likely/BinnedData.cc likely/test/TestLikelihood.cc \
-	$(am__append_1) $(am__append_3)
+	likely/BinnedData.cc likely/BinnedDataResampler.cc \
+	likely/test/TestLikelihood.cc $(am__append_1) $(am__append_3)
 
 # library headers to install (nobase prefix preserves directories under bosslya)
 # Anything that includes config.h should *not* be listed here.
@@ -352,8 +352,8 @@ nobase_include_HEADERS = likely/likely.h likely/types.h \
 	likely/UniformBinning.h likely/NonUniformBinning.h \
 	likely/UniformSampling.h likely/NonUniformSampling.h \
 	likely/CovarianceMatrix.h likely/CovarianceAccumulator.h \
-	likely/BinnedData.h likely/test/TestLikelihood.h \
-	$(am__append_2) $(am__append_4)
+	likely/BinnedData.h likely/BinnedDataResampler.h \
+	likely/test/TestLikelihood.h $(am__append_2) $(am__append_4)
 
 # instructions for building each program
 likelytest_SOURCES = src/likelytest.cc
@@ -574,6 +574,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsBinning.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BinnedData.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BinnedDataResampler.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceMatrix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EngineRegistry.Plo@am__quote@
@@ -774,6 +775,13 @@ BinnedData.lo: likely/BinnedData.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/BinnedData.cc' object='BinnedData.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BinnedData.lo `test -f 'likely/BinnedData.cc' || echo '$(srcdir)/'`likely/BinnedData.cc
+
+BinnedDataResampler.lo: likely/BinnedDataResampler.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT BinnedDataResampler.lo -MD -MP -MF $(DEPDIR)/BinnedDataResampler.Tpo -c -o BinnedDataResampler.lo `test -f 'likely/BinnedDataResampler.cc' || echo '$(srcdir)/'`likely/BinnedDataResampler.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/BinnedDataResampler.Tpo $(DEPDIR)/BinnedDataResampler.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/BinnedDataResampler.cc' object='BinnedDataResampler.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BinnedDataResampler.lo `test -f 'likely/BinnedDataResampler.cc' || echo '$(srcdir)/'`likely/BinnedDataResampler.cc
 
 TestLikelihood.lo: likely/test/TestLikelihood.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestLikelihood.lo -MD -MP -MF $(DEPDIR)/TestLikelihood.Tpo -c -o TestLikelihood.lo `test -f 'likely/test/TestLikelihood.cc' || echo '$(srcdir)/'`likely/test/TestLikelihood.cc

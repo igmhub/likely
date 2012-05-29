@@ -25,6 +25,7 @@
 
 #include "likely/CovarianceMatrix.h"
 #include "likely/BinnedData.h"
+#include "likely/BinnedDataResampler.h"
 
 #include "likely/FitParameter.h"
 #include "likely/AbsEngine.h"

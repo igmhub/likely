@@ -34,6 +34,7 @@ liblikely_la_SOURCES = \
 	likely/CovarianceMatrix.cc \
 	likely/CovarianceAccumulator.cc \
 	likely/BinnedData.cc \
+	likely/BinnedDataResampler.cc \
 	likely/test/TestLikelihood.cc
 
 # library headers to install (nobase prefix preserves directories under bosslya)
@@ -67,6 +68,7 @@ nobase_include_HEADERS = \
 	likely/CovarianceMatrix.h \
 	likely/CovarianceAccumulator.h \
 	likely/BinnedData.h \
+	likely/BinnedDataResampler.h \
 	likely/test/TestLikelihood.h
 
 # add GSL features when libgsl is available
