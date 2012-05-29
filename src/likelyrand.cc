@@ -55,6 +55,24 @@ int main(int argc, char **argv) {
         for(int k = 0; k < size; ++k) std::cout << ' ' << counts[k];
         std::cout << std::endl;
     }
+    {
+        int ssize(10),size(3),ntrials(10000);
+        std::vector<int> sample;
+        std::vector<std::vector<int> > counts;
+        for(int i = 0; i < size; ++i) counts.push_back(std::vector<int>(ssize,0));
+        for(int i = 0; i < ssize; ++i) sample.push_back(i);
+        for(int trial = 0; trial < ntrials; ++trial) {
+            random.shuffle(sample,size);
+            for(int i = 0; i < size; ++i) counts[i][sample[i]]++;
+        }
+        for(int i = 0; i < size; ++i) {
+            std::cout << "shuffle[" << i << "]";
+            for(int j = 0; j < ssize; ++j) {
+                std::cout << ' ' << counts[i][j];
+            }
+            std::cout << std::endl;
+        }
+    }
     
     // Random real benchmarks
     BENCHMARK_LOOP(getUniform);

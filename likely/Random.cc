@@ -43,6 +43,17 @@ int local::Random::getInteger(int min, int max) {
     return dist(_generator);
 }
 
+void local::Random::shuffle(std::vector<int> &sample, int size) {
+    int ssize(sample.size());
+    if(size <= 0 || size > ssize) {
+        throw RuntimeError("Random::shuffle: expected 0 < size <= sample.size().");
+    }
+    for(int pos = 0; pos < size; ++pos) {
+        int pick = getInteger(pos+1,ssize-1);
+        std::swap(sample[pos],sample[pick]);
+    }
+}
+
 float local::Random::getFastUniform() {
     return genrand_res53();
 }
