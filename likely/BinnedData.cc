@@ -141,7 +141,7 @@ void local::BinnedData::_setWeighted(bool weighted) const {
     _weighted = weighted;
 }
 
-bool local::BinnedData::isCongruent(BinnedData const& other) const {
+bool local::BinnedData::isCongruent(BinnedData const& other, bool onlyBinning) const {
     // Must have same number of axes.
     int nAxes(getNAxes());
     if(other.getNAxes() != nAxes) return false;
@@ -149,13 +149,15 @@ bool local::BinnedData::isCongruent(BinnedData const& other) const {
     for(int axis = 0; axis < nAxes; ++axis) {
         if(other._axisBinning[axis] != _axisBinning[axis]) return false;
     }
-    // Both must have or not have an associated covariance matrix.
-    if(other.hasCovariance() && !hasCovariance()) return false;
-    if(!other.hasCovariance() && hasCovariance()) return false;
-    // List (not set) of bins with data must be the same.
-    if(other.getNBinsWithData() != getNBinsWithData()) return false;
-    for(int offset = 0; offset < _index.size(); ++offset) {
-        if(other._index[offset] != _index[offset]) return false;
+    if(!onlyBinning) {
+        // Both must have or not have an associated covariance matrix.
+        if(other.hasCovariance() && !hasCovariance()) return false;
+        if(!other.hasCovariance() && hasCovariance()) return false;
+        // List (not set) of bins with data must be the same.
+        if(other.getNBinsWithData() != getNBinsWithData()) return false;
+        for(int offset = 0; offset < _index.size(); ++offset) {
+            if(other._index[offset] != _index[offset]) return false;
+        }
     }
     return true;
 }

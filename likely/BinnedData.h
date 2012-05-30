@@ -50,8 +50,11 @@ namespace likely {
         // covariance matrix. For some common cases of correctly weighted combinations,
         // use a BinnedDataResampler.
         BinnedData& add(BinnedData const &other, double weight = 1);
-        // Tests if another binned dataset is congruent with ours.
-        bool isCongruent(BinnedData const &other) const;
+        // Tests if another binned dataset is congruent with ours. Congruence requires
+        // identical binning specifications along each axis and (unless onlyBinning = true)
+        // that the same bins be occupied and that both datasets either have or do not
+        // have covariance matrices.
+        bool isCongruent(BinnedData const &other, bool onlyBinning = false) const;
 		
 		// Returns the number of axes used to bin this data.
         int getNAxes() const;
