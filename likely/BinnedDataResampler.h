@@ -23,6 +23,10 @@ namespace likely {
         void addObservation(BinnedDataCPtr observation);
         // Returns the number of observations available for resampling.
         int getNObservations() const;
+        // Returns a shared pointer to a new BinnedData that represents all observations combined.
+        // Each call to this method builds a new combined dataset so save the result unless
+        // you actually want many independent copies.
+        BinnedDataPtr combined() const;
         // Returns a shared pointer to a new BinnedData that represents a jackknife resampling
         // of our observations of the specified size.
         BinnedDataPtr jackknife(int size) const;

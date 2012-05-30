@@ -25,6 +25,19 @@ void local::BinnedDataResampler::addObservation(BinnedDataCPtr observation) {
     _observations.push_back(observation);
 }
 
+local::BinnedDataPtr local::BinnedDataResampler::combined() const {
+    BinnedDataPtr all;
+    int size(_observations.size());
+    // Return an unassigned shared pointer if we don't have any observations yet.
+    if(0 == size) return all;
+    // Create an empty dataset with the right axis binning.
+    all.reset(_observations[0]->clone(true));
+    for(int obsIndex = 0; obsIndex < size; ++obsIndex) {
+        *all += *_observations[obsIndex];
+    }
+    return all;
+}
+
 local::BinnedDataPtr local::BinnedDataResampler::jackknife(int size) const {
     if(size <= 0 || size > _observations.size()) {
         throw RuntimeError("BinnedDataResampler::jackknife: invalid size.");
