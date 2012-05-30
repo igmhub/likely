@@ -11,7 +11,18 @@
 namespace likely {
 	class BinnedDataResampler {
 	// Collects and resamples a set of congruent BinnedData observations using jackknife
-	// and bootstrap techniques.
+	// and bootstrap techniques. Resampler works with subclasses X of BinnedData as long
+	// as they implement their own X::clone() method. Subclasses will need to use
+	// boost::dynamic_pointer_cast<...>, e.g.
+	//
+	//  typedef boost::shared_ptr<const X> XCPtr;
+	//  typedef boost::shared_ptr<X> XPtr;
+	//  XCPtr x1,x2;
+	//  likely::BinnedResampler resampler;
+	//  resampler.add(boost::dynamic_pointer_cast<likely::BinnedData>(x1));
+	//  resampler.add(boost::dynamic_pointer_cast<likely::BinnedData>(x2));
+	//  XPtr bs = boost::dynamic_pointer_cast<X>(resampler.bootstrap(100));
+	//
 	public:
 	    // Creates a new resampler using the specified random seed.
 		BinnedDataResampler(int randomSeed);
@@ -19,7 +30,8 @@ namespace likely {
 		// Sets the random seed value to use for subsequent random resampling.
         void setSeed(int seedValue);
 		// Adds a new observation for resampling. Throws a RuntimeError if this observation
-		// has already been added or is not congruent with existing observations.
+		// has already been added or is not congruent with existing observations. Calls to
+		// this method can be interspersed with calls to resampling methods below.
         void addObservation(BinnedDataCPtr observation);
         // Returns the number of observations available for resampling.
         int getNObservations() const;
