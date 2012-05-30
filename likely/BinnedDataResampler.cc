@@ -40,7 +40,7 @@ local::BinnedDataPtr local::BinnedDataResampler::jackknife(int size) const {
     // Do a partial shuffling so that the first size elements index our jackknife sample.
     _random.partialShuffle(_shuffle,size);
     // Create an empty dataset with the right axis binning.
-    BinnedDataPtr resample(new BinnedData(_observations[0]->getAxisBinning()));
+    BinnedDataPtr resample(_observations[0]->clone(true));
     // Add each observation from the generated sample.
     for(int obsIndex = 0; obsIndex < size; ++obsIndex) {
         *resample += *_observations[_shuffle[obsIndex]];
@@ -59,7 +59,7 @@ local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool accura
     // Generate a random sample with replacement.
     _random.sampleWithReplacement(_counts,size);
     // Create an empty dataset with the right axis binning.
-    BinnedDataPtr resample(new BinnedData(_observations[0]->getAxisBinning()));
+    BinnedDataPtr resample(_observations[0]->clone(true));
     // Loop over observations, adding each one the appropriate number of times.
     bool duplicatesFound(false);
     for(int obsIndex = 0; obsIndex < _observations.size(); ++obsIndex) {

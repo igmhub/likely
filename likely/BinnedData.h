@@ -39,6 +39,16 @@ namespace likely {
 		// See the cloneCovariance() method if you actually want each object to have separate
 		// and modifiable covariance matrices.
 		
+		// Clone method performs the same shallow copy but is virtual to allow polymorphic
+		// copying. Set onlyBinning = true to only clone our binning specifications and
+		// create an empty dataset. Subclasses X must override this method, normally with:
+		//
+		//   return binningOnly ? new X(getAxisBinning()) : new X(*this)
+		//
+		// This means that X::X(std::vector<AbsBinningCPtr> axes) and X::X(X const &other)
+		// must also be valid (but the default copy ctor is usually ok).
+        virtual BinnedData *clone(bool binningOnly = false) const;
+		
 		// Assignment operator supports the same shallow copy semantics.
         BinnedData& operator=(BinnedData other);
         friend void swap(BinnedData& a, BinnedData& b);

@@ -61,6 +61,10 @@ void local::BinnedData::_initialize() {
 
 local::BinnedData::~BinnedData() { }
 
+local::BinnedData *local::BinnedData::clone(bool binningOnly) const {
+    return binningOnly ? new BinnedData(getAxisBinning()) : new BinnedData(*this);
+}
+
 // The pass-by-value semantics used here are not a mistake: see
 // http://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
 local::BinnedData& local::BinnedData::operator=(BinnedData other) {
