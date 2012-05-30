@@ -96,28 +96,31 @@ void local::BinnedData::dropCovariance() {
     _covariance.reset();
 }
 
-local::BinnedData& local::BinnedData::operator+=(BinnedData const& other) {
+local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight) {
     if(!isCongruent(other)) {
-        throw RuntimeError("BinnedData::operator+=: datasets are not congruent.");
+        throw RuntimeError("BinnedData::add: datasets are not congruent.");
     }
+    // All done if the requested weight is zero.
+    if(0 == weight) return *this;
+    // Do we have a covariance matrix to use for weighting?
     if(!hasCovariance()) {
         // Add data bin by bin when neither dataset has a covariance matrix.
         for(int offset = 0; offset < _index.size(); ++offset) {
-            _data[offset] += other._data[offset];
+            _data[offset] += weight*other._data[offset];
         }
     }
     else {
         if(!isCovarianceModifiable() || !other.isCovarianceModifiable()) {
-            throw RuntimeError("BinnedData::operator+=: cannot modify shared covariance.");
+            throw RuntimeError("BinnedData::add: cannot modify shared covariance.");
         }
         // Add the weighted _data vectors, element by element, and save the result in our _data.
         _setWeighted(true);
         other._setWeighted(true);
         for(int offset = 0; offset < _data.size(); ++offset) {
-            _data[offset] += other._data[offset];
+            _data[offset] += weight*other._data[offset];
         }
         // Add Cinv matrices and save the result as our new Cinv matrix.
-        _covariance->addInverse(*other._covariance);
+        _covariance->addInverse(*other._covariance,weight);
     }
     return *this;
 }

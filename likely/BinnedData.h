@@ -43,10 +43,15 @@ namespace likely {
         BinnedData& operator=(BinnedData other);
         friend void swap(BinnedData& a, BinnedData& b);
 
-        // Adds another binned dataset to our dataset.
-        BinnedData& operator+=(BinnedData const& other);
+        // Adds another congruent binned dataset to our dataset (with weight 1).
+        BinnedData& operator+=(BinnedData const &other);
+        // Adds another congruent binned dataset to our dataset with an arbitrary weight.
+        // Note that using weights different from 1 will generally produce an incorrect
+        // covariance matrix. For some common cases of correctly weighted combinations,
+        // use a BinnedDataResampler.
+        BinnedData& add(BinnedData const &other, double weight = 1);
         // Tests if another binned dataset is congruent with ours.
-        bool isCongruent(BinnedData const& other) const;
+        bool isCongruent(BinnedData const &other) const;
 		
 		// Returns the number of axes used to bin this data.
         int getNAxes() const;
@@ -210,6 +215,7 @@ namespace likely {
     inline BinnedData::IndexIterator BinnedData::end() const { return _index.end(); }
     inline void BinnedData::finalize() { _finalized = true; }
     inline bool BinnedData::isFinalized() const { return _finalized; }
+    inline BinnedData& BinnedData::operator+=(BinnedData const& other) { return add(other); }
 
 } // likely
 
