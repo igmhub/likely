@@ -97,11 +97,32 @@ void local::BinnedData::dropCovariance() {
 }
 
 local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight) {
-    if(!isCongruent(other)) {
-        throw RuntimeError("BinnedData::add: datasets are not congruent.");
-    }
     // All done if the requested weight is zero.
     if(0 == weight) return *this;
+    // Do we have any data yet?
+    if(0 == getNBinsWithData()) {
+        // If we are empty, then we only require that the other dataset have the same binning.
+        if(!isCongruent(other,true)) {
+            throw RuntimeError("BinnedData::add: datasets have different binning.");
+        }
+        // Initialize each occupied bin of the other dataset to zero contents in our dataset.
+        for(IndexIterator iter = other.begin(); iter != other.end(); ++iter) {
+            setData(*iter,0);
+        }
+        // If the other dataset has a covariance matrix, initialize ours now.
+        if(other.hasCovariance()) {
+            _covariance.reset(new CovarianceMatrix(getNBinsWithData()));
+            // Our zero data vector should be interpreted as Cinv.data for the
+            // purposes of adding to the other dataset, below.
+            _weighted = true;
+        }
+    }
+    else {
+        // We already have data, so try to add the other data to ours.
+        if(!isCongruent(other)) {
+            throw RuntimeError("BinnedData::add: datasets are not congruent.");
+        }
+    }
     // Do we have a covariance matrix to use for weighting?
     if(!hasCovariance()) {
         // Add data bin by bin when neither dataset has a covariance matrix.
