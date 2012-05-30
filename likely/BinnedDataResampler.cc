@@ -39,12 +39,10 @@ local::BinnedDataPtr local::BinnedDataResampler::jackknife(int size) const {
     }
     // Do a partial shuffling so that the first size elements index our jackknife sample.
     _random.partialShuffle(_shuffle,size);
-    // Start our resample by copying the first observation.
-    BinnedDataPtr resample(new BinnedData(*_observations[_shuffle[0]]));
-    // Make sure we have our own covariance matrix since we will need to modify it.
-    resample->cloneCovariance();
-    // Add the remaining observations.
-    for(int obsIndex = 1; obsIndex < size; ++obsIndex) {
+    // Create an empty dataset with the right axis binning.
+    BinnedDataPtr resample(new BinnedData(_observations[0]->getAxisBinning()));
+    // Add each observation from the generated sample.
+    for(int obsIndex = 0; obsIndex < size; ++obsIndex) {
         *resample += *_observations[_shuffle[obsIndex]];
     }
     return resample;
@@ -60,13 +58,17 @@ local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool accura
     }
     // Generate a random sample with replacement.
     _random.sampleWithReplacement(_counts,size);
+    // Create an empty dataset with the right axis binning.
+    BinnedDataPtr resample(new BinnedData(_observations[0]->getAxisBinning()));
     // Loop over observations, adding each one the appropriate number of times.
-    BinnedDataPtr resample;
     bool duplicatesFound(false);
     for(int obsIndex = 0; obsIndex < _observations.size(); ++obsIndex) {
         int count(_counts[obsIndex]);
         if(0 == count) continue;
-        // ...
+        BinnedDataCPtr observation = _observations[obsIndex];
+        resample->add(*observation,count);
     }
+    // Need to trigger Cinv.d => d before we change Cinv !
+    
     return resample;
 }
