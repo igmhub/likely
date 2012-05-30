@@ -54,17 +54,18 @@ namespace likely {
         friend void swap(BinnedData& a, BinnedData& b);
 
         // Adds another congruent binned dataset to our dataset (with weight 1).
+        // Equivalent to add(other).
         BinnedData& operator+=(BinnedData const &other);
         // Adds another congruent binned dataset to our dataset with an arbitrary weight.
         // Note that using weights different from 1 will generally produce an incorrect
         // covariance matrix. For some common cases of correctly weighted combinations,
         // use a BinnedDataResampler.
-        BinnedData& add(BinnedData const &other, double weight = 1);
+        virtual BinnedData& add(BinnedData const &other, double weight = 1);
         // Tests if another binned dataset is congruent with ours. Congruence requires
         // identical binning specifications along each axis and (unless onlyBinning = true)
         // that the same bins be occupied and that both datasets either have or do not
         // have covariance matrices.
-        bool isCongruent(BinnedData const &other, bool onlyBinning = false) const;
+        virtual bool isCongruent(BinnedData const &other, bool onlyBinning = false) const;
 		
 		// Returns the number of axes used to bin this data.
         int getNAxes() const;
