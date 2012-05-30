@@ -60,6 +60,8 @@ namespace likely {
         // Returns the number of bins with data, which is never more than getNumBinsTotal().
         // The hasData method defines exactly what constitutes a bin with data.
         int getNBinsWithData() const;
+        // Returns a vector of shared pointers to our axis specification objects.
+        std::vector<AbsBinningCPtr> getAxisBinning() const;
         
         // Returns the global index corresponding to the specified bin index values along each
         // axis. The global index is defined as i0 + n0*(i1 + n1*(i2 + n2*(...))) where
@@ -207,6 +209,7 @@ namespace likely {
     inline int BinnedData::getNAxes() const { return _axisBinning.size(); }
     inline int BinnedData::getNBinsTotal() const { return _nbins; }
     inline int BinnedData::getNBinsWithData() const { return _index.size(); }
+    inline std::vector<AbsBinningCPtr> BinnedData::getAxisBinning() const { return _axisBinning; }
     inline bool BinnedData::hasCovariance() const { return _covariance.get() != 0; }
     inline bool BinnedData::isCovarianceModifiable() const {
         return 0 == _covariance.get() || _covariance.unique();
