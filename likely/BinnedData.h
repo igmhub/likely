@@ -186,8 +186,11 @@ namespace likely {
         // will automatically trigger a decompression. Return value indicates if any
         // compression was actually performed. Compression is considered a logically-const
         // operation since it is lossless, and an unmodifiable covariance matrix can still
-        // be compressed.
-        bool compress() const;
+        // be compressed. If weighted is true, then the data vector is converted to weighted
+        // form, Cinv.data, (if a covariance is available) before compressing the covariance.
+        // This allows this dataset to be added to other datasets while compressed but means
+        // that calling getData() will trigger an automatic decompression of the covariance.
+        bool compress(bool weighted = true) const;
         // Returns true if this covariance matrix is currently compressed. Note that uncompression
         // happens automatically, on demand, so there is no guarantee that a compressed object
         // will remain compressed.

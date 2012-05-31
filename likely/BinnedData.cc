@@ -372,7 +372,8 @@ void local::BinnedData::setInverseCovariance(int index1, int index2, double valu
     _covariance->setInverseCovariance(_offset[index1],_offset[index2],value);
 }
 
-bool local::BinnedData::compress() const {
+bool local::BinnedData::compress(bool weighted) const {
+    _setWeighted(weighted);
     return _covariance.get() ? _covariance->compress() : false;
 }
 
