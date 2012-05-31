@@ -97,6 +97,12 @@ local::Parameters local::FunctionMinimum::getErrors(bool onlyFloating) const {
     return errors;
 }
 
+std::vector<std::string> local::FunctionMinimum::getNames(bool onlyFloating) const {
+    std::vector<std::string> names;
+    getFitParameterNames(_parameters,names,onlyFloating);
+    return names;
+}
+
 double local::FunctionMinimum::setRandomParameters(Parameters &params) const {
     if(!hasCovariance()) {
         throw RuntimeError(

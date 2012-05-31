@@ -35,11 +35,13 @@ namespace likely {
     // Defines a vector of fit parameters.
     typedef std::vector<FitParameter> FitParameters;
     
-    // Returns a vector of parameter values or errors. Use the optional onlyFloating parameter
-    // to only include floating parameters in the result.
+    // Returns a vector of parameter values, errors or names. Use the optional onlyFloating
+    // parameter to only include floating parameters in the result.
     void getFitParameterValues(FitParameters const &parameters, Parameters &values,
         bool onlyFloating = false);
     void getFitParameterErrors(FitParameters const &parameters, Parameters &values,
+        bool onlyFloating = false);
+    void getFitParameterNames(FitParameters const &parameters, std::vector<std::string> &names,
         bool onlyFloating = false);
     int countFloatingFitParameters(FitParameters const &parameters);
 

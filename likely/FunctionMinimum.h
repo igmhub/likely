@@ -33,6 +33,9 @@ namespace likely {
 		// Returns a vector of parameter errors at this minimum. If onlyFloating is true, only
 		// the errors of floating parameters are included in the returned vector.
         Parameters getErrors(bool onlyFloating = false) const;
+        // Returns a vector of parameters names. If onlyFloating is true, on the names of
+        // floating parameters are included in the returned vector.
+        std::vector<std::string> getNames(bool onlyFloating = false) const;
         // Updates the fit parameters and function value at the minimum.
         void updateParameters(double minValue, FitParameters const &parameters);
         // Updates the location of the minimum and the function value at that point. If a covariance
