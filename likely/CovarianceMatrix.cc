@@ -587,7 +587,7 @@ boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int see
     return array;
 }
 
-void local::CovarianceMatrix::printToStream(std::ostream &os, std::string format,
+void local::CovarianceMatrix::printToStream(std::ostream &os, bool normalized, std::string format,
 std::vector<std::string> const &labels) const {
     if(labels.size() > 0 && labels.size() != _size) {
         throw RuntimeError("CovarianceMatrix::printToStream: unexpected number of labels.");
@@ -596,7 +596,16 @@ std::vector<std::string> const &labels) const {
     for(int row = 0; row < _size; ++row) {
         os << ((labels.size() > 0) ? (labelFormat % labels[row]) : (indexFormat % row));
         for(int col = 0; col <= row; ++col) {
-            os << ' ' << (valueFormat % getCovariance(row,col));
+            double value = getCovariance(row,col);
+            if(normalized) {
+                if(row == col) {
+                    value = std::sqrt(value);
+                }
+                else {
+                    value /= std::sqrt(getCovariance(row,row)*getCovariance(col,col));
+                }
+            }
+            os << ' ' << (valueFormat % value);
         }
         os << std::endl;
     }

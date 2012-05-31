@@ -95,8 +95,12 @@ namespace likely {
         void prune(std::set<int> const &keep);
 
         // Prints our covariance matrix elements to the specified output stream, using the
-        // specified printf format for each element.
-        void printToStream(std::ostream &os, std::string format = std::string("%+10.3lg"),
+        // specified printf format for each element. If normalized is true, then print
+        // sqrt of diagonal elements and normalize off-diagonal elements as correlation
+        // coefficients rho(i,j) = cov(i,j)/sqrt(cov(i,i)*cov(j,j)). If an optional vector
+        // of labels is provided, it will be used to label each row.
+        void printToStream(std::ostream &os, bool normalized = false,
+            std::string format = std::string("%+10.3lg"),
             std::vector<std::string> const &labels = std::vector<std::string>()) const;
         // Requests that this covariance matrix be compressed to reduce its memory usage,
         // if possible. Returns immediately if we are already compressed. Any compression
