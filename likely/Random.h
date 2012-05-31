@@ -25,7 +25,7 @@ namespace likely {
         
         // Shuffles the first size elements of the input vector in place. This is provided
         // to support partial shuffling with size < sample.size(), e.g., to efficiently
-        // generate jackknife samples. For a complete shuffle, use the more general
+        // generate random subsamples. For a complete shuffle, use the more general
         // std::random_shuffle() function.
         void partialShuffle(std::vector<int> &sample, int size);
         // Generates a random sample with replacement of the integers [0,sample.size()-1]
