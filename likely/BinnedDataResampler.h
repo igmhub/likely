@@ -58,6 +58,13 @@ namespace likely {
 	
     inline void BinnedDataResampler::setSeed(int seedValue) { _random.setSeed(seedValue); }
     inline int BinnedDataResampler::getNObservations() const { return _observations.size(); }
+    
+    // Fills the integer vector provided with a subset of [0,1,...,n-1] of length m=subset.size().
+    // The value of seqno determines which subset is selected and values of seqno from zero
+    // up to nCm-1 represent a complete enumeration of all possible m-subsets.
+    // Returns true for a valid seqno >= 0 (in which case the subset elements will be in
+    // increasing order) or false if seqno >= nCm (in which case the input subset is unchanged).
+    bool getSubset(int n, unsigned long seqno, std::vector<int> &subset);
 
 } // likely
 

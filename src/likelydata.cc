@@ -65,5 +65,17 @@ int main(int argc, char **argv) {
         std::cout << e.what() << std::endl;
     }
     
+    // Test subset combinatorics.
+    {
+        int n(5),m(2),seqno(0);
+        std::vector<int> subset(m);
+        while(lk::getSubset(n,seqno,subset)) {
+            std::cout << '[' << seqno << "] ";
+            for(int k = 0; k < m; ++k) std::cout << subset[k] << ' ';
+            std::cout << std::endl;
+            seqno++;
+        }
+    }
+    
     return 0;
 }

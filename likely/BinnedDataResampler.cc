@@ -5,6 +5,8 @@
 #include "likely/BinnedData.h"
 #include "likely/CovarianceMatrix.h"
 
+#include "boost/math/special_functions/binomial.hpp"
+
 #include <algorithm>
 
 namespace local = likely;
@@ -37,6 +39,32 @@ local::BinnedDataPtr local::BinnedDataResampler::combined() const {
         *all += *_observations[obsIndex];
     }
     return all;
+}
+
+bool local::getSubset(int n, unsigned long seqno, std::vector<int> &subset) {
+    if(n <= 0) {
+        throw RuntimeError("BinnedDataResampler::getSubset: invalid n.");
+    }
+    int m = subset.size();
+    if(0 == m) {
+        throw RuntimeError("BinnedDataResampler::getSubset: subset is empty.");
+    }
+    if(seqno < 0) {
+        throw RuntimeError("BinnedDataResampler::getSubset: expected seqno >= 0.");
+    }
+    // See http://en.wikipedia.org/wiki/Combinatorial_number_system
+    for(int k = m; k > 0; --k) {
+        int next = k-1;
+        double last,nCk = 0;
+        while(nCk <= seqno) {
+            last = nCk;
+            nCk = boost::math::binomial_coefficient<double>(++next,k);
+            if(next > n) return false;
+        }
+        subset[k-1] = next-1;
+        seqno -= last;
+    }
+    return true;
 }
 
 // This should not be random. Instead: jackknife(int ndrop, int &seqno) updates seqno to
