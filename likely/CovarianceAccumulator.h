@@ -20,7 +20,7 @@ namespace likely {
         void accumulate(std::vector<double> const &vector);
         void accumulate(double const *vector);
         // Return the estimated covariance matrix of all vectors accumulated so far.
-        CovarianceMatrixCPtr getCovariance() const;
+        CovarianceMatrixPtr getCovariance() const;
 	private:
         int _size;
         class Implementation;

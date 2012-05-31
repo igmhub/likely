@@ -51,14 +51,13 @@ void local::CovarianceAccumulator::accumulate(double const *vector) {
     }
 }
 
-local::CovarianceMatrixCPtr local::CovarianceAccumulator::getCovariance() const {
-    boost::shared_ptr<CovarianceMatrix> ptr(new CovarianceMatrix(_size));
+local::CovarianceMatrixPtr local::CovarianceAccumulator::getCovariance() const {
+    CovarianceMatrixPtr ptr(new CovarianceMatrix(_size));
     int index(0);
     for(int col = 0; col < _size; ++col) {
         for(int row = 0; row <= col; ++row) {
             ptr->setCovariance(row,col,covariance(_pimpl->accumulators[index++]));
         }
     }
-    CovarianceMatrixCPtr cptr = ptr;
-    return cptr;
+    return ptr;
 }
