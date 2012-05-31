@@ -158,6 +158,9 @@ namespace likely {
         void setInverseCovariance(int index1, int index2, double value);
         // Returns a const shared pointer to our covariance matrix, if any.
         CovarianceMatrixCPtr getCovarianceMatrix() const;
+        // Transforms our covariance matrix C by replacing it with C.Dinv.C. On return, D
+        // contains our original covariance matrix.
+        void transformCovariance(CovarianceMatrixPtr D);
 
         // Calculates the chi-square = (data-pred).Cinv.(data-pred) for the specified
         // vector of predicted data, or throws a RuntimeError. The predicted data vector

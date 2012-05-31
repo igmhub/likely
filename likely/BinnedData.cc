@@ -372,6 +372,18 @@ void local::BinnedData::setInverseCovariance(int index1, int index2, double valu
     _covariance->setInverseCovariance(_offset[index1],_offset[index2],value);
 }
 
+void local::BinnedData::transformCovariance(CovarianceMatrixPtr D) {
+    if(!hasCovariance()) {
+        throw RuntimeError("BinnedData::transformCovariance: no covariance to transform.");
+    }
+    // Make sure that our _data vector is independent of our _covariance before it changes.
+    _setWeighted(false);
+    // Replace D with C.Dinv.C where C is our original covariance matrix.
+    D->replaceWithTripleProduct(*_covariance);
+    // Swap C with D
+    swap(*D,*_covariance);
+}
+
 bool local::BinnedData::compress(bool weighted) const {
     _setWeighted(weighted);
     return _covariance.get() ? _covariance->compress() : false;
