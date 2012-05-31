@@ -50,6 +50,7 @@ namespace likely {
     // Represents a smart pointer to a function minimum object.
     class FunctionMinimum;
     typedef boost::shared_ptr<FunctionMinimum> FunctionMinimumPtr;
+    typedef boost::shared_ptr<const FunctionMinimum> FunctionMinimumCPtr;
     
     // Represents a smart pointer to an interpolator object.
     class Interpolator;
