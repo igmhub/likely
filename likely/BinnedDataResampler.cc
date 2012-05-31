@@ -3,6 +3,7 @@
 #include "likely/BinnedDataResampler.h"
 #include "likely/RuntimeError.h"
 #include "likely/BinnedData.h"
+#include "likely/CovarianceMatrix.h"
 
 #include <algorithm>
 
@@ -38,6 +39,8 @@ local::BinnedDataPtr local::BinnedDataResampler::combined() const {
     return all;
 }
 
+// This should not be random. Instead: jackknife(int ndrop, int &seqno) updates seqno to
+// iterate over all ways to drop ndrop observations and returns an empty ptr after the last one.
 local::BinnedDataPtr local::BinnedDataResampler::jackknife(int size) const {
     if(size <= 0 || size > _observations.size()) {
         throw RuntimeError("BinnedDataResampler::jackknife: invalid size.");
@@ -61,10 +64,11 @@ local::BinnedDataPtr local::BinnedDataResampler::jackknife(int size) const {
     return resample;
 }
 
-local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool accurateWeights) const {
+local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCovariance) const {
     if(size <= 0) {
         throw RuntimeError("BinnedDataResampler::bootstrap: invalid size.");
     }
+    if(0 == getNObservations()) return BinnedDataPtr();
     // Do we need to (re)initialize our counts vector?
     if(_counts.size() != _observations.size()) {
         _counts.resize(_observations.size(),0);
@@ -73,6 +77,10 @@ local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool accura
     _random.sampleWithReplacement(_counts,size);
     // Create an empty dataset with the right axis binning.
     BinnedDataPtr resample(_observations[0]->clone(true));
+    // Initialize matrix needed to fix final covariance.
+    likely::CovarianceMatrixPtr D;
+    int nbins = _observations[0]->getNBinsWithData();
+    if(fixCovariance) D.reset(new likely::CovarianceMatrix(nbins));
     // Loop over observations, adding each one the appropriate number of times.
     bool duplicatesFound(false);
     for(int obsIndex = 0; obsIndex < _observations.size(); ++obsIndex) {
@@ -80,8 +88,8 @@ local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool accura
         if(0 == count) continue;
         BinnedDataCPtr observation = _observations[obsIndex];
         resample->add(*observation,count);
+        if(fixCovariance) D->addInverse(*(observation->getCovarianceMatrix()),count*count);
     }
-    // Need to trigger Cinv.d => d before we change Cinv !
-    
+    if(fixCovariance) resample->transformCovariance(D);
     return resample;
 }
