@@ -69,25 +69,20 @@ bool local::getSubset(int n, unsigned long seqno, std::vector<int> &subset) {
 
 // This should not be random. Instead: jackknife(int ndrop, int &seqno) updates seqno to
 // iterate over all ways to drop ndrop observations and returns an empty ptr after the last one.
-local::BinnedDataPtr local::BinnedDataResampler::jackknife(int size) const {
-    if(size <= 0 || size > _observations.size()) {
-        throw RuntimeError("BinnedDataResampler::jackknife: invalid size.");
+local::BinnedDataPtr local::BinnedDataResampler::jackknife(int ndrop, unsigned long seqno) const {
+    int nobs(_observations.size());
+    if(ndrop < 0 || ndrop >= nobs) {
+        throw RuntimeError("BinnedDataResampler::jackknife: invalid ndrop.");
     }
-    // Do we need to (re)initialize our shuffle vector?
-    if(_shuffle.size() != _observations.size()) {
-        _shuffle.resize(0);
-        _shuffle.reserve(_observations.size());
-        for(int obsIndex = 0; obsIndex < _observations.size(); ++obsIndex) {
-            _shuffle.push_back(obsIndex);
-        }
-    }
-    // Do a partial shuffling so that the first size elements index our jackknife sample.
-    _random.partialShuffle(_shuffle,size);
+    // Fill our _subset vector with the subset indices corresponding to seqno.
+    int nkeep = nobs - ndrop;
+    _subset.resize(nkeep);
+    if(!getSubset(nobs,seqno,_subset)) return BinnedDataPtr();
     // Create an empty dataset with the right axis binning.
     BinnedDataPtr resample(_observations[0]->clone(true));
     // Add each observation from the generated sample.
-    for(int obsIndex = 0; obsIndex < size; ++obsIndex) {
-        *resample += *_observations[_shuffle[obsIndex]];
+    for(int obsIndex = 0; obsIndex < nkeep; ++obsIndex) {
+        *resample += *_observations[_subset[obsIndex]];
     }
     return resample;
 }

@@ -40,8 +40,20 @@ namespace likely {
         // you actually want many independent copies.
         BinnedDataPtr combined() const;
         // Returns a shared pointer to a new BinnedData that represents a jackknife resampling
-        // of our observations of the specified size.
-        BinnedDataPtr jackknife(int size) const;
+        // of our observations with the specified number of observations dropped. The specific
+        // resampling is determined by the value of seqno. Use the following to generate the
+        // full set of jackknife samples:
+        //
+	    //  likely::BinnedResampler resampler;
+	    //  BinnedDataPtr sample;
+        //  unsigned long seqno(0);
+        //  while(sample = resampler.jackknife(ndrop,seqno++)) {
+        //    ...
+        //  }
+        // Note that the number of jackknife samples generated this way gets large quickly
+        // as ndrop increases. There is no requirement that seqno increase by one for successive
+        // calls, so jackknifing can easily be parallelized in various ways.
+        BinnedDataPtr jackknife(int ndrop, unsigned long seqno) const;
         // Returns a shared pointer to a new BinnedData that represents a bootstrap resampling
         // of our observations of the specified size. The fixCovariance option requests that
         // the final covariance matrix be corrected for double counting of identical observations.
@@ -53,7 +65,7 @@ namespace likely {
 	private:
         mutable Random _random;
         std::vector<BinnedDataCPtr> _observations;
-        mutable std::vector<int> _shuffle, _counts;
+        mutable std::vector<int> _subset, _counts;
 	}; // BinnedDataResampler
 	
     inline void BinnedDataResampler::setSeed(int seedValue) { _random.setSeed(seedValue); }
