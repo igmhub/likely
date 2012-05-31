@@ -156,6 +156,8 @@ namespace likely {
         // Throws a RuntimeError if we have an unmodifiable covariance matrix.
         void setCovariance(int index1, int index2, double value);
         void setInverseCovariance(int index1, int index2, double value);
+        // Returns a const shared pointer to our covariance matrix, if any.
+        CovarianceMatrixCPtr getCovarianceMatrix() const;
 
         // Calculates the chi-square = (data-pred).Cinv.(data-pred) for the specified
         // vector of predicted data, or throws a RuntimeError. The predicted data vector
@@ -228,6 +230,7 @@ namespace likely {
     inline int BinnedData::getNBinsWithData() const { return _index.size(); }
     inline std::vector<AbsBinningCPtr> BinnedData::getAxisBinning() const { return _axisBinning; }
     inline bool BinnedData::hasCovariance() const { return _covariance.get() != 0; }
+    inline CovarianceMatrixCPtr BinnedData::getCovarianceMatrix() const { return _covariance; }
     inline bool BinnedData::isCovarianceModifiable() const {
         return 0 == _covariance.get() || _covariance.unique();
     }
