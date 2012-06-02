@@ -77,13 +77,13 @@ namespace likely {
         // Returns a vector of shared pointers to our axis specification objects.
         std::vector<AbsBinningCPtr> getAxisBinning() const;
         
-        // Returns the global index corresponding to the specified bin index values along each
-        // axis. The global index is defined as i0 + n0*(i1 + n1*(i2 + n2*(...))) where
-        // ik, nk are the bin index and number of bins for axis k, respectively. The global
+        // Returns the global index corresponding to the specified bin index values along
+        // each axis. The global index is defined as (i0*n1+i1)*n2+…) where ik, nk are
+        // the bin index and number of bins for axis k, respectively. The global
         // index will always be >= 0 and < getNBinsTotal().
         int getIndex(std::vector<int> const &binIndices) const;
-        // Returns the global index corresponding to the specified coordinate values along each
-        // axis.
+        // Returns the global index corresponding to the specified coordinate values along
+        // each axis.
         int getIndex(std::vector<double> const &values) const;
         
         // Returns iterators pointing to the first and last global indices for bins with data.
