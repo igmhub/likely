@@ -389,6 +389,10 @@ bool local::BinnedData::compress(bool weighted) const {
     return _covariance.get() ? _covariance->compress() : false;
 }
 
+void local::BinnedData::finalize() {
+    _finalized = true;
+}
+
 bool local::BinnedData::isCompressed() const {
     return _covariance.get() ? _covariance->isCompressed() : false;
 }
