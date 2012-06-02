@@ -12,8 +12,8 @@ local::NonUniformSampling::NonUniformSampling(std::vector<double> const &sampleP
 {
     // Check that we have some samples.
     int nSamples = _samplePoints.size();
-    if(nSamples < 1) {
-        throw BinningError("NonUniformSampling: need at least 1 sample point.");
+    if(nSamples < 3) {
+        throw BinningError("NonUniformSampling: need at least 3 sample points.");
     }
     // Check that sample points are increasing.
     for(int index = 1; index < nSamples; ++index) {
