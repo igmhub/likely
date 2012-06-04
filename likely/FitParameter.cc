@@ -1,6 +1,9 @@
 // Created 28-May-2012 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 
 #include "likely/FitParameter.h"
+#include "likely/RuntimeError.h"
+
+#include <iterator>
 
 namespace local = likely;
 
@@ -35,4 +38,11 @@ int local::countFloatingFitParameters(FitParameters const &parameters) {
         if(iter->isFloating()) count++;
     }
     return count;
+}
+
+int local::findFitParameterByName(FitParameters const &parameters, std::string const &name) {
+    for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
+        if(name == iter->getName()) return std::distance(parameters.begin(),iter);
+    }
+    throw RuntimeError("findFitParameterByName: name not found: " + name);
 }

@@ -44,6 +44,7 @@ namespace likely {
     void getFitParameterNames(FitParameters const &parameters, std::vector<std::string> &names,
         bool onlyFloating = false);
     int countFloatingFitParameters(FitParameters const &parameters);
+    int findFitParameterByName(FitParameters const &parameters, std::string const &name);
 
 } // likely
 
