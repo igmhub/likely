@@ -36,11 +36,16 @@ namespace likely {
         // Returns a vector of parameters names. If onlyFloating is true, on the names of
         // floating parameters are included in the returned vector.
         std::vector<std::string> getNames(bool onlyFloating = false) const;
+        // Returns the index of the parameter with the specified name, or throws a RuntimeError.
+        int findName(std::string const &name) const;
         // Updates the fit parameters and function value at the minimum.
         void updateParameters(double minValue, FitParameters const &parameters);
         // Updates the location of the minimum and the function value at that point. If a covariance
         // matrix is available, its diagonal elements will be used to update fit parameter errors.
         void updateParameterValues(double minValue, Parameters const &values);
+        // Sets a single named parameter to the specified value, or throws a RuntimeError if
+        // no such named parameter exists.
+        void setParameterValue(std::string const &name, double value);
         // Returns true if a covariance matrix is available.
         bool hasCovariance() const;
         // Returns a pointer to the estimated covariance matrix of floating parameters at this minimum.

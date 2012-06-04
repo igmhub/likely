@@ -68,6 +68,15 @@ void local::FunctionMinimum::updateParameterValues(double minValue, Parameters c
     _minValue = minValue;
 }
 
+void local::FunctionMinimum::setParameterValue(std::string const &name, double value) {
+    int index = findName(name);
+    double error(_parameters[index].getError());
+    if(0 != error && hasCovariance()) {
+        error = std::sqrt(_covar->getCovariance(index,index));
+    }
+    _parameters[index] = FitParameter(name,value,error);
+}
+
 void local::FunctionMinimum::filterParameterValues(
 Parameters const &allValues, Parameters &floatingValues) const {
     floatingValues.resize(0);
@@ -101,6 +110,10 @@ std::vector<std::string> local::FunctionMinimum::getNames(bool onlyFloating) con
     std::vector<std::string> names;
     getFitParameterNames(_parameters,names,onlyFloating);
     return names;
+}
+
+int local::FunctionMinimum::findName(std::string const &name) const {
+    return findFitParameterByName(_parameters,name);
 }
 
 double local::FunctionMinimum::setRandomParameters(Parameters &params) const {
