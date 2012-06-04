@@ -5,11 +5,12 @@
 
 #include "boost/random/uniform_01.hpp"
 #include "boost/random/normal_distribution.hpp"
+#include "boost/random/uniform_int_distribution.hpp"
 #include "boost/random/variate_generator.hpp"
 #include "boost/lexical_cast.hpp"
 
-#include <cstdlib>
 #include <cmath>
+#include <cstdlib>
 #include <string>
 
 #include "config.h" // defines HAVE_SSE2 when appropriate, thanks to the AX_EXT m4 macro
@@ -37,29 +38,36 @@ void local::Random::setSeed(int seedValue) {
     init_gen_rand(seedValue);
 }
 
-float local::Random::getFastUniform() {
-    return genrand_res53();
+int local::Random::getInteger(int min, int max) {
+    boost::random::uniform_int_distribution<> dist(min,max);
+    return dist(_generator);
 }
 
-void local::Random::fillArrayUniform(double *array, std::size_t size, int seed) {
-    if(size % 2) {
-        throw RuntimeError("Random::fillArrayUniform: array is not 128-bit aligned.");
+void local::Random::partialShuffle(std::vector<int> &sample, int size) {
+    int ssize(sample.size());
+    if(size <= 0 || size > ssize) {
+        throw RuntimeError("Random::partialShuffle: expected 0 < size <= sample.size().");
     }
-    if(size < N64) {
-        throw RuntimeError("Random::fillArrayUniform: array size < " +
-            boost::lexical_cast<std::string>(N64));
+    for(int pos = 0; pos < size; ++pos) {
+        int pick = getInteger(pos+1,ssize-1);
+        std::swap(sample[pos],sample[pick]);
     }
-    if(seed) init_gen_rand(seed);
-    if(!initialized || idx != N32) {
-        throw RuntimeError("Random::fillArrayUniform: must use seed > 0.");
+}
+
+void local::Random::sampleWithReplacement(std::vector<int> &sample, int size) {
+    if(size <= 0) {
+        throw RuntimeError("Random::sampleWithReplacement: expected size > 0.");
     }
-    gen_rand_array((w128_t *)array, size / 2);
-    idx = N32;
-#if defined(BIG_ENDIAN64)
-    swap((w128_t *)array, size /2);
-#endif
-    uint64_t *ptr((uint64_t*)array);
-    for(int i = 0; i < size; ++i) array[i] = to_res53(*ptr++);
+    int ssize(sample.size());
+    sample.assign(ssize,0);
+    boost::random::uniform_int_distribution<> dist(0,ssize-1);
+    for(int trial = 0; trial < size; ++trial) {
+        sample[dist(_generator)]++;
+    }
+}
+
+float local::Random::getFastUniform() {
+    return genrand_res53();
 }
 
 void *local::allocateAlignedArray(std::size_t byteSize) {
@@ -88,55 +96,138 @@ void *local::allocateAlignedArray(std::size_t byteSize) {
     return array;
 }
 
+boost::shared_array<float> local::allocateAlignedFloatArray(std::size_t size) {
+    assert(sizeof(float) == sizeof(uint32_t));
+    float *fbuffer = (float*)allocateAlignedArray(size*sizeof(uint32_t));
+    return boost::shared_array<float>(fbuffer,std::ptr_fun(free));
+}
+
+boost::shared_array<double> local::allocateAlignedDoubleArray(std::size_t size) {
+    assert(sizeof(double) == sizeof(uint64_t));
+    double *dbuffer = (double*)allocateAlignedArray(size*sizeof(uint64_t));
+    return boost::shared_array<double>(dbuffer,std::ptr_fun(free));
+}
+
+std::size_t local::Random::_initializeFill(std::size_t nrandom,
+int seed, int stride, int minimum) {
+    if(nrandom <= 0) {
+        throw RuntimeError("Random: expected nrandom > 0.");
+    }
+    // Increase the number generated?
+    std::size_t ngen(nrandom);
+    if(ngen < minimum) {
+        // Round up to the minimum size.
+        ngen = minimum;
+    }
+    else if(ngen % stride) {
+        // Round up for alignment.
+        ngen += stride - (ngen % stride);
+    }
+    // Set the random seed.
+    init_gen_rand(seed);
+    if(!initialized || idx != N32) {
+        throw RuntimeError("Random: init_gen_rand failed.");
+    }
+    return ngen;
+}
+
+boost::shared_array<double> local::Random::fillDoubleArrayUniform(std::size_t &nrandom, int seed) {
+    // Get the number of random 64-bit integers to generate.
+    nrandom = _initializeFill(nrandom,seed,2,N64);
+    // Allocate the shared array.
+    boost::shared_array<double> sarray = allocateAlignedDoubleArray(nrandom);
+    double *array = sarray.get();
+    // Fill the array with random bits.
+    gen_rand_array((w128_t *)array, nrandom/2);
+    idx = N32;
+#if defined(BIG_ENDIAN64)
+    swap((w128_t *)array, nrandom /2);
+#endif
+    uint64_t *ptr((uint64_t*)array);
+    for(int i = 0; i < nrandom; ++i) {
+        array[i] = to_res53(*ptr++);
+    }
+    return sarray;
+}
+
+boost::shared_array<double> local::Random::fillDoubleArrayNormal(std::size_t &nrandom, int seed) {
+    // Round nrandom up to an even number to simplify alignment issues.
+    if(nrandom % 2) nrandom++;
+    // Get the number of random 32-bit integers to generate.
+    std::size_t ngen = _initializeFill(nrandom,seed,4,N32);
+    // Will this fit within an array of nrandom doubles? Ensure that nrandom >= ngen/2.
+    if(ngen > 2*nrandom) nrandom = ngen/2;
+    // Allocate the shared array with enough space for ngen quad-aligned 32-bit random integers
+    // and nrandom 64-bit doubles.
+    boost::shared_array<double> sarray = allocateAlignedDoubleArray(nrandom);
+    double *array = sarray.get();
+    // Calculate the 64-bit offset for filling the array in the top of the output array.
+    int offset = nrandom - ngen/2;
+    // Fill the array with random bits.
+    gen_rand_array((w128_t *)(array+offset), ngen/4);
+    idx = N32;    
+    // Calculate where to start reading the 32-bit random integers so we will not
+    // overwrite them as we save the new double values. Step n involves reading the next
+    // 32-bit int from [offset+n] and writing the new double into [2n] and [2n+1], so
+    // we require that the next 32-bit int not be clobbered, i.e., offset+n+1 > 2n+1,
+    // or simply offset > n for all n. Since n covers the range 0..(nrandom-1), take
+    // offset = nrandom. This will always fit since it is a 32-bit offset and the array
+    // has space for at least nrandom 64-bit doubles.
+    uint32_t *ptr((uint32_t*)array+nrandom);
+    // Read random integers and convert them to normally distributed doubles.
+    for(int index = 0; index < nrandom; ++index) {
+        array[index] = _zigguratConvert(*ptr++);
+    }
+    return sarray;
+}
+
+boost::shared_array<float> local::Random::fillFloatArrayNormal(std::size_t &nrandom, int seed) {
+    // Get the number of random 32-bit integers to generate.
+    nrandom = _initializeFill(nrandom,seed,4,N32);
+    // Allocate the shared array
+    boost::shared_array<float> sarray = allocateAlignedFloatArray(nrandom);
+    float *array = sarray.get();
+    // Fill the array with random bits.
+    gen_rand_array((w128_t *)array, nrandom/4);
+    idx = N32;
+    // Read random integers and convert them to normally distributed floats.
+    uint32_t *ptr((uint32_t*)array);
+    for(int index = 0; index < nrandom; ++index) {
+        array[index] = (float)_zigguratConvert(*ptr++);
+    }
+    return sarray;
+}
+
 /* position of right-most step */
 #define PARAM_R 3.44428647676
 
-void local::Random::fillArrayNormal(float *array, std::size_t size, int seed) {
-    if(size % 4) {
-        throw RuntimeError("Random::fillArrayNormal: array is not 128-bit aligned.");
-    }
-    if(size < N32) {
-        throw RuntimeError("Random::fillArrayNormal: array size < " +
-            boost::lexical_cast<std::string>(N32));
-    }
-    init_gen_rand(seed);
-    if(!initialized || idx != N32) {
-        throw RuntimeError("Random::fillArrayNormal: init_gen_rand failed.");
-    }
-    gen_rand_array((w128_t *)array, size / 4);
-    idx = N32;
-    // Convert each 32-bit integer to a normally-distributed float using the ziggurat
-    // algorithm described at http://www.seehuhn.de/pages/ziggurat
-    uint32_t *ptr((uint32_t*)array);
-    uint32_t U,i,j,sign;
+double local::Random::_zigguratConvert(uint32_t U) {
+    uint32_t i,j,sign;
     double x, y;
-    for(int index = 0; index < size; ++index) {
-        U = *ptr++;
-        while(1) {
-            i = U & 0x0000007F;		/* 7 bit to choose the step */
-            sign = U & 0x00000080;	/* 1 bit for the sign */
-            j = U>>8;   		    /* 24 bit for the x-value */
+    while(1) {
+        i = U & 0x0000007F;		/* 7 bit to choose the step */
+        sign = U & 0x00000080;	/* 1 bit for the sign */
+        j = U>>8;   		    /* 24 bit for the x-value */
 
-            x = j*_ziggurat_wtab[i];
-            if (j < _ziggurat_ktab[i])  break;
+        x = j*_ziggurat_wtab[i];
+        if (j < _ziggurat_ktab[i])  break;
 
-            if (i<127) {
-                double  y0, y1;
-                y0 = _ziggurat_ytab[i];
-                y1 = _ziggurat_ytab[i+1];
-                y = y1+(y0-y1)*genrand_res53();
-            }
-            else {
-                x = PARAM_R - std::log(1.0-genrand_res53())/PARAM_R;
-                y = std::exp(-PARAM_R*(x-0.5*PARAM_R))*genrand_res53();
-            }
-            if (y < std::exp(-0.5*x*x))  break;
-            // If we get here, we need a new 32-bit random number in U.
-            // We actually generate a 64-bit random integer to stay in synch.
-            U = gen_rand64() & 0xffffffff;
+        if (i<127) {
+            double  y0, y1;
+            y0 = _ziggurat_ytab[i];
+            y1 = _ziggurat_ytab[i+1];
+            y = y1+(y0-y1)*genrand_res53();
         }
-        array[index] = sign ? (float)(+x) : (float)(-x);
+        else {
+            x = PARAM_R - std::log(1.0-genrand_res53())/PARAM_R;
+            y = std::exp(-PARAM_R*(x-0.5*PARAM_R))*genrand_res53();
+        }
+        if (y < std::exp(-0.5*x*x))  break;
+        // If we get here, we need a new 32-bit random number in U.
+        // We actually generate a 64-bit random integer to stay in synch.
+        U = gen_rand64() & 0xffffffff;
     }
+    return sign ? +x : -x;
 }
 
 /* tabulated values for the heigt of the Ziggurat levels */

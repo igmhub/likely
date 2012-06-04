@@ -1,8 +1,8 @@
 // Created 30-May-2011 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 
 #include "likely/FunctionMinimum.h"
-#include "likely/Random.h"
 #include "likely/RuntimeError.h"
+#include "likely/CovarianceMatrix.h"
 
 #include "boost/format.hpp"
 
@@ -10,148 +10,159 @@
 #include <algorithm>
 #include <cmath>
 
-// Declare a binding to this LAPACK Cholesky decomposition routine:
-// http://www.netlib.org/lapack/double/dpptrf.f
-extern "C" {
-    void dpptrf_(char* uplo, int* n, double* ap, int *info);
-}
+#include <cassert>
 
 namespace local = likely;
 
-local::FunctionMinimum::FunctionMinimum(double minValue, Parameters const& where)
-: _minValue(minValue), _where(where), _random(Random::instance())
+local::FunctionMinimum::FunctionMinimum(double minValue, FitParameters const &parameters)
+: _status(OK)
 {
+    updateParameters(minValue, parameters);
 }
 
-local::FunctionMinimum::FunctionMinimum(double minValue, Parameters const& where,
-PackedCovariance const &covar, bool errorsOnly)
-: _minValue(minValue), _where(where), _random(Random::instance())
+local::FunctionMinimum::FunctionMinimum(double minValue, FitParameters const &parameters,
+CovarianceMatrixCPtr covariance)
+: _status(OK)
 {
-    if(!updateCovariance(covar,errorsOnly)) {
-        throw RuntimeError("FunctionMinimum: covariance is not positive definite.");
-    }
+    updateParameters(minValue, parameters);
+    updateCovariance(covariance);
 }
 
 local::FunctionMinimum::~FunctionMinimum() { }
 
-void local::FunctionMinimum::updateParameters(Parameters const &params, double fval) {
-    _minValue = fval;
-    _where = params;
-}
-
-bool local::FunctionMinimum::updateCovariance(PackedCovariance const &covar,
-bool errorsOnly) {
-    int nPar(_where.size()),nCovar(nPar*(nPar+1)/2);
-    if(errorsOnly) {
-        // We have a vector of errors, instead of a full covariance matrix.
-        if(covar.size() != nPar) throw RuntimeError(
-            "FunctionMinimum: parameter and error vectors have incompatible sizes.");
-        // Check for any errors <= 0.
-        for(int i = 0; i < nPar; ++i) if(covar[i] <= 0) return false;
-        // Create a diogonal covariance matrix of squared errors.
-        _covar.reset(new PackedCovariance(nCovar,0));
-        for(int i = 0; i < nPar; ++i) {
-            double error(covar[i]);
-            (*_covar)[i*(i+3)/2] = error*error;
+void local::FunctionMinimum::updateParameters(double minValue, FitParameters const &parameters) {
+    if(_parameters.size() > 0) {
+        if(parameters.size() != _parameters.size()) {
+            throw RuntimeError("FunctionMinimum::updateParameters: unexpected parameters size.");
         }
-        // (should probably fill this directly from the input errors instead)
-        _cholesky = choleskyDecomposition(*_covar);
+        if(countFloatingFitParameters(parameters) != _nFloating) {
+            throw RuntimeError("FunctionMinimum::updateParameters: wrong number of floating parameters.");
+        }
     }
     else {
-        if(covar.size() != nCovar) throw RuntimeError(
-            "FunctionMinimum: parameter and covariance vectors have incompatible sizes.");
-        // Use a Cholesky decomposition to test for positive definiteness.
-        PackedCovariancePtr cholesky(choleskyDecomposition(covar));
-        if(!cholesky) return false;
-        _cholesky = cholesky;
-        _covar.reset(new PackedCovariance(covar));
+        _nFloating = countFloatingFitParameters(parameters);
     }
-    return true;
+    _parameters = parameters;
+    _minValue = minValue;
 }
 
-local::Parameters local::FunctionMinimum::getErrors() const {
-    if(!haveCovariance()) {
-        throw RuntimeError("FunctionMinimum::getErrors: no covariance matrix available.");
+void local::FunctionMinimum::updateParameterValues(double minValue, Parameters const &values) {
+    if(_parameters.size() == 0) {
+        throw RuntimeError("FunctionMinimum::updateParameters: no parameters set yet.");
     }
-    int nPar(_where.size());
-    Parameters errors(nPar);
-    for(int i = 0; i < nPar; ++i) {
-        double sigsq((*_covar)[i*(i+3)/2]);
-        errors[i] = sigsq > 0 ? std::sqrt(sigsq) : 0;
+    if(values.size() != _parameters.size()) {
+        throw RuntimeError("FunctionMinimum::updateParameters: unexpected number of values.");
     }
+    FitParameters updated;
+    int nextFloatIndex(0);
+    updated.reserve(_parameters.size());
+    for(int k = 0; k < _parameters.size(); ++k) {
+        double error(_parameters[k].getError());
+        if(0 != error && hasCovariance()) {
+            error = std::sqrt(_covar->getCovariance(nextFloatIndex,nextFloatIndex));
+            nextFloatIndex++;
+        }
+        updated.push_back(FitParameter(_parameters[k].getName(),values[k],error));
+    }
+    _parameters = updated;
+    _minValue = minValue;
+}
+
+void local::FunctionMinimum::setParameterValue(std::string const &name, double value) {
+    int index = findName(name);
+    double error(_parameters[index].getError());
+    if(0 != error && hasCovariance()) {
+        error = std::sqrt(_covar->getCovariance(index,index));
+    }
+    _parameters[index] = FitParameter(name,value,error);
+}
+
+void local::FunctionMinimum::filterParameterValues(
+Parameters const &allValues, Parameters &floatingValues) const {
+    floatingValues.resize(0);
+    floatingValues.reserve(_nFloating);
+    for(int k = 0; k < _parameters.size(); ++k) {
+        if(_parameters[k].isFloating()) floatingValues.push_back(allValues[k]);
+    }
+}
+
+void local::FunctionMinimum::updateCovariance(CovarianceMatrixCPtr covariance) {
+    if(covariance->getSize() != _nFloating) {
+        assert(0);
+        throw RuntimeError("FunctionMinimum: covariance size != number of floating parameters.");
+    }
+    _covar = covariance;
+}
+
+local::Parameters local::FunctionMinimum::getParameters(bool onlyFloating) const {
+    Parameters params;
+    getFitParameterValues(_parameters,params,onlyFloating);
+    return params;
+}
+
+local::Parameters local::FunctionMinimum::getErrors(bool onlyFloating) const {
+    Parameters errors;
+    getFitParameterErrors(_parameters,errors,onlyFloating);
     return errors;
 }
 
-local::PackedCovariancePtr local::choleskyDecomposition(PackedCovariance const &covar,
-int *infoPtr) {
-    // Copy the covariance matrix provided.
-    PackedCovariancePtr cholesky(new PackedCovariance(covar));
-    // Calculate the number of parameters corresponding to this packed covariance size.
-    int nCov(covar.size());
-    int nPar(std::floor(0.5*std::sqrt((double)(1+8*nCov))));
-    if(nCov != nPar*(nPar+1)/2) {
-        throw RuntimeError("choleskyDecomposition: internal error nCov ~ nPar");
-    }
-    // Use LAPACK to perform the decomposition.
-    char uplo('U');
-    int info(0);
-    dpptrf_(&uplo,&nPar,&(*cholesky)[0],&info);
-    if(0 != info) {
-        // Reset our return value so that it tests false using, e.g. if(cholesky) ...
-        cholesky.reset();
-    }
-    if(infoPtr) *infoPtr = info;
-    return cholesky;
+std::vector<std::string> local::FunctionMinimum::getNames(bool onlyFloating) const {
+    std::vector<std::string> names;
+    getFitParameterNames(_parameters,names,onlyFloating);
+    return names;
+}
+
+int local::FunctionMinimum::findName(std::string const &name) const {
+    return findFitParameterByName(_parameters,name);
 }
 
 double local::FunctionMinimum::setRandomParameters(Parameters &params) const {
-    if(!haveCovariance()) {
+    if(!hasCovariance()) {
         throw RuntimeError(
             "FunctionMinimum::getRandomParameters: no covariance matrix available.");
     }
-    int nPar(_where.size());
-    Parameters gauss(nPar);
-    double nlWeight(0);
-    for(int i = 0; i < nPar; ++i) {
-        // Initialize the generated parameters to the function minimum.
-        params[i] = _where[i];
-        // Fill a vector of random Gaussian variables.
-        double r(_random.getNormal());
-        gauss[i] = r;
-        nlWeight += r*r;
+    // Generate random offsets for our floating parameters.
+    std::vector<double> floating;
+    double nlWeight = _covar->sample(floating);
+    std::vector<double>::const_iterator nextOffset(floating.begin());
+    // Prepare to fill the parameter values vector we are provided.
+    params.resize(0);
+    params.reserve(_parameters.size());
+    for(FitParameters::const_iterator iter = _parameters.begin(); iter != _parameters.end(); ++iter) {
+        double value(iter->getValue());
+        if(iter->isFloating()) value += *nextOffset++;
+        params.push_back(value);
     }
-    // Multiply by the Cholesky decomposition matrix.
-    PackedCovariance::const_iterator next(_cholesky->begin());
-    for(int j = 0; j < nPar; ++j) {
-        for(int i = 0; i <= j; ++i) {
-            params[j] += (*next++)*gauss[i];
-        }
-    }
-    return nlWeight/2;
+    return nlWeight;
 }
 
-void local::FunctionMinimum::printToStream(std::ostream &os,
-std::string formatSpec) const {
-    boost::format formatter(formatSpec);
-    os << "F(" << formatter % _where[0];
-    int nPar(_where.size());
-    for(int i = 1; i < nPar; ++i) {
-        os << ',' << formatter % _where[i];
+void local::FunctionMinimum::printToStream(std::ostream &os, std::string formatSpec) const {
+    boost::format formatter(formatSpec), label("%20s = ");
+    std::vector<std::string> labels;
+    if(getStatus() == ERROR) {
+        os << "FMIN ERROR: " << getStatusMessage() << std::endl;
+        // Don't print out any more since it is presumably wrong.
+        return;
     }
-    os << ") = " << formatter % _minValue << std::endl;
-    if(haveCovariance()) {
-        Parameters errors(getErrors());
-        os << "ERRORS:";
-        for(int i = 0; i < nPar; ++i) {
-            os << ' ' << formatter % errors[i];
+    else if(getStatus() == WARNING) {
+        os << "FMIN WARNING: " << getStatusMessage() << std::endl;
+        // Keep going, after this warning...
+    }
+    os << "FMIN Value = " << formatter % _minValue << " at:" << std::endl;
+    for(FitParameters::const_iterator iter = _parameters.begin(); iter != _parameters.end(); ++iter) {
+        os << (label % iter->getName()) << (formatter % iter->getValue());
+        if(iter->isFloating()) {
+            os << " +/- " << formatter % iter->getError();
+            labels.push_back(iter->getName());
         }
-        os << std::endl << "COVARIANCE:" << std::endl;
-        for(int i = 0; i < nPar; ++i) {
-            for(int j = 0; j < nPar; ++j) {
-                int index = (i <= j) ? i + j*(j+1)/2 : j + i*(i+1)/2;
-                os << ' ' << formatter % (*_covar)[index];
-            }
-            os << std::endl;
-        }
+        os << std::endl;
+    }
+    os << std::endl << "Number of function evaluations used: " << getNEvalCount() << std::endl;
+    if(getNGradCount() > 0) {
+        os << "Number of gradient evaluations used: " << getNGradCount() << std::endl;
+    }
+    if(hasCovariance()) {
+        os << std::endl << "FMIN Errors & Correlations =" << std::endl;
+        _covar->printToStream(os,true,formatSpec,labels);
     }
 }

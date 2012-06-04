@@ -38,7 +38,8 @@ build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = likelytest$(EXEEXT) likelymc$(EXEEXT) \
 	likelyinterp$(EXEEXT) likelywsum$(EXEEXT) likelyinteg$(EXEEXT) \
-	likelyrand$(EXEEXT) likelytricubic$(EXEEXT)
+	likelyrand$(EXEEXT) likelytricubic$(EXEEXT) likelycov$(EXEEXT) \
+	likelydata$(EXEEXT)
 noinst_PROGRAMS = demo1$(EXEEXT) demo2$(EXEEXT)
 
 # add GSL features when libgsl is available
@@ -89,21 +90,29 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
 	"$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 liblikely_la_LIBADD =
-am__liblikely_la_SOURCES_DIST = likely/FunctionMinimum.cc \
-	likely/AbsEngine.cc likely/EngineRegistry.cc \
-	likely/MarkovChainEngine.cc likely/Interpolator.cc \
-	likely/Integrator.cc likely/Random.cc likely/AbsAccumulator.cc \
-	likely/WeightedAccumulator.cc likely/WeightedCombiner.cc \
-	likely/QuantileAccumulator.cc likely/TriCubicInterpolator.cc \
+am__liblikely_la_SOURCES_DIST = likely/FitParameter.cc \
+	likely/FunctionMinimum.cc likely/AbsEngine.cc \
+	likely/EngineRegistry.cc likely/MarkovChainEngine.cc \
+	likely/Interpolator.cc likely/Integrator.cc likely/Random.cc \
+	likely/AbsAccumulator.cc likely/WeightedAccumulator.cc \
+	likely/WeightedCombiner.cc likely/QuantileAccumulator.cc \
+	likely/TriCubicInterpolator.cc likely/AbsBinning.cc \
+	likely/UniformBinning.cc likely/NonUniformBinning.cc \
+	likely/UniformSampling.cc likely/NonUniformSampling.cc \
+	likely/CovarianceMatrix.cc likely/CovarianceAccumulator.cc \
+	likely/BinnedData.cc likely/BinnedDataResampler.cc \
 	likely/test/TestLikelihood.cc likely/GslEngine.cc \
 	likely/GslErrorHandler.cc likely/MinuitEngine.cc
 @USE_GSL_TRUE@am__objects_1 = GslEngine.lo GslErrorHandler.lo
 @USE_MINUIT2_TRUE@am__objects_2 = MinuitEngine.lo
-am_liblikely_la_OBJECTS = FunctionMinimum.lo AbsEngine.lo \
-	EngineRegistry.lo MarkovChainEngine.lo Interpolator.lo \
-	Integrator.lo Random.lo AbsAccumulator.lo \
+am_liblikely_la_OBJECTS = FitParameter.lo FunctionMinimum.lo \
+	AbsEngine.lo EngineRegistry.lo MarkovChainEngine.lo \
+	Interpolator.lo Integrator.lo Random.lo AbsAccumulator.lo \
 	WeightedAccumulator.lo WeightedCombiner.lo \
-	QuantileAccumulator.lo TriCubicInterpolator.lo \
+	QuantileAccumulator.lo TriCubicInterpolator.lo AbsBinning.lo \
+	UniformBinning.lo NonUniformBinning.lo UniformSampling.lo \
+	NonUniformSampling.lo CovarianceMatrix.lo \
+	CovarianceAccumulator.lo BinnedData.lo BinnedDataResampler.lo \
 	TestLikelihood.lo $(am__objects_1) $(am__objects_2)
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
@@ -111,6 +120,10 @@ am_demo1_OBJECTS = demo1.$(OBJEXT)
 demo1_OBJECTS = $(am_demo1_OBJECTS)
 am_demo2_OBJECTS = demo2.$(OBJEXT)
 demo2_OBJECTS = $(am_demo2_OBJECTS)
+am_likelycov_OBJECTS = likelycov.$(OBJEXT)
+likelycov_OBJECTS = $(am_likelycov_OBJECTS)
+am_likelydata_OBJECTS = likelydata.$(OBJEXT)
+likelydata_OBJECTS = $(am_likelydata_OBJECTS)
 am_likelyinteg_OBJECTS = likelyinteg.$(OBJEXT)
 likelyinteg_OBJECTS = $(am_likelyinteg_OBJECTS)
 am_likelyinterp_OBJECTS = likelyinterp.$(OBJEXT)
@@ -139,22 +152,30 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(liblikely_la_SOURCES) $(demo1_SOURCES) $(demo2_SOURCES) \
+	$(likelycov_SOURCES) $(likelydata_SOURCES) \
 	$(likelyinteg_SOURCES) $(likelyinterp_SOURCES) \
 	$(likelymc_SOURCES) $(likelyrand_SOURCES) \
 	$(likelytest_SOURCES) $(likelytricubic_SOURCES) \
 	$(likelywsum_SOURCES)
 DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(demo1_SOURCES) \
-	$(demo2_SOURCES) $(likelyinteg_SOURCES) \
-	$(likelyinterp_SOURCES) $(likelymc_SOURCES) \
-	$(likelyrand_SOURCES) $(likelytest_SOURCES) \
-	$(likelytricubic_SOURCES) $(likelywsum_SOURCES)
+	$(demo2_SOURCES) $(likelycov_SOURCES) $(likelydata_SOURCES) \
+	$(likelyinteg_SOURCES) $(likelyinterp_SOURCES) \
+	$(likelymc_SOURCES) $(likelyrand_SOURCES) \
+	$(likelytest_SOURCES) $(likelytricubic_SOURCES) \
+	$(likelywsum_SOURCES)
 am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
-	likely/RuntimeError.h likely/FunctionMinimum.h \
+	likely/function.h likely/function_impl.h likely/RuntimeError.h \
+	likely/FitParameter.h likely/FunctionMinimum.h \
 	likely/AbsEngine.h likely/EngineRegistry.h \
 	likely/MarkovChainEngine.h likely/Interpolator.h \
 	likely/Integrator.h likely/Random.h likely/AbsAccumulator.h \
 	likely/WeightedAccumulator.h likely/WeightedCombiner.h \
 	likely/QuantileAccumulator.h likely/TriCubicInterpolator.h \
+	likely/AbsBinning.h likely/BinningError.h \
+	likely/UniformBinning.h likely/NonUniformBinning.h \
+	likely/UniformSampling.h likely/NonUniformSampling.h \
+	likely/CovarianceMatrix.h likely/CovarianceAccumulator.h \
+	likely/BinnedData.h likely/BinnedDataResampler.h \
 	likely/test/TestLikelihood.h likely/GslEngine.h \
 	likely/GslErrorHandler.h likely/MinuitEngine.h
 HEADERS = $(nobase_include_HEADERS)
@@ -303,24 +324,35 @@ AM_LDFLAGS = -lboost_regex
 lib_LTLIBRARIES = liblikely.la
 
 # instructions for building the library
-liblikely_la_SOURCES = likely/FunctionMinimum.cc likely/AbsEngine.cc \
+liblikely_la_SOURCES = likely/FitParameter.cc \
+	likely/FunctionMinimum.cc likely/AbsEngine.cc \
 	likely/EngineRegistry.cc likely/MarkovChainEngine.cc \
 	likely/Interpolator.cc likely/Integrator.cc likely/Random.cc \
 	likely/AbsAccumulator.cc likely/WeightedAccumulator.cc \
 	likely/WeightedCombiner.cc likely/QuantileAccumulator.cc \
-	likely/TriCubicInterpolator.cc likely/test/TestLikelihood.cc \
-	$(am__append_1) $(am__append_3)
+	likely/TriCubicInterpolator.cc likely/AbsBinning.cc \
+	likely/UniformBinning.cc likely/NonUniformBinning.cc \
+	likely/UniformSampling.cc likely/NonUniformSampling.cc \
+	likely/CovarianceMatrix.cc likely/CovarianceAccumulator.cc \
+	likely/BinnedData.cc likely/BinnedDataResampler.cc \
+	likely/test/TestLikelihood.cc $(am__append_1) $(am__append_3)
 
 # library headers to install (nobase prefix preserves directories under bosslya)
 # Anything that includes config.h should *not* be listed here.
 # and is not part of the package public API.
 nobase_include_HEADERS = likely/likely.h likely/types.h \
-	likely/RuntimeError.h likely/FunctionMinimum.h \
+	likely/function.h likely/function_impl.h likely/RuntimeError.h \
+	likely/FitParameter.h likely/FunctionMinimum.h \
 	likely/AbsEngine.h likely/EngineRegistry.h \
 	likely/MarkovChainEngine.h likely/Interpolator.h \
 	likely/Integrator.h likely/Random.h likely/AbsAccumulator.h \
 	likely/WeightedAccumulator.h likely/WeightedCombiner.h \
 	likely/QuantileAccumulator.h likely/TriCubicInterpolator.h \
+	likely/AbsBinning.h likely/BinningError.h \
+	likely/UniformBinning.h likely/NonUniformBinning.h \
+	likely/UniformSampling.h likely/NonUniformSampling.h \
+	likely/CovarianceMatrix.h likely/CovarianceAccumulator.h \
+	likely/BinnedData.h likely/BinnedDataResampler.h \
 	likely/test/TestLikelihood.h $(am__append_2) $(am__append_4)
 
 # instructions for building each program
@@ -345,6 +377,12 @@ likelyrand_LDADD = -L. -llikely
 likelytricubic_SOURCES = src/likelytricubic.cc
 likelytricubic_DEPENDENCIES = $(lib_LIBRARIES)
 likelytricubic_LDADD = -lboost_program_options -L. -llikely
+likelycov_SOURCES = src/likelycov.cc
+likelycov_DEPENDENCIES = $(lib_LIBRARIES)
+likelycov_LDADD = -L. -llikely
+likelydata_SOURCES = src/likelydata.cc
+likelydata_DEPENDENCIES = $(lib_LIBRARIES)
+likelydata_LDADD = -L. -llikely
 demo1_SOURCES = src/demo1.cc
 demo1_DEPENDENCIES = $(lib_LIBRARIES)
 demo1_LDADD = -L. -llikely
@@ -498,6 +536,12 @@ demo1$(EXEEXT): $(demo1_OBJECTS) $(demo1_DEPENDENCIES)
 demo2$(EXEEXT): $(demo2_OBJECTS) $(demo2_DEPENDENCIES) 
 	@rm -f demo2$(EXEEXT)
 	$(CXXLINK) $(demo2_OBJECTS) $(demo2_LDADD) $(LIBS)
+likelycov$(EXEEXT): $(likelycov_OBJECTS) $(likelycov_DEPENDENCIES) 
+	@rm -f likelycov$(EXEEXT)
+	$(CXXLINK) $(likelycov_OBJECTS) $(likelycov_LDADD) $(LIBS)
+likelydata$(EXEEXT): $(likelydata_OBJECTS) $(likelydata_DEPENDENCIES) 
+	@rm -f likelydata$(EXEEXT)
+	$(CXXLINK) $(likelydata_OBJECTS) $(likelydata_LDADD) $(LIBS)
 likelyinteg$(EXEEXT): $(likelyinteg_OBJECTS) $(likelyinteg_DEPENDENCIES) 
 	@rm -f likelyinteg$(EXEEXT)
 	$(CXXLINK) $(likelyinteg_OBJECTS) $(likelyinteg_LDADD) $(LIBS)
@@ -527,8 +571,14 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsAccumulator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsBinning.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsEngine.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BinnedData.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BinnedDataResampler.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceAccumulator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceMatrix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EngineRegistry.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitParameter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FunctionMinimum.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslErrorHandler.Plo@am__quote@
@@ -536,14 +586,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Interpolator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MarkovChainEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MinuitEngine.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NonUniformBinning.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/NonUniformSampling.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/QuantileAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Random.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestLikelihood.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TriCubicInterpolator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UniformBinning.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UniformSampling.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WeightedAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WeightedCombiner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelycov.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelydata.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyinteg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyinterp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelymc.Po@am__quote@
@@ -572,6 +628,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ $<
+
+FitParameter.lo: likely/FitParameter.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FitParameter.lo -MD -MP -MF $(DEPDIR)/FitParameter.Tpo -c -o FitParameter.lo `test -f 'likely/FitParameter.cc' || echo '$(srcdir)/'`likely/FitParameter.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FitParameter.Tpo $(DEPDIR)/FitParameter.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/FitParameter.cc' object='FitParameter.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FitParameter.lo `test -f 'likely/FitParameter.cc' || echo '$(srcdir)/'`likely/FitParameter.cc
 
 FunctionMinimum.lo: likely/FunctionMinimum.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FunctionMinimum.lo -MD -MP -MF $(DEPDIR)/FunctionMinimum.Tpo -c -o FunctionMinimum.lo `test -f 'likely/FunctionMinimum.cc' || echo '$(srcdir)/'`likely/FunctionMinimum.cc
@@ -657,6 +720,69 @@ TriCubicInterpolator.lo: likely/TriCubicInterpolator.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TriCubicInterpolator.lo `test -f 'likely/TriCubicInterpolator.cc' || echo '$(srcdir)/'`likely/TriCubicInterpolator.cc
 
+AbsBinning.lo: likely/AbsBinning.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AbsBinning.lo -MD -MP -MF $(DEPDIR)/AbsBinning.Tpo -c -o AbsBinning.lo `test -f 'likely/AbsBinning.cc' || echo '$(srcdir)/'`likely/AbsBinning.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/AbsBinning.Tpo $(DEPDIR)/AbsBinning.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/AbsBinning.cc' object='AbsBinning.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o AbsBinning.lo `test -f 'likely/AbsBinning.cc' || echo '$(srcdir)/'`likely/AbsBinning.cc
+
+UniformBinning.lo: likely/UniformBinning.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UniformBinning.lo -MD -MP -MF $(DEPDIR)/UniformBinning.Tpo -c -o UniformBinning.lo `test -f 'likely/UniformBinning.cc' || echo '$(srcdir)/'`likely/UniformBinning.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UniformBinning.Tpo $(DEPDIR)/UniformBinning.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/UniformBinning.cc' object='UniformBinning.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UniformBinning.lo `test -f 'likely/UniformBinning.cc' || echo '$(srcdir)/'`likely/UniformBinning.cc
+
+NonUniformBinning.lo: likely/NonUniformBinning.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT NonUniformBinning.lo -MD -MP -MF $(DEPDIR)/NonUniformBinning.Tpo -c -o NonUniformBinning.lo `test -f 'likely/NonUniformBinning.cc' || echo '$(srcdir)/'`likely/NonUniformBinning.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/NonUniformBinning.Tpo $(DEPDIR)/NonUniformBinning.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/NonUniformBinning.cc' object='NonUniformBinning.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o NonUniformBinning.lo `test -f 'likely/NonUniformBinning.cc' || echo '$(srcdir)/'`likely/NonUniformBinning.cc
+
+UniformSampling.lo: likely/UniformSampling.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UniformSampling.lo -MD -MP -MF $(DEPDIR)/UniformSampling.Tpo -c -o UniformSampling.lo `test -f 'likely/UniformSampling.cc' || echo '$(srcdir)/'`likely/UniformSampling.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UniformSampling.Tpo $(DEPDIR)/UniformSampling.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/UniformSampling.cc' object='UniformSampling.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UniformSampling.lo `test -f 'likely/UniformSampling.cc' || echo '$(srcdir)/'`likely/UniformSampling.cc
+
+NonUniformSampling.lo: likely/NonUniformSampling.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT NonUniformSampling.lo -MD -MP -MF $(DEPDIR)/NonUniformSampling.Tpo -c -o NonUniformSampling.lo `test -f 'likely/NonUniformSampling.cc' || echo '$(srcdir)/'`likely/NonUniformSampling.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/NonUniformSampling.Tpo $(DEPDIR)/NonUniformSampling.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/NonUniformSampling.cc' object='NonUniformSampling.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o NonUniformSampling.lo `test -f 'likely/NonUniformSampling.cc' || echo '$(srcdir)/'`likely/NonUniformSampling.cc
+
+CovarianceMatrix.lo: likely/CovarianceMatrix.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CovarianceMatrix.lo -MD -MP -MF $(DEPDIR)/CovarianceMatrix.Tpo -c -o CovarianceMatrix.lo `test -f 'likely/CovarianceMatrix.cc' || echo '$(srcdir)/'`likely/CovarianceMatrix.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/CovarianceMatrix.Tpo $(DEPDIR)/CovarianceMatrix.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/CovarianceMatrix.cc' object='CovarianceMatrix.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CovarianceMatrix.lo `test -f 'likely/CovarianceMatrix.cc' || echo '$(srcdir)/'`likely/CovarianceMatrix.cc
+
+CovarianceAccumulator.lo: likely/CovarianceAccumulator.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CovarianceAccumulator.lo -MD -MP -MF $(DEPDIR)/CovarianceAccumulator.Tpo -c -o CovarianceAccumulator.lo `test -f 'likely/CovarianceAccumulator.cc' || echo '$(srcdir)/'`likely/CovarianceAccumulator.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/CovarianceAccumulator.Tpo $(DEPDIR)/CovarianceAccumulator.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/CovarianceAccumulator.cc' object='CovarianceAccumulator.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CovarianceAccumulator.lo `test -f 'likely/CovarianceAccumulator.cc' || echo '$(srcdir)/'`likely/CovarianceAccumulator.cc
+
+BinnedData.lo: likely/BinnedData.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT BinnedData.lo -MD -MP -MF $(DEPDIR)/BinnedData.Tpo -c -o BinnedData.lo `test -f 'likely/BinnedData.cc' || echo '$(srcdir)/'`likely/BinnedData.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/BinnedData.Tpo $(DEPDIR)/BinnedData.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/BinnedData.cc' object='BinnedData.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BinnedData.lo `test -f 'likely/BinnedData.cc' || echo '$(srcdir)/'`likely/BinnedData.cc
+
+BinnedDataResampler.lo: likely/BinnedDataResampler.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT BinnedDataResampler.lo -MD -MP -MF $(DEPDIR)/BinnedDataResampler.Tpo -c -o BinnedDataResampler.lo `test -f 'likely/BinnedDataResampler.cc' || echo '$(srcdir)/'`likely/BinnedDataResampler.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/BinnedDataResampler.Tpo $(DEPDIR)/BinnedDataResampler.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/BinnedDataResampler.cc' object='BinnedDataResampler.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BinnedDataResampler.lo `test -f 'likely/BinnedDataResampler.cc' || echo '$(srcdir)/'`likely/BinnedDataResampler.cc
+
 TestLikelihood.lo: likely/test/TestLikelihood.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestLikelihood.lo -MD -MP -MF $(DEPDIR)/TestLikelihood.Tpo -c -o TestLikelihood.lo `test -f 'likely/test/TestLikelihood.cc' || echo '$(srcdir)/'`likely/test/TestLikelihood.cc
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/TestLikelihood.Tpo $(DEPDIR)/TestLikelihood.Plo
@@ -712,6 +838,34 @@ demo2.obj: src/demo2.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/demo2.cc' object='demo2.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o demo2.obj `if test -f 'src/demo2.cc'; then $(CYGPATH_W) 'src/demo2.cc'; else $(CYGPATH_W) '$(srcdir)/src/demo2.cc'; fi`
+
+likelycov.o: src/likelycov.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelycov.o -MD -MP -MF $(DEPDIR)/likelycov.Tpo -c -o likelycov.o `test -f 'src/likelycov.cc' || echo '$(srcdir)/'`src/likelycov.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelycov.Tpo $(DEPDIR)/likelycov.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelycov.cc' object='likelycov.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelycov.o `test -f 'src/likelycov.cc' || echo '$(srcdir)/'`src/likelycov.cc
+
+likelycov.obj: src/likelycov.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelycov.obj -MD -MP -MF $(DEPDIR)/likelycov.Tpo -c -o likelycov.obj `if test -f 'src/likelycov.cc'; then $(CYGPATH_W) 'src/likelycov.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelycov.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelycov.Tpo $(DEPDIR)/likelycov.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelycov.cc' object='likelycov.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelycov.obj `if test -f 'src/likelycov.cc'; then $(CYGPATH_W) 'src/likelycov.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelycov.cc'; fi`
+
+likelydata.o: src/likelydata.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelydata.o -MD -MP -MF $(DEPDIR)/likelydata.Tpo -c -o likelydata.o `test -f 'src/likelydata.cc' || echo '$(srcdir)/'`src/likelydata.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelydata.Tpo $(DEPDIR)/likelydata.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelydata.cc' object='likelydata.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelydata.o `test -f 'src/likelydata.cc' || echo '$(srcdir)/'`src/likelydata.cc
+
+likelydata.obj: src/likelydata.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelydata.obj -MD -MP -MF $(DEPDIR)/likelydata.Tpo -c -o likelydata.obj `if test -f 'src/likelydata.cc'; then $(CYGPATH_W) 'src/likelydata.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelydata.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelydata.Tpo $(DEPDIR)/likelydata.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelydata.cc' object='likelydata.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelydata.obj `if test -f 'src/likelydata.cc'; then $(CYGPATH_W) 'src/likelydata.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelydata.cc'; fi`
 
 likelyinteg.o: src/likelyinteg.cc
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelyinteg.o -MD -MP -MF $(DEPDIR)/likelyinteg.Tpo -c -o likelyinteg.o `test -f 'src/likelyinteg.cc' || echo '$(srcdir)/'`src/likelyinteg.cc

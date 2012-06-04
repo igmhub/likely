@@ -14,31 +14,27 @@ local::AbsEngine::AbsEngine()
 local::AbsEngine::~AbsEngine() { }
 
 local::FunctionMinimumPtr local::findMinimum(FunctionPtr f, GradientCalculatorPtr gc,
-Parameters const &initial, Parameters const &errors, std::string const &methodName,
+FitParameters const &parameters, std::string const &methodName,
 double precision, long maxIterations) {
-    // Check that the input vectors have the same length.
-    int nPar(initial.size());
-    if(errors.size() != nPar) {
-        throw RuntimeError(
-            "findMinimum: initial parameter and error vectors have different sizes.");
-    }
     // Create a new engine for this function.
-    AbsEnginePtr engine = getEngine(methodName,f,gc,nPar);
+    AbsEnginePtr engine = getEngine(methodName,f,gc,parameters);
+    // Initialize a result object (without any covariance) for the algorithm to update.
+    Parameters values;
+    getFitParameterValues(parameters,values);
+    double fval = (*f)(values);
+    engine->incrementEvalCount();
+    FunctionMinimumPtr fmin(new FunctionMinimum(fval,parameters));
     // Run the algorithm.
-    FunctionMinimumPtr fmin(engine->minimumFinder(initial,errors,precision,maxIterations));
+    engine->minimumFinder(fmin,precision,maxIterations);
     // Save the evaluation counts.
-    lastMinEvalCount = engine->getEvalCount();
-    lastMinGradCount = engine->getGradCount();
+    fmin->setCounts(engine->getEvalCount(),engine->getGradCount());
     return fmin;
 }
 
 local::FunctionMinimumPtr local::findMinimum(FunctionPtr f,
-Parameters const &initial, Parameters const &errors, std::string const &methodName,
+FitParameters const &parameters, std::string const &methodName,
 double precision, long maxIterations) {
     // Use a null gradient calculator.
     GradientCalculatorPtr gc;
-    return findMinimum(f,gc,initial,errors,methodName,precision,maxIterations);
+    return findMinimum(f,gc,parameters,methodName,precision,maxIterations);
 }
-
-// Initialize the global evaluation counters.
-long local::lastMinEvalCount = 0, local::lastMinGradCount = 0;

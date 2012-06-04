@@ -4,6 +4,7 @@
 #define LIKELY_FUNCTION_MINIMUM
 
 #include "likely/types.h"
+#include "likely/FitParameter.h"
 
 #include "boost/utility.hpp"
 
@@ -11,73 +12,92 @@
 #include <iosfwd>
 
 namespace likely {
-    class Random;
+    // Represents the information known about an approximate function minimum.
 	class FunctionMinimum : public boost::noncopyable {
 	public:
-	    // Represents the information known about an approximate function minimum.
-		FunctionMinimum(double minValue, Parameters const &where);
-		// The next form of the constructor adds an estimate of the convariance matrix
-		// at the function minimum, which must be provided as a column-wise packed vector
-		// of length npar*(npar+1)/2:
-		//
-		// m00 m01 m02 ... 
-		//     m11 m12 ...  ==> { m00, m01, m11, m02, m12, m22, ... }
-		//         m22 ...
-		//             ...
-		//
-		// The corresponding index calculation is m(i,j) = array[i+j*(j+1)/2] for i<=j.
-		// If j>i, then use m(i,j) = m(j,i). Set errorsOnly = true if the input covariance
-		// vector should be interpreted as a list of diagonal errors of length npar.
-		// Throws a RuntimeError if the input covariance is not (numerically) positive
-		// definite. Use the updateCovariance method for more flexibility in handling
-		// this error condition.
-        FunctionMinimum(double minValue, Parameters const &where,
-            PackedCovariance const &covar, bool errorsOnly = false);
+	    // Creates a function minimum object for the specified function minimum value and
+	    // estimated location of the minimum in parameter space.
+		FunctionMinimum(double minValue, FitParameters const &parameters);
+		// Creates a function minimum object that also specifies an estimated covariance matrix
+		// for the subset of floating parameters. Agreement between parameter errors and covariance
+		// matrix diagonal elements is not checked or required.
+        FunctionMinimum(double minValue, FitParameters const &parameters, CovarianceMatrixCPtr covariance);
 		virtual ~FunctionMinimum();
 		// Returns the function value at the minimum.
         double getMinValue() const;
-		// Returns a copy of the parameter values at this minimum.
-        Parameters getParameters() const;
-        // Updates the location of the minimum and the function value at that point.
-        void updateParameters(Parameters const &updatedParams, double updatedMinValue);
+		// Returns a vector of parameter values at this minimum. If onlyFloating is true, only
+		// the values of floating parameters are included in the returned vector.
+        Parameters getParameters(bool onlyFloating = false) const;
+		// Filters the input parameters to only include floating parameters.
+        void filterParameterValues(Parameters const &allValues, Parameters &floatingValues) const;
+		// Returns a vector of parameter errors at this minimum. If onlyFloating is true, only
+		// the errors of floating parameters are included in the returned vector.
+        Parameters getErrors(bool onlyFloating = false) const;
+        // Returns a vector of parameters names. If onlyFloating is true, on the names of
+        // floating parameters are included in the returned vector.
+        std::vector<std::string> getNames(bool onlyFloating = false) const;
+        // Returns the index of the parameter with the specified name, or throws a RuntimeError.
+        int findName(std::string const &name) const;
+        // Updates the fit parameters and function value at the minimum.
+        void updateParameters(double minValue, FitParameters const &parameters);
+        // Updates the location of the minimum and the function value at that point. If a covariance
+        // matrix is available, its diagonal elements will be used to update fit parameter errors.
+        void updateParameterValues(double minValue, Parameters const &values);
+        // Sets a single named parameter to the specified value, or throws a RuntimeError if
+        // no such named parameter exists.
+        void setParameterValue(std::string const &name, double value);
         // Returns true if a covariance matrix is available.
-        bool haveCovariance() const;
-        // Returns a vector of parameter error estimates or throws a RuntimeError if
-        // no covariance matrix is available.
-        Parameters getErrors() const;
-        // Returns a smart pointer to the packed covariance matrix at this minimum.
-        PackedCovariancePtr getCovariance() const;
+        bool hasCovariance() const;
+        // Returns a pointer to the estimated covariance matrix of floating parameters at this minimum.
+        CovarianceMatrixCPtr getCovariance() const;
         // Updates the covariance matrix associated with this minimum, if possible.
-        // Refer to the constructor for details on the parameters. This method can be
-        // used to add a covariance matrix to a minimum that did not originally have one.
-        // Returns true if the covariance provided is (numerically) positive definite,
-        // otherwise the covariance associated with this minimum is not changed.
-        bool updateCovariance(PackedCovariance const &covar, bool errorsOnly = false);
+        // This method can be used to add a covariance matrix to a minimum that did not
+        // originally have one. This method does not update the errors associated with our
+        // parameters, but calling it before updateParameterValues() will have this effect.
+        void updateCovariance(CovarianceMatrixCPtr covariance);
         // Sets parameter values that are randomly sampled from this minimum and
-        // returns the -log(weight) associated with the chosen parameters.
+        // returns the -log(weight) associated with the chosen parameters. Parameters that
+        // are not floating will be included in the result, but not varied.
         double setRandomParameters(Parameters &params) const;
+        // Sets the number of times the function and its gradient have been evaluated to
+        // obtain this estimate of the minimum.
+        void setCounts(long nEvalCount, long nGradCount);
+        long getNEvalCount() const;
+        long getNGradCount() const;
+        // Sets the status of this function minimum estimate. A newly created object has
+        // status of OK.
+        enum Status { OK, WARNING, ERROR };
+        void setStatus(Status status, std::string const &message = std::string());
+        Status getStatus() const;
+        std::string getStatusMessage() const;
         // Ouptuts a multiline description of this minimum to the specified stream using
         // the specified printf format for floating point values.
-        void printToStream(std::ostream &os, std::string formatSpec = "%.6f") const;
+        void printToStream(std::ostream &os, std::string formatSpec = "%12.6f") const;
 	private:
         double _minValue;
-        Parameters _where;
-        PackedCovariancePtr _covar;
-        mutable PackedCovariancePtr _cholesky;
-        Random &_random;
+        int _nFloating;
+        FitParameters _parameters;
+        CovarianceMatrixCPtr _covar;
+        long _nEvalCount, _nGradCount;
+        Status _status;
+        std::string _statusMessage;
 	}; // FunctionMinimum
 	
     inline double FunctionMinimum::getMinValue() const { return _minValue; }
-    inline Parameters FunctionMinimum::getParameters() const { return Parameters(_where); }
-    inline bool FunctionMinimum::haveCovariance() const { return bool(_covar); }
-    inline PackedCovariancePtr FunctionMinimum::getCovariance() const { return _covar; }    
-	
-	// Returns a smart pointer to the Cholesky decomposition of a covariance matrix.
-	// The return value will be null if the input covariance is not (numerically)
-	// positive definite. If the optional info pointer is provided, it will be filled
-	// with the info value returned by the LAPACK dpptrf routine:
-	//   http://www.netlib.org/lapack/double/dpptrf.f
-    PackedCovariancePtr choleskyDecomposition(PackedCovariance const &covar, int *info = 0);
+    inline bool FunctionMinimum::hasCovariance() const { return bool(_covar); }
+    inline CovarianceMatrixCPtr FunctionMinimum::getCovariance() const { return _covar; }
+    inline void FunctionMinimum::setCounts(long nEvalCount, long nGradCount) {
+        _nEvalCount = nEvalCount;
+        _nGradCount = nGradCount;
+    }
+    inline long FunctionMinimum::getNEvalCount() const { return _nEvalCount; }
+    inline long FunctionMinimum::getNGradCount() const { return _nGradCount; }
+    inline void FunctionMinimum::setStatus(Status status, std::string const &message) {
+        _status = status;
+        _statusMessage = message;
+    }
+    inline FunctionMinimum::Status FunctionMinimum::getStatus() const { return _status; }
+    inline std::string FunctionMinimum::getStatusMessage() const { return _statusMessage; }
 	
 } // likely
 

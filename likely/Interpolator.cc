@@ -76,7 +76,7 @@ local::Interpolator::~Interpolator() {
 
 double local::Interpolator::operator()(double x) const {
     // Declare our error-handling context.
-    GslErrorHandler eh("Interpolator::operator()");
+    //!!GslErrorHandler eh("Interpolator::operator()");
     // Check for an out-of-range x value.
     if(x <= _x.front()) return _y.front();
     if(x >= _x.back()) return _y.back();
@@ -122,3 +122,10 @@ bool ignoreExtra) {
     }
     return lineNumber;
 }
+
+// explicit template instantiations
+
+#include "likely/function_impl.h"
+
+template local::GenericFunctionPtr local::createFunctionPtr<likely::Interpolator>
+    (boost::shared_ptr<local::Interpolator> pimpl);

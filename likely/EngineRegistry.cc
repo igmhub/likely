@@ -22,7 +22,7 @@ local::EngineRegistry &local::getEngineRegistry() {
 }
 
 local::AbsEnginePtr local::getEngine(std::string const methodName,
-FunctionPtr f, GradientCalculatorPtr gc, int nPar) {
+FunctionPtr f, GradientCalculatorPtr gc, FitParameters const &parameters) {
     // Trigger first-time registration of all engine implementations.
 #ifdef HAVE_LIBGSL
     registerGslEngineMethods();
@@ -46,6 +46,6 @@ FunctionPtr f, GradientCalculatorPtr gc, int nPar) {
     }
     // Create and return a new engine for this function.
     EngineFactory factory = found->second;
-    AbsEnginePtr engine(factory(f,gc,nPar,algorithmName));
+    AbsEnginePtr engine(factory(f,gc,parameters,algorithmName));
     return engine;
 }

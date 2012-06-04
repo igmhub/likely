@@ -4,6 +4,8 @@
 #include "likely/FunctionMinimum.h"
 #include "likely/Random.h"
 #include "likely/EngineRegistry.h"
+#include "likely/CovarianceMatrix.h"
+#include "likely/CovarianceAccumulator.h"
 #include "likely/RuntimeError.h"
 
 #include "boost/accumulators/accumulators.hpp"
@@ -27,20 +29,21 @@ typedef std::vector<Accumulator> Accumulators;
 namespace local = likely;
 
 local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, GradientCalculatorPtr gc,
-int nPar, std::string const &algorithm)
-: _f(f), _nPar(nPar), _current(nPar), _trial(nPar), _minParams(nPar), _haveMinimum(false),
-_covariance(nPar*(nPar+1)/2), _random(Random::instance())
+FitParameters const &parameters, std::string const &algorithm)
+: _f(f), _random(Random::instance())
 {
-    if(_nPar <= 0) {
-        throw RuntimeError("MarkovChainEngine: number of parameters must be > 0.");
+    _nParam = parameters.size();
+    _nFloating = countFloatingFitParameters(parameters);
+    if(0 == _nFloating) {
+        throw RuntimeError("MarkovChainEngine: number of floating parameters must be > 0.");
     }
     if(algorithm == "saunter") {
         minimumFinder = boost::bind(&MarkovChainEngine::minimize,this,
-            _1,_2,_3,_4,100,1000);
+            _1,_2,_3,100,1000);
     }
     else if(algorithm == "stroll") {
         minimumFinder = boost::bind(&MarkovChainEngine::minimize,this,
-            _1,_2,_3,_4,50,5000);
+            _1,_2,_3,50,5000);
     }
     else {
         throw RuntimeError("MarkovChainEngine: unknown algorithm '" + algorithm + "'");
@@ -51,86 +54,95 @@ local::MarkovChainEngine::~MarkovChainEngine() { }
 
 int local::MarkovChainEngine::generate(FunctionMinimumPtr fmin, int nAccepts,
 int maxTrials, Callback callback) {
+    // We are using the standard Metropolis-Hastings algorithm here. The only subtlety is
+    // that we don't generate trials by taking a random step from our current location,
+    // so our proposal pdf Q(p',p) for moving from p (current) to p' (trial) is
+    // W(p') = exp(-delta.Cinv.delta/2) and the ratio Q(p,p')/Q(p',p) is not 1, as
+    // usually assumed, but W(current)/W(trial).
+
     // Set our initial parameters to the estimated function minimum, where the
-    // NLW = -log(weight) is zero, by definition.
-    Parameters const &initial(fmin->getParameters());
-    _current = initial;
-    double currentNLL(fmin->getMinValue()), currentNLW(0);
-    // Initialize our minimum tracker, if necessary.
-    if(!_haveMinimum) {
-        _minParams = _current;
-        _minNLL = currentNLL;
-        _haveMinimum = true;
-    }
-    // Initialize our statistics accumulators.
-    int nCov(_nPar*(_nPar+1)/2);
-    Accumulators accumulators(nCov);
-    Parameters residual(_nPar);
+    // NLW = -log(W(current)) is zero, by definition.
+    Parameters current(fmin->getParameters());
+    double currentNLL(fmin->getMinValue());
+    double currentNLW(0);
+    
+    // Our starting point is our current best guess at the minimum.
+    Parameters minParams(current);
+    double minNLL(currentNLL);
+
+    // Remember the initial floating parameters for calculating residuals later.
+    Parameters initialFloating(fmin->getParameters(true)), residual;
+
+    // Initialize our covariance accumulator.
+    CovarianceAccumulator accumulator(_nFloating);
+
     // Loop over the requested samples.
     int nTrials(0),remaining(nAccepts);
+    Parameters trial;
     while(remaining > 0 && (maxTrials == 0 || nTrials < maxTrials)) {
         // Take a trial step sampled from the estimated function minimum's covariance.
-        double trialNLW(fmin->setRandomParameters(_trial));
+        // The setRandomParameters method returns the value of -log(W(trial)) and 
+        // includes any fixed parameters in trial.
+        double trialNLW(fmin->setRandomParameters(trial));
         // Evaluate the true NLL at this trial point.
-        double trialNLL((*_f)(_trial));
+        double trialNLL((*_f)(trial));
         incrementEvalCount();
         // Is this a new minimum?
-        if(trialNLL < _minNLL) {
-            _minParams = _trial;
-            _minNLL = trialNLL;
+        if(trialNLL < minNLL) {
+            minParams = trial;
+            minNLL = trialNLL;
         }
         // Calculate log( L(trial)/L(current) W(current)/W(trial) )
         double logProbRatio(currentNLL-trialNLL-currentNLW+trialNLW);
         // Do we accept this trial step?
         if(logProbRatio >= 0 || _random.getUniform() < std::exp(logProbRatio)) {
-            std::swap(_current,_trial);
+            current.swap(trial);
             currentNLL = trialNLL;
             currentNLW = trialNLW;
-            if(callback) callback(_trial, trialNLL, true);
+            if(callback) callback(trial, trialNLL, true);
             remaining--;
         }
         else {
-            if(callback) callback(_trial, trialNLL, false);
+            if(callback) callback(trial, trialNLL, false);
         }
         // Accumulate covariance statistics...
         nTrials++;
-        // Use the initial guess at the minimum for caculating residuals that are
-        // hopefully small, to minimize round-off error.
-        Accumulators::iterator accumulate(accumulators.begin());
-        for(int j = 0; j < _nPar; ++j) {
-            double jResidual(_current[j]-initial[j]);
-            residual[j] = jResidual; // save for the inner loop
-            for(int i = 0; i <= j; ++i) {
-                (*accumulate++)(jResidual, covariate1 = residual[i]);
-            }
-        }
+        // Use the initial guess at the minimum for caculating residuals of our
+        // floating parameters that are hopefully small, to minimize round-off error.
+        fmin->filterParameterValues(current,residual);
+        for(int j = 0; j < _nFloating; ++j) residual[j] -= initialFloating[j];
+        accumulator.accumulate(residual);
     }
+    // Record the covariance of the samples we have generated. Do this before updating
+    // the parameter values, so that the updated errors are available.
+    fmin->updateCovariance(accumulator.getCovariance());
     // Record the best minimum found so far (rather than the sample mean).
-    fmin->updateParameters(_minParams, _minNLL);
-    // Calculate and record the covariance of the samples we have generated.
-    for(int k = 0; k < nCov; ++k) _covariance[k] = covariance(accumulators[k]);
-    fmin->updateCovariance(_covariance);
+    fmin->updateParameterValues(minNLL, minParams);
     // Return the number of samples generated.
     return nTrials;
 }
 
-local::FunctionMinimumPtr local::MarkovChainEngine::minimize(
-Parameters const &initial, Parameters const &errors, double prec, int maxSteps,
+void local::MarkovChainEngine::minimize(FunctionMinimumPtr fmin, double prec, int maxSteps,
 int acceptsPerParam, int maxTrialsPerParam) {
-    // Build an initial diagonal convariance using the errors provided.
-    double fval((*_f)(initial));
-    incrementEvalCount();
-    FunctionMinimumPtr fmin(new FunctionMinimum(fval,initial,errors,true));
+    
+    // Build an initial diagonal convariance using the fit parameter errors provided.
+    Parameters initialErrors = fmin->getErrors(true);
+    int nFloating(initialErrors.size());
+    CovarianceMatrixPtr covariance(new CovarianceMatrix(nFloating));
+    for(int k = 0; k < nFloating; ++k) {
+        covariance->setCovariance(k,k,initialErrors[k]*initialErrors[k]);
+    }
+    fmin->updateCovariance(covariance);
+    
     // Configure our cycles.
-    int nAccepts(acceptsPerParam*_nPar), maxTrials(maxTrialsPerParam*_nPar), trials(0);
+    int nAccepts(acceptsPerParam*_nFloating), maxTrials(maxTrialsPerParam*_nFloating), trials(0);
     while(maxSteps == 0 || trials < maxSteps) {
         double initialFval(fmin->getMinValue());
         trials += generate(fmin, nAccepts, maxTrials);
         // Check if we have reached the requested "precision"
-        fval = fmin->getMinValue();
+        double fval = fmin->getMinValue();
         if(fval < initialFval && initialFval - fval < prec) break;
     }
-    return fmin;
 }
 
 void local::registerMarkovChainEngineMethods() {

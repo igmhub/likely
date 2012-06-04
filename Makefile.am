@@ -5,13 +5,15 @@ AM_LDFLAGS = -lboost_regex
 
 # targets to build and install
 lib_LTLIBRARIES = liblikely.la
-bin_PROGRAMS = likelytest likelymc likelyinterp likelywsum likelyinteg likelyrand likelytricubic
+bin_PROGRAMS = likelytest likelymc likelyinterp likelywsum likelyinteg likelyrand \
+	likelytricubic likelycov likelydata
 
 # extra targets that should not be installed
 noinst_PROGRAMS = demo1 demo2
 
 # instructions for building the library
 liblikely_la_SOURCES = \
+	likely/FitParameter.cc \
 	likely/FunctionMinimum.cc \
 	likely/AbsEngine.cc \
 	likely/EngineRegistry.cc \
@@ -24,6 +26,15 @@ liblikely_la_SOURCES = \
 	likely/WeightedCombiner.cc \
 	likely/QuantileAccumulator.cc \
 	likely/TriCubicInterpolator.cc \
+	likely/AbsBinning.cc \
+	likely/UniformBinning.cc \
+	likely/NonUniformBinning.cc \
+	likely/UniformSampling.cc \
+	likely/NonUniformSampling.cc \
+	likely/CovarianceMatrix.cc \
+	likely/CovarianceAccumulator.cc \
+	likely/BinnedData.cc \
+	likely/BinnedDataResampler.cc \
 	likely/test/TestLikelihood.cc
 
 # library headers to install (nobase prefix preserves directories under bosslya)
@@ -32,7 +43,10 @@ liblikely_la_SOURCES = \
 nobase_include_HEADERS = \
 	likely/likely.h \
 	likely/types.h \
+	likely/function.h \
+	likely/function_impl.h \
 	likely/RuntimeError.h \
+	likely/FitParameter.h \
 	likely/FunctionMinimum.h \
 	likely/AbsEngine.h \
 	likely/EngineRegistry.h \
@@ -45,6 +59,16 @@ nobase_include_HEADERS = \
 	likely/WeightedCombiner.h \
 	likely/QuantileAccumulator.h \
 	likely/TriCubicInterpolator.h \
+	likely/AbsBinning.h \
+	likely/BinningError.h \
+	likely/UniformBinning.h \
+	likely/NonUniformBinning.h \
+	likely/UniformSampling.h \
+	likely/NonUniformSampling.h \
+	likely/CovarianceMatrix.h \
+	likely/CovarianceAccumulator.h \
+	likely/BinnedData.h \
+	likely/BinnedDataResampler.h \
 	likely/test/TestLikelihood.h
 
 # add GSL features when libgsl is available
@@ -90,6 +114,14 @@ likelyrand_LDADD = -L. -llikely
 likelytricubic_SOURCES = src/likelytricubic.cc
 likelytricubic_DEPENDENCIES = $(lib_LIBRARIES)
 likelytricubic_LDADD = -lboost_program_options -L. -llikely
+
+likelycov_SOURCES = src/likelycov.cc
+likelycov_DEPENDENCIES = $(lib_LIBRARIES)
+likelycov_LDADD = -L. -llikely
+
+likelydata_SOURCES = src/likelydata.cc
+likelydata_DEPENDENCIES = $(lib_LIBRARIES)
+likelydata_LDADD = -L. -llikely
 
 demo1_SOURCES = src/demo1.cc
 demo1_DEPENDENCIES = $(lib_LIBRARIES)

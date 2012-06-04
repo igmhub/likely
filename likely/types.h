@@ -16,11 +16,19 @@ namespace likely {
     // Represents a gradient vector of function partial derivatives.
     typedef std::vector<double> Gradient;
 
-    // Represents a column-wise packed covariance matrix near a local minimum.
-    typedef std::vector<double> PackedCovariance;
+    // Declares a smart pointer to a const binning object.
+    class AbsBinning;
+    typedef boost::shared_ptr<const AbsBinning> AbsBinningCPtr;
+
+    // Declares a smart pointer to a (const) covariance matrix.
+    class CovarianceMatrix;
+    typedef boost::shared_ptr<CovarianceMatrix> CovarianceMatrixPtr;
+    typedef boost::shared_ptr<const CovarianceMatrix> CovarianceMatrixCPtr;
     
-    // Declares a smart pointer to a packed covariance matrix.
-    typedef boost::shared_ptr<PackedCovariance> PackedCovariancePtr;
+    // Declares a smart pointer to a (const) BinnedData object.
+    class BinnedData;
+    typedef boost::shared_ptr<BinnedData> BinnedDataPtr;
+    typedef boost::shared_ptr<const BinnedData> BinnedDataCPtr;
 
     // Represents a smart pointer to a minimization engine.
     class AbsEngine;
@@ -42,6 +50,7 @@ namespace likely {
     // Represents a smart pointer to a function minimum object.
     class FunctionMinimum;
     typedef boost::shared_ptr<FunctionMinimum> FunctionMinimumPtr;
+    typedef boost::shared_ptr<const FunctionMinimum> FunctionMinimumCPtr;
     
     // Represents a smart pointer to an interpolator object.
     class Interpolator;

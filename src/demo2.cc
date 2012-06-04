@@ -40,7 +40,11 @@ int main(int argc, char **argv) {
     int npar = 4;
 
     // Specify our initial guess at the minimum location and errors.
-    lk::Parameters initial(npar,1), errors(npar,1);
+    lk::FitParameters parameters;
+    parameters.push_back(lk::FitParameter("x0",1,1));
+    parameters.push_back(lk::FitParameter("x1",1,1));
+    parameters.push_back(lk::FitParameter("x2",1,0)); // error = 0 means parameter is fixed
+    parameters.push_back(lk::FitParameter("x3",1,1));
 
     // Results for all algorithms are returned as a FunctionMinimum object.
     lk::FunctionMinimumPtr fmin;
@@ -56,14 +60,14 @@ int main(int argc, char **argv) {
 
 #ifdef HAVE_LIBGSL
     // Estimate the parabola minimum using a GSL algorithm.
-    fmin = lk::findMinimum(fptr,gcptr,initial,errors,"gsl::conjugate_pr");
+    fmin = lk::findMinimum(fptr,gcptr,parameters,"gsl::conjugate_pr");
     std::cout << "=== GSL" << std::endl;
     fmin->printToStream(std::cout);
 #endif
 
 #ifdef HAVE_LIBMINUIT2
     // Estimate the parabola minimum and parameter errors using a Minuit algorithm.
-    fmin = lk::findMinimum(fptr,gcptr,initial,errors,"mn2::vmetric_grad");
+    fmin = lk::findMinimum(fptr,gcptr,parameters,"mn2::vmetric_grad");
     std::cout << "=== Minuit2" << std::endl;
     fmin->printToStream(std::cout);
 #endif
