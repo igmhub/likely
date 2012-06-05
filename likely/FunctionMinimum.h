@@ -72,7 +72,7 @@ namespace likely {
         std::string getStatusMessage() const;
         // Ouptuts a multiline description of this minimum to the specified stream using
         // the specified printf format for floating point values.
-        void printToStream(std::ostream &os, std::string formatSpec = "%12.6f") const;
+        void printToStream(std::ostream &os, std::string const &formatSpec = "%12.6f") const;
 	private:
         double _minValue;
         int _nFloating;
