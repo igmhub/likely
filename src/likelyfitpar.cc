@@ -13,5 +13,22 @@ int main(int argc, char *argv[]) {
     params.push_back(lk::FitParameter("param1",1,0.1));
     params.push_back(lk::FitParameter("param2",2,0.2));
     params.push_back(lk::FitParameter("param3",3,0.3));
+    lk::printFitParametersToStream(params,std::cout);    
+
+    lk::modifyFitParameters(params," fix 'param2'; fix 'param1'");
+    lk::printFitParametersToStream(params,std::cout);    
+
+    lk::modifyFitParameters(params,"release 'param1' ");
+    lk::printFitParametersToStream(params,std::cout);    
+
+    lk::modifyFitParameters(params,"value 'param3'=-123; error'param1'=1e-2");
     lk::printFitParametersToStream(params,std::cout);
+
+    try {
+        lk::modifyFitParameters(params,"value 'param3'=0;error 'param3' = -123");
+    }
+    catch(lk::RuntimeError const &e) {
+        // We expect this since error < 0 is not allowed.
+    }
+    // Check that the parameters were not actually modified.
 }

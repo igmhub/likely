@@ -66,6 +66,20 @@ namespace likely {
     // Prints a multi-line description of FitParameters to the specified output stream.
     void printFitParametersToStream(FitParameters const &parameters, std::ostream &out,
         std::string const &formatSpec = "%12.6f");
+        
+    // Modifies FitParameters using instructions in the specified script or throws a
+    // RuntimeError in case an error in the script is detected (in which case the input
+    // parameters will not be modified). The following script commands are supported:
+    //
+    //  value '<name>' = <newvalue>
+    //  error '<name>' = <newerror>
+    //  fix '<name>'
+    //  release '<hame>'
+    //
+    // Multiple commands separated by semicolons are executed in the order they appear.
+    // Command verbs (value,error,fix,release) are case sensitive. Arbitrary whitespace
+    // is allowed between tokens.
+    void modifyFitParameters(FitParameters &parameters, std::string const &script);
     
     int findFitParameterByName(FitParameters const &parameters, std::string const &name);
 
