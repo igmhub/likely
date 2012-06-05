@@ -135,7 +135,7 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
         }
     }
     else {
-        if(!isCovarianceModifiable() || !other.isCovarianceModifiable()) {
+        if(!isCovarianceModifiable()) {
             throw RuntimeError("BinnedData::add: cannot modify shared covariance.");
         }
         // Add the weighted _data vectors, element by element, and save the result in our _data.
