@@ -7,6 +7,20 @@
 
 namespace local = likely;
 
+local::FitParameter::FitParameter(std::string const &name, double value, double error)
+: _name(name)
+{
+    setValue(value);
+    setError(error);
+}
+
+void local::FitParameter::setError(double error) {
+    if(error < 0) {
+        throw RuntimeError("FitParameter::setError: error must be >= 0.");
+    }
+    _error = error;
+}
+
 void local::getFitParameterValues(FitParameters const &parameters, Parameters &values, bool onlyFloating) {
     values.resize(0);
     if(!onlyFloating) values.reserve(parameters.size());
