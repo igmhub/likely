@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <iosfwd>
 
 namespace likely {
 	class FitParameter {
@@ -58,7 +59,14 @@ namespace likely {
         bool onlyFloating = false);
     void getFitParameterNames(FitParameters const &parameters, std::vector<std::string> &names,
         bool onlyFloating = false);
+        
+    // Returns the number of floating parameters.
     int countFloatingFitParameters(FitParameters const &parameters);
+    
+    // Prints a multi-line description of FitParameters to the specified output stream.
+    void printFitParametersToStream(FitParameters const &parameters, std::ostream &out,
+        std::string const &formatSpec = "%12.6f");
+    
     int findFitParameterByName(FitParameters const &parameters, std::string const &name);
 
 } // likely

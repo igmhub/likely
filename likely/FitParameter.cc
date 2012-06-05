@@ -3,7 +3,10 @@
 #include "likely/FitParameter.h"
 #include "likely/RuntimeError.h"
 
+#include "boost/format.hpp"
+
 #include <iterator>
+#include <iostream>
 
 namespace local = likely;
 
@@ -52,6 +55,18 @@ int local::countFloatingFitParameters(FitParameters const &parameters) {
         if(iter->isFloating()) count++;
     }
     return count;
+}
+
+void local::printFitParametersToStream(FitParameters const &parameters, std::ostream &out,
+std::string const &formatSpec) {
+    boost::format formatter(formatSpec), label("%20s = ");
+    for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
+        out << (label % iter->getName()) << (formatter % iter->getValue());
+        if(iter->isFloating()) {
+            out << " +/- " << formatter % iter->getError();
+        }
+        out << std::endl;
+    }
 }
 
 int local::findFitParameterByName(FitParameters const &parameters, std::string const &name) {
