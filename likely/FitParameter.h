@@ -45,7 +45,7 @@ namespace likely {
     inline std::string FitParameter::getName() const { return _name; }
     inline double FitParameter::getValue() const { return _value; }
     inline void FitParameter::setValue(double value) { _value = value; }
-    inline double FitParameter::getError() const { return _error; }
+    inline double FitParameter::getError() const { return _error < 0 ? 0 : _error; }
     inline void FitParameter::fix() { if(_error > 0) _error = -_error; }
     inline void FitParameter::release() { if(_error < 0) _error = -_error; }
     inline bool FitParameter::isFloating() const { return (_error > 0); }
@@ -68,6 +68,9 @@ namespace likely {
     // Prints a multi-line description of FitParameters to the specified output stream.
     void printFitParametersToStream(FitParameters const &parameters, std::ostream &out,
         std::string const &formatSpec = "%12.6f");
+
+    // Returns the index of the parameter with the specified name or throws a RuntimeError.
+    int findFitParameterByName(FitParameters const &parameters, std::string const &name);
         
     // Modifies FitParameters using instructions in the specified script or throws a
     // RuntimeError in case an error in the script is detected (in which case the input
@@ -83,8 +86,6 @@ namespace likely {
     // is allowed between tokens, except within names delimited by [ ], where whitespace
     // is considered part of the name.
     void modifyFitParameters(FitParameters &parameters, std::string const &script);
-    
-    int findFitParameterByName(FitParameters const &parameters, std::string const &name);
 
 } // likely
 
