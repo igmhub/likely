@@ -110,14 +110,17 @@ namespace fitpar {
             using qi::no_skip;
             using qi::char_;
 
-            script = command >> *(';' >> command);
+            // Commands are separated by semicolons. A final semicolon is optional.
+            script = ( command % ';' ) >> -lit(';');
 
+            // Declare the supported commands and their semantic actions.
             command =
                 ( "value" >> name >> '=' >> double_[boost::bind(&Grammar::setValue,this,::_1)] ) |
                 ( "error" >> name >> '=' >> double_[boost::bind(&Grammar::setError,this,::_1)] ) |
                 ( "fix" >> name[boost::bind(&Grammar::fix,this)] ) |
                 ( "release" >> name[boost::bind(&Grammar::release,this)] );
             
+            // Commands share a common name parser.
             name = lit('[')[boost::bind(&Grammar::beginName,this)]
                 >> no_skip[+char_(FitParameter::getValidNameCharacters())[
                     boost::bind(&Grammar::addToName,this,::_1)]]
@@ -125,6 +128,7 @@ namespace fitpar {
             
         }
         
+        // Any space_type in this template must match the grammar template above.
         qi::rule<std::string::const_iterator, ascii::space_type> script, command, name;        
 
         FitParameters &params;

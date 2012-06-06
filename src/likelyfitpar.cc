@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     lk::modifyFitParameters(params," fix [param2]; fix [param1]");
     lk::printFitParametersToStream(params,std::cout);    
 
-    lk::modifyFitParameters(params,"release [param1] ");
+    lk::modifyFitParameters(params,"release [param1] ;");
     lk::printFitParametersToStream(params,std::cout);    
 
     lk::modifyFitParameters(params,"value[param3]=-123; error[param1]=1e-2");
