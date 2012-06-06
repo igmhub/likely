@@ -41,6 +41,7 @@ bin_PROGRAMS = likelytest$(EXEEXT) likelymc$(EXEEXT) \
 	likelyrand$(EXEEXT) likelytricubic$(EXEEXT) likelycov$(EXEEXT) \
 	likelydata$(EXEEXT) likelyfitpar$(EXEEXT)
 noinst_PROGRAMS = demo1$(EXEEXT) demo2$(EXEEXT)
+check_PROGRAMS = test$(EXEEXT)
 
 # add GSL features when libgsl is available
 @USE_GSL_TRUE@am__append_1 = likely/GslEngine.cc likely/GslErrorHandler.cc
@@ -142,6 +143,8 @@ am_likelytricubic_OBJECTS = likelytricubic.$(OBJEXT)
 likelytricubic_OBJECTS = $(am_likelytricubic_OBJECTS)
 am_likelywsum_OBJECTS = likelywsum.$(OBJEXT)
 likelywsum_OBJECTS = $(am_likelywsum_OBJECTS)
+am_test_OBJECTS = test.$(OBJEXT) CovarianceMatrixTest.$(OBJEXT)
+test_OBJECTS = $(am_test_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -166,7 +169,8 @@ DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(demo1_SOURCES) \
 	$(likelyfitpar_SOURCES) $(likelyinteg_SOURCES) \
 	$(likelyinterp_SOURCES) $(likelymc_SOURCES) \
 	$(likelyrand_SOURCES) $(likelytest_SOURCES) \
-	$(likelytricubic_SOURCES) $(likelywsum_SOURCES)
+	$(likelytricubic_SOURCES) $(likelywsum_SOURCES) \
+	$(test_SOURCES)
 am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/function.h likely/function_impl.h likely/RuntimeError.h \
 	likely/FitParameter.h likely/FitModel.h \
@@ -205,7 +209,11 @@ AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 BOOST_CPPFLAGS = @BOOST_CPPFLAGS@
+BOOST_LDPATH = @BOOST_LDPATH@
 BOOST_ROOT = @BOOST_ROOT@
+BOOST_UNIT_TEST_FRAMEWORK_LDFLAGS = @BOOST_UNIT_TEST_FRAMEWORK_LDFLAGS@
+BOOST_UNIT_TEST_FRAMEWORK_LDPATH = @BOOST_UNIT_TEST_FRAMEWORK_LDPATH@
+BOOST_UNIT_TEST_FRAMEWORK_LIBS = @BOOST_UNIT_TEST_FRAMEWORK_LIBS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -264,7 +272,6 @@ RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
-SIMD_FLAGS = @SIMD_FLAGS@
 STRIP = @STRIP@
 VERSION = @VERSION@
 abs_builddir = @abs_builddir@
@@ -399,6 +406,9 @@ demo1_LDADD = -L. -llikely
 demo2_SOURCES = src/demo2.cc
 demo2_DEPENDENCIES = $(lib_LIBRARIES)
 demo2_LDADD = -L. -llikely
+test_SOURCES = test/test.cc test/CovarianceMatrixTest.cc
+test_DEPENDENCIES = $(lib_LIBRARIES)
+test_LDADD = -lboost_unit_test_framework -L. -llikely
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -532,6 +542,15 @@ clean-binPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
+clean-checkPROGRAMS:
+	@list='$(check_PROGRAMS)'; test -n "$$list" || exit 0; \
+	echo " rm -f" $$list; \
+	rm -f $$list || exit $$?; \
+	test -n "$(EXEEXT)" || exit 0; \
+	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
+	echo " rm -f" $$list; \
+	rm -f $$list
+
 clean-noinstPROGRAMS:
 	@list='$(noinst_PROGRAMS)'; test -n "$$list" || exit 0; \
 	echo " rm -f" $$list; \
@@ -576,6 +595,9 @@ likelytricubic$(EXEEXT): $(likelytricubic_OBJECTS) $(likelytricubic_DEPENDENCIES
 likelywsum$(EXEEXT): $(likelywsum_OBJECTS) $(likelywsum_DEPENDENCIES) 
 	@rm -f likelywsum$(EXEEXT)
 	$(CXXLINK) $(likelywsum_OBJECTS) $(likelywsum_LDADD) $(LIBS)
+test$(EXEEXT): $(test_OBJECTS) $(test_DEPENDENCIES) 
+	@rm -f test$(EXEEXT)
+	$(CXXLINK) $(test_OBJECTS) $(test_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -590,6 +612,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BinnedDataResampler.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceMatrix.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceMatrixTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EngineRegistry.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitModel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitParameter.Plo@am__quote@
@@ -623,6 +646,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytricubic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelywsum.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -1009,6 +1033,34 @@ likelywsum.obj: src/likelywsum.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelywsum.obj `if test -f 'src/likelywsum.cc'; then $(CYGPATH_W) 'src/likelywsum.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelywsum.cc'; fi`
 
+test.o: test/test.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test.o -MD -MP -MF $(DEPDIR)/test.Tpo -c -o test.o `test -f 'test/test.cc' || echo '$(srcdir)/'`test/test.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/test.Tpo $(DEPDIR)/test.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/test.cc' object='test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test.o `test -f 'test/test.cc' || echo '$(srcdir)/'`test/test.cc
+
+test.obj: test/test.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT test.obj -MD -MP -MF $(DEPDIR)/test.Tpo -c -o test.obj `if test -f 'test/test.cc'; then $(CYGPATH_W) 'test/test.cc'; else $(CYGPATH_W) '$(srcdir)/test/test.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/test.Tpo $(DEPDIR)/test.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/test.cc' object='test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o test.obj `if test -f 'test/test.cc'; then $(CYGPATH_W) 'test/test.cc'; else $(CYGPATH_W) '$(srcdir)/test/test.cc'; fi`
+
+CovarianceMatrixTest.o: test/CovarianceMatrixTest.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CovarianceMatrixTest.o -MD -MP -MF $(DEPDIR)/CovarianceMatrixTest.Tpo -c -o CovarianceMatrixTest.o `test -f 'test/CovarianceMatrixTest.cc' || echo '$(srcdir)/'`test/CovarianceMatrixTest.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/CovarianceMatrixTest.Tpo $(DEPDIR)/CovarianceMatrixTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/CovarianceMatrixTest.cc' object='CovarianceMatrixTest.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CovarianceMatrixTest.o `test -f 'test/CovarianceMatrixTest.cc' || echo '$(srcdir)/'`test/CovarianceMatrixTest.cc
+
+CovarianceMatrixTest.obj: test/CovarianceMatrixTest.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT CovarianceMatrixTest.obj -MD -MP -MF $(DEPDIR)/CovarianceMatrixTest.Tpo -c -o CovarianceMatrixTest.obj `if test -f 'test/CovarianceMatrixTest.cc'; then $(CYGPATH_W) 'test/CovarianceMatrixTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/CovarianceMatrixTest.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/CovarianceMatrixTest.Tpo $(DEPDIR)/CovarianceMatrixTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/CovarianceMatrixTest.cc' object='CovarianceMatrixTest.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CovarianceMatrixTest.obj `if test -f 'test/CovarianceMatrixTest.cc'; then $(CYGPATH_W) 'test/CovarianceMatrixTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/CovarianceMatrixTest.cc'; fi`
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
@@ -1240,6 +1292,7 @@ distcleancheck: distclean
 	       $(distcleancheck_listfiles) ; \
 	       exit 1; } >&2
 check-am: all-am
+	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
 check: check-am
 all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(HEADERS) config.h
 install-binPROGRAMS: install-libLTLIBRARIES
@@ -1275,8 +1328,9 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool clean-noinstPROGRAMS mostlyclean-am
+clean-am: clean-binPROGRAMS clean-checkPROGRAMS clean-generic \
+	clean-libLTLIBRARIES clean-libtool clean-noinstPROGRAMS \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -1348,20 +1402,20 @@ ps-am:
 uninstall-am: uninstall-binPROGRAMS uninstall-libLTLIBRARIES \
 	uninstall-nobase_includeHEADERS
 
-.MAKE: all install-am install-strip
+.MAKE: all check-am install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am am--refresh check check-am clean \
-	clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool clean-noinstPROGRAMS ctags dist dist-all \
-	dist-bzip2 dist-gzip dist-lzma dist-shar dist-tarZ dist-xz \
-	dist-zip distcheck distclean distclean-compile \
-	distclean-generic distclean-hdr distclean-libtool \
-	distclean-tags distcleancheck distdir distuninstallcheck dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-binPROGRAMS install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am \
-	install-libLTLIBRARIES install-man \
+	clean-binPROGRAMS clean-checkPROGRAMS clean-generic \
+	clean-libLTLIBRARIES clean-libtool clean-noinstPROGRAMS ctags \
+	dist dist-all dist-bzip2 dist-gzip dist-lzma dist-shar \
+	dist-tarZ dist-xz dist-zip distcheck distclean \
+	distclean-compile distclean-generic distclean-hdr \
+	distclean-libtool distclean-tags distcleancheck distdir \
+	distuninstallcheck dvi dvi-am html html-am info info-am \
+	install install-am install-binPROGRAMS install-data \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-libLTLIBRARIES install-man \
 	install-nobase_includeHEADERS install-pdf install-pdf-am \
 	install-ps install-ps-am install-strip installcheck \
 	installcheck-am installdirs maintainer-clean \

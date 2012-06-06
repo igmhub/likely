@@ -18,6 +18,9 @@
 /* Define to 1 if you have <boost/shared_ptr.hpp> */
 #undef HAVE_BOOST_SHARED_PTR_HPP
 
+/* Define to 1 if you have <boost/test/unit_test.hpp> */
+#undef HAVE_BOOST_TEST_UNIT_TEST_HPP
+
 /* Define to 1 if you have <boost/utility.hpp> */
 #undef HAVE_BOOST_UTILITY_HPP
 
@@ -41,21 +44,6 @@
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
-
-/* Support mmx instructions */
-#undef HAVE_MMX
-
-/* Support SSE (Streaming SIMD Extensions) instructions */
-#undef HAVE_SSE
-
-/* Support SSE2 (Streaming SIMD Extensions 2) instructions */
-#undef HAVE_SSE2
-
-/* Support SSE3 (Streaming SIMD Extensions 3) instructions */
-#undef HAVE_SSE3
-
-/* Support SSSE3 (Supplemental Streaming SIMD Extensions 3) instructions */
-#undef HAVE_SSSE3
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H

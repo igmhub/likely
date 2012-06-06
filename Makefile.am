@@ -11,6 +11,9 @@ bin_PROGRAMS = likelytest likelymc likelyinterp likelywsum likelyinteg likelyran
 # extra targets that should not be installed
 noinst_PROGRAMS = demo1 demo2
 
+# targets that contain unit tests
+check_PROGRAMS = test
+
 # instructions for building the library
 liblikely_la_SOURCES = \
 	likely/FitParameter.cc \
@@ -138,3 +141,7 @@ demo1_LDADD = -L. -llikely
 demo2_SOURCES = src/demo2.cc
 demo2_DEPENDENCIES = $(lib_LIBRARIES)
 demo2_LDADD = -L. -llikely
+
+test_SOURCES = test/test.cc test/CovarianceMatrixTest.cc
+test_DEPENDENCIES = $(lib_LIBRARIES)
+test_LDADD = -lboost_unit_test_framework -L. -llikely
