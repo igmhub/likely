@@ -35,6 +35,8 @@ namespace likely {
         void release();
         // Returns true if this parameter is floating, in which case it will have an error > 0.
         bool isFloating() const;
+        // Returns the set of valid characters in a FitParameter name.
+        static std::string const &getValidNameCharacters();
 	private:
         std::string _name;
         double _value, _error;
@@ -71,14 +73,15 @@ namespace likely {
     // RuntimeError in case an error in the script is detected (in which case the input
     // parameters will not be modified). The following script commands are supported:
     //
-    //  value '<name>' = <newvalue>
-    //  error '<name>' = <newerror>
-    //  fix '<name>'
-    //  release '<hame>'
+    //  value [<name>] = <newvalue>
+    //  error [<name>] = <newerror>
+    //  fix [<name>]
+    //  release [<hame>]
     //
     // Multiple commands separated by semicolons are executed in the order they appear.
     // Command verbs (value,error,fix,release) are case sensitive. Arbitrary whitespace
-    // is allowed between tokens.
+    // is allowed between tokens, except within names delimited by [ ], where whitespace
+    // is considered part of the name.
     void modifyFitParameters(FitParameters &parameters, std::string const &script);
     
     int findFitParameterByName(FitParameters const &parameters, std::string const &name);

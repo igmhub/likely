@@ -6,6 +6,7 @@
 #include "boost/format.hpp"
 #include "boost/function.hpp"
 #include "boost/bind.hpp"
+#include "boost/regex.hpp"
 #include "boost/spirit/include/qi.hpp"
 #include "boost/spirit/include/phoenix_core.hpp"
 #include "boost/spirit/include/phoenix_operator.hpp"
@@ -20,9 +21,20 @@ namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
 namespace phoenix = boost::phoenix;
 
+std::string const &local::FitParameter::getValidNameCharacters() {
+    // The hyphen must appear as the last char below for correct interpretation.
+    static std::string charset(" a-zA-Z0-9()*/+-");
+    return charset;
+}
+
 local::FitParameter::FitParameter(std::string const &name, double value, double error)
 : _name(name)
 {
+    boost::cmatch what;
+    boost::regex pattern(std::string("[") + getValidNameCharacters() + "]+");
+    if(!boost::regex_match(name,pattern)) {
+        throw RuntimeError("FitParameter: name uses invalid characters \"" + name + "\"");
+    }
     setValue(value);
     setError(error);
 }
@@ -96,8 +108,7 @@ namespace fitpar {
             using qi::double_;
             using qi::lit;
             using qi::no_skip;
-            using qi::alnum;
-            using qi::blank;
+            using qi::char_;
 
             script = command >> *(';' >> command);
 
@@ -107,9 +118,10 @@ namespace fitpar {
                 ( "fix" >> name[boost::bind(&Grammar::fix,this)] ) |
                 ( "release" >> name[boost::bind(&Grammar::release,this)] );
             
-            name = lit('\'')[boost::bind(&Grammar::beginName,this)]
-                >> no_skip[*(alnum|blank)[boost::bind(&Grammar::addToName,this,::_1)]]
-                >> lit('\'')[boost::bind(&Grammar::endName,this)];
+            name = lit('[')[boost::bind(&Grammar::beginName,this)]
+                >> no_skip[+char_(FitParameter::getValidNameCharacters())[
+                    boost::bind(&Grammar::addToName,this,::_1)]]
+                >> lit(']')[boost::bind(&Grammar::endName,this)];
             
         }
         
