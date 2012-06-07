@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     params.push_back(lk::FitParameter("(1-beta)*bias",1.23));
     lk::printFitParametersToStream(params,std::cout);    
 
-    lk::modifyFitParameters(params," fix [param2]; fix [param1]");
+    lk::modifyFitParameters(params," fix [param2] = -2; fix [param1]");
     lk::printFitParametersToStream(params,std::cout);    
 
     lk::modifyFitParameters(params,"release [param1] ;");

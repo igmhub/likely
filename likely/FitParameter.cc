@@ -115,10 +115,11 @@ namespace fitpar {
 
             // Declare the supported commands and their semantic actions.
             command =
-                ( "value" >> name >> '=' >> double_[boost::bind(&Grammar::setValue,this,::_1)] ) |
-                ( "error" >> name >> '=' >> double_[boost::bind(&Grammar::setError,this,::_1)] ) |
-                ( "fix" >> name[boost::bind(&Grammar::fix,this)] ) |
-                ( "release" >> name[boost::bind(&Grammar::release,this)] );
+                ( "value" >> name >> '=' >> double_ )   [boost::bind(&Grammar::setValue,this,::_1)] |
+                ( "error" >> name >> '=' >> double_ )   [boost::bind(&Grammar::setError,this,::_1)] |
+                ( "fix" >> name >> '=' >> double_ )     [boost::bind(&Grammar::fixat,this,::_1)] |
+                ( "fix" >> name )                       [boost::bind(&Grammar::fix,this)] |
+                ( "release" >> name )                   [boost::bind(&Grammar::release,this)];
             
             // Commands share a common name parser.
             name = lit('[')[boost::bind(&Grammar::beginName,this)]
@@ -151,6 +152,10 @@ namespace fitpar {
             params[index].setError(error);
         }
         void fix() {
+            params[index].fix();
+        }
+        void fixat(double value) {
+            params[index].setValue(value);
             params[index].fix();
         }
         void release() {

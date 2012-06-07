@@ -78,6 +78,7 @@ namespace likely {
     //
     //  value [<name>] = <newvalue>
     //  error [<name>] = <newerror>
+    //  fix [<name>] = <newvalue>
     //  fix [<name>]
     //  release [<hame>]
     //
