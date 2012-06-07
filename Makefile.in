@@ -143,7 +143,8 @@ am_likelytricubic_OBJECTS = likelytricubic.$(OBJEXT)
 likelytricubic_OBJECTS = $(am_likelytricubic_OBJECTS)
 am_likelywsum_OBJECTS = likelywsum.$(OBJEXT)
 likelywsum_OBJECTS = $(am_likelywsum_OBJECTS)
-am_test_OBJECTS = test.$(OBJEXT) CovarianceMatrixTest.$(OBJEXT)
+am_test_OBJECTS = test.$(OBJEXT) CovarianceMatrixTest.$(OBJEXT) \
+	UniformBinningTest.$(OBJEXT)
 test_OBJECTS = $(am_test_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -406,7 +407,10 @@ demo1_LDADD = -L. -llikely
 demo2_SOURCES = src/demo2.cc
 demo2_DEPENDENCIES = $(lib_LIBRARIES)
 demo2_LDADD = -L. -llikely
-test_SOURCES = test/test.cc test/CovarianceMatrixTest.cc
+test_SOURCES = test/test.cc \
+	test/CovarianceMatrixTest.cc \
+	test/UniformBinningTest.cc
+
 test_DEPENDENCIES = $(lib_LIBRARIES)
 test_LDADD = -lboost_unit_test_framework -L. -llikely
 all: config.h
@@ -631,6 +635,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestLikelihood.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TriCubicInterpolator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UniformBinning.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UniformBinningTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UniformSampling.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WeightedAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WeightedCombiner.Plo@am__quote@
@@ -1060,6 +1065,20 @@ CovarianceMatrixTest.obj: test/CovarianceMatrixTest.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/CovarianceMatrixTest.cc' object='CovarianceMatrixTest.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o CovarianceMatrixTest.obj `if test -f 'test/CovarianceMatrixTest.cc'; then $(CYGPATH_W) 'test/CovarianceMatrixTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/CovarianceMatrixTest.cc'; fi`
+
+UniformBinningTest.o: test/UniformBinningTest.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UniformBinningTest.o -MD -MP -MF $(DEPDIR)/UniformBinningTest.Tpo -c -o UniformBinningTest.o `test -f 'test/UniformBinningTest.cc' || echo '$(srcdir)/'`test/UniformBinningTest.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UniformBinningTest.Tpo $(DEPDIR)/UniformBinningTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/UniformBinningTest.cc' object='UniformBinningTest.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UniformBinningTest.o `test -f 'test/UniformBinningTest.cc' || echo '$(srcdir)/'`test/UniformBinningTest.cc
+
+UniformBinningTest.obj: test/UniformBinningTest.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UniformBinningTest.obj -MD -MP -MF $(DEPDIR)/UniformBinningTest.Tpo -c -o UniformBinningTest.obj `if test -f 'test/UniformBinningTest.cc'; then $(CYGPATH_W) 'test/UniformBinningTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/UniformBinningTest.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UniformBinningTest.Tpo $(DEPDIR)/UniformBinningTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/UniformBinningTest.cc' object='UniformBinningTest.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UniformBinningTest.obj `if test -f 'test/UniformBinningTest.cc'; then $(CYGPATH_W) 'test/UniformBinningTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/UniformBinningTest.cc'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

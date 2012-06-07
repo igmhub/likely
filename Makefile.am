@@ -142,6 +142,8 @@ demo2_SOURCES = src/demo2.cc
 demo2_DEPENDENCIES = $(lib_LIBRARIES)
 demo2_LDADD = -L. -llikely
 
-test_SOURCES = test/test.cc test/CovarianceMatrixTest.cc
+test_SOURCES = test/test.cc \
+	test/CovarianceMatrixTest.cc \
+	test/UniformBinningTest.cc
 test_DEPENDENCIES = $(lib_LIBRARIES)
 test_LDADD = -lboost_unit_test_framework -L. -llikely
