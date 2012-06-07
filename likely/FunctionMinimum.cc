@@ -136,9 +136,10 @@ double local::FunctionMinimum::setRandomParameters(Parameters &params) const {
     return nlWeight;
 }
 
-void local::FunctionMinimum::printToStream(std::ostream &os, std::string formatSpec) const {
-    boost::format formatter(formatSpec), label("%20s = ");
+void local::FunctionMinimum::printToStream(std::ostream &os, std::string const &formatSpec) const {
+    boost::format formatter(formatSpec);
     std::vector<std::string> labels;
+    getFitParameterNames(_parameters,labels,true);
     if(getStatus() == ERROR) {
         os << "FMIN ERROR: " << getStatusMessage() << std::endl;
         // Don't print out any more since it is presumably wrong.
@@ -149,14 +150,7 @@ void local::FunctionMinimum::printToStream(std::ostream &os, std::string formatS
         // Keep going, after this warning...
     }
     os << "FMIN Value = " << formatter % _minValue << " at:" << std::endl;
-    for(FitParameters::const_iterator iter = _parameters.begin(); iter != _parameters.end(); ++iter) {
-        os << (label % iter->getName()) << (formatter % iter->getValue());
-        if(iter->isFloating()) {
-            os << " +/- " << formatter % iter->getError();
-            labels.push_back(iter->getName());
-        }
-        os << std::endl;
-    }
+    printFitParametersToStream(_parameters,os,formatSpec);
     os << std::endl << "Number of function evaluations used: " << getNEvalCount() << std::endl;
     if(getNGradCount() > 0) {
         os << "Number of gradient evaluations used: " << getNGradCount() << std::endl;

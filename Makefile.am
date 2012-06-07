@@ -6,7 +6,7 @@ AM_LDFLAGS = -lboost_regex
 # targets to build and install
 lib_LTLIBRARIES = liblikely.la
 bin_PROGRAMS = likelytest likelymc likelyinterp likelywsum likelyinteg likelyrand \
-	likelytricubic likelycov likelydata
+	likelytricubic likelycov likelydata likelyfitpar
 
 # extra targets that should not be installed
 noinst_PROGRAMS = demo1 demo2
@@ -122,6 +122,10 @@ likelycov_LDADD = -L. -llikely
 likelydata_SOURCES = src/likelydata.cc
 likelydata_DEPENDENCIES = $(lib_LIBRARIES)
 likelydata_LDADD = -L. -llikely
+
+likelyfitpar_SOURCES = src/likelyfitpar.cc
+likelyfitpar_DEPENDENCIES = $(lib_LIBRARIES)
+likelyfitpar_LDADD = -L. -llikely
 
 demo1_SOURCES = src/demo1.cc
 demo1_DEPENDENCIES = $(lib_LIBRARIES)

@@ -25,6 +25,8 @@ namespace likely {
 		virtual ~FunctionMinimum();
 		// Returns the function value at the minimum.
         double getMinValue() const;
+        // Returns a copy of our FitParameters.
+        FitParameters getFitParameters() const;
 		// Returns a vector of parameter values at this minimum. If onlyFloating is true, only
 		// the values of floating parameters are included in the returned vector.
         Parameters getParameters(bool onlyFloating = false) const;
@@ -72,7 +74,7 @@ namespace likely {
         std::string getStatusMessage() const;
         // Ouptuts a multiline description of this minimum to the specified stream using
         // the specified printf format for floating point values.
-        void printToStream(std::ostream &os, std::string formatSpec = "%12.6f") const;
+        void printToStream(std::ostream &os, std::string const &formatSpec = "%12.6f") const;
 	private:
         double _minValue;
         int _nFloating;
@@ -84,6 +86,7 @@ namespace likely {
 	}; // FunctionMinimum
 	
     inline double FunctionMinimum::getMinValue() const { return _minValue; }
+    inline FitParameters FunctionMinimum::getFitParameters() const { return _parameters; }
     inline bool FunctionMinimum::hasCovariance() const { return bool(_covar); }
     inline CovarianceMatrixCPtr FunctionMinimum::getCovariance() const { return _covar; }
     inline void FunctionMinimum::setCounts(long nEvalCount, long nGradCount) {

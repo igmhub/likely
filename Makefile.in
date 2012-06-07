@@ -39,7 +39,7 @@ host_triplet = @host@
 bin_PROGRAMS = likelytest$(EXEEXT) likelymc$(EXEEXT) \
 	likelyinterp$(EXEEXT) likelywsum$(EXEEXT) likelyinteg$(EXEEXT) \
 	likelyrand$(EXEEXT) likelytricubic$(EXEEXT) likelycov$(EXEEXT) \
-	likelydata$(EXEEXT)
+	likelydata$(EXEEXT) likelyfitpar$(EXEEXT)
 noinst_PROGRAMS = demo1$(EXEEXT) demo2$(EXEEXT)
 
 # add GSL features when libgsl is available
@@ -124,6 +124,8 @@ am_likelycov_OBJECTS = likelycov.$(OBJEXT)
 likelycov_OBJECTS = $(am_likelycov_OBJECTS)
 am_likelydata_OBJECTS = likelydata.$(OBJEXT)
 likelydata_OBJECTS = $(am_likelydata_OBJECTS)
+am_likelyfitpar_OBJECTS = likelyfitpar.$(OBJEXT)
+likelyfitpar_OBJECTS = $(am_likelyfitpar_OBJECTS)
 am_likelyinteg_OBJECTS = likelyinteg.$(OBJEXT)
 likelyinteg_OBJECTS = $(am_likelyinteg_OBJECTS)
 am_likelyinterp_OBJECTS = likelyinterp.$(OBJEXT)
@@ -153,16 +155,16 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(liblikely_la_SOURCES) $(demo1_SOURCES) $(demo2_SOURCES) \
 	$(likelycov_SOURCES) $(likelydata_SOURCES) \
-	$(likelyinteg_SOURCES) $(likelyinterp_SOURCES) \
-	$(likelymc_SOURCES) $(likelyrand_SOURCES) \
-	$(likelytest_SOURCES) $(likelytricubic_SOURCES) \
-	$(likelywsum_SOURCES)
+	$(likelyfitpar_SOURCES) $(likelyinteg_SOURCES) \
+	$(likelyinterp_SOURCES) $(likelymc_SOURCES) \
+	$(likelyrand_SOURCES) $(likelytest_SOURCES) \
+	$(likelytricubic_SOURCES) $(likelywsum_SOURCES)
 DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(demo1_SOURCES) \
 	$(demo2_SOURCES) $(likelycov_SOURCES) $(likelydata_SOURCES) \
-	$(likelyinteg_SOURCES) $(likelyinterp_SOURCES) \
-	$(likelymc_SOURCES) $(likelyrand_SOURCES) \
-	$(likelytest_SOURCES) $(likelytricubic_SOURCES) \
-	$(likelywsum_SOURCES)
+	$(likelyfitpar_SOURCES) $(likelyinteg_SOURCES) \
+	$(likelyinterp_SOURCES) $(likelymc_SOURCES) \
+	$(likelyrand_SOURCES) $(likelytest_SOURCES) \
+	$(likelytricubic_SOURCES) $(likelywsum_SOURCES)
 am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/function.h likely/function_impl.h likely/RuntimeError.h \
 	likely/FitParameter.h likely/FunctionMinimum.h \
@@ -383,6 +385,9 @@ likelycov_LDADD = -L. -llikely
 likelydata_SOURCES = src/likelydata.cc
 likelydata_DEPENDENCIES = $(lib_LIBRARIES)
 likelydata_LDADD = -L. -llikely
+likelyfitpar_SOURCES = src/likelyfitpar.cc
+likelyfitpar_DEPENDENCIES = $(lib_LIBRARIES)
+likelyfitpar_LDADD = -L. -llikely
 demo1_SOURCES = src/demo1.cc
 demo1_DEPENDENCIES = $(lib_LIBRARIES)
 demo1_LDADD = -L. -llikely
@@ -542,6 +547,9 @@ likelycov$(EXEEXT): $(likelycov_OBJECTS) $(likelycov_DEPENDENCIES)
 likelydata$(EXEEXT): $(likelydata_OBJECTS) $(likelydata_DEPENDENCIES) 
 	@rm -f likelydata$(EXEEXT)
 	$(CXXLINK) $(likelydata_OBJECTS) $(likelydata_LDADD) $(LIBS)
+likelyfitpar$(EXEEXT): $(likelyfitpar_OBJECTS) $(likelyfitpar_DEPENDENCIES) 
+	@rm -f likelyfitpar$(EXEEXT)
+	$(CXXLINK) $(likelyfitpar_OBJECTS) $(likelyfitpar_LDADD) $(LIBS)
 likelyinteg$(EXEEXT): $(likelyinteg_OBJECTS) $(likelyinteg_DEPENDENCIES) 
 	@rm -f likelyinteg$(EXEEXT)
 	$(CXXLINK) $(likelyinteg_OBJECTS) $(likelyinteg_LDADD) $(LIBS)
@@ -600,6 +608,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelycov.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelydata.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyfitpar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyinteg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyinterp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelymc.Po@am__quote@
@@ -866,6 +875,20 @@ likelydata.obj: src/likelydata.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelydata.cc' object='likelydata.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelydata.obj `if test -f 'src/likelydata.cc'; then $(CYGPATH_W) 'src/likelydata.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelydata.cc'; fi`
+
+likelyfitpar.o: src/likelyfitpar.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelyfitpar.o -MD -MP -MF $(DEPDIR)/likelyfitpar.Tpo -c -o likelyfitpar.o `test -f 'src/likelyfitpar.cc' || echo '$(srcdir)/'`src/likelyfitpar.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelyfitpar.Tpo $(DEPDIR)/likelyfitpar.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelyfitpar.cc' object='likelyfitpar.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelyfitpar.o `test -f 'src/likelyfitpar.cc' || echo '$(srcdir)/'`src/likelyfitpar.cc
+
+likelyfitpar.obj: src/likelyfitpar.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelyfitpar.obj -MD -MP -MF $(DEPDIR)/likelyfitpar.Tpo -c -o likelyfitpar.obj `if test -f 'src/likelyfitpar.cc'; then $(CYGPATH_W) 'src/likelyfitpar.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelyfitpar.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelyfitpar.Tpo $(DEPDIR)/likelyfitpar.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelyfitpar.cc' object='likelyfitpar.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelyfitpar.obj `if test -f 'src/likelyfitpar.cc'; then $(CYGPATH_W) 'src/likelyfitpar.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelyfitpar.cc'; fi`
 
 likelyinteg.o: src/likelyinteg.cc
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelyinteg.o -MD -MP -MF $(DEPDIR)/likelyinteg.Tpo -c -o likelyinteg.o `test -f 'src/likelyinteg.cc' || echo '$(srcdir)/'`src/likelyinteg.cc
