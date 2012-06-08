@@ -14,6 +14,7 @@ noinst_PROGRAMS = demo1 demo2
 # instructions for building the library
 liblikely_la_SOURCES = \
 	likely/FitParameter.cc \
+	likely/FitModel.cc \
 	likely/FunctionMinimum.cc \
 	likely/AbsEngine.cc \
 	likely/EngineRegistry.cc \
@@ -47,6 +48,7 @@ nobase_include_HEADERS = \
 	likely/function_impl.h \
 	likely/RuntimeError.h \
 	likely/FitParameter.h \
+	likely/FitModel.h \
 	likely/FunctionMinimum.h \
 	likely/AbsEngine.h \
 	likely/EngineRegistry.h \
