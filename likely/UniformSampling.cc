@@ -10,15 +10,15 @@ namespace local = likely;
 local::UniformSampling::UniformSampling(double minValue, double maxValue, int nSamples, double ftol)
 : _minValue(minValue), _maxValue(maxValue), _ftol(ftol), _nSamples(nSamples)
 {
-    if(maxValue < minValue) {
-        throw BinningError("UniformSampling: expected minValue <= maxValue.");
-    }
     if(nSamples < 1) {
-        throw BinningError("UniformSampling: expected nSamples > 1.");
+        throw BinningError("UniformSampling: expected nSamples >= 1.");
     }
     if(nSamples == 1 && maxValue != minValue) {
         throw BinningError("UniformSampling: must have minValue==maxValue when nSamples==1.");
     }
+    if(nSamples > 1 && maxValue <= minValue) {
+        throw BinningError("UniformSampling: expected minValue < maxValue when nSamples > 1.");
+    }   
     // A value of ftol < 0 means that getBinIndex will always throw a BinningError.
     if(ftol < 0) {
         throw BinningError("NonUniformSampling: expected ftol >= 0.");

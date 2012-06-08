@@ -144,7 +144,7 @@ void local::CovarianceMatrix::_uncompress() const {
     for(int k = 0; k < _size; ++k) {
         _icov[(k*(k+3))/2] = _diag[k];
     }
-    // Don't delete the uncompressed matrix data in case we can re-use it
+    // Don't delete the compressed matrix data in case we can re-use it
     // because no changes are made before the next call to compress().
     _compressed = false;
 }

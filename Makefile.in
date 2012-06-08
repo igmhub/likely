@@ -144,7 +144,7 @@ likelytricubic_OBJECTS = $(am_likelytricubic_OBJECTS)
 am_likelywsum_OBJECTS = likelywsum.$(OBJEXT)
 likelywsum_OBJECTS = $(am_likelywsum_OBJECTS)
 am_test_OBJECTS = test.$(OBJEXT) CovarianceMatrixTest.$(OBJEXT) \
-	UniformBinningTest.$(OBJEXT)
+	UniformBinningTest.$(OBJEXT) UniformSamplingTest.$(OBJEXT)
 test_OBJECTS = $(am_test_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -409,7 +409,8 @@ demo2_DEPENDENCIES = $(lib_LIBRARIES)
 demo2_LDADD = -L. -llikely
 test_SOURCES = test/test.cc \
 	test/CovarianceMatrixTest.cc \
-	test/UniformBinningTest.cc
+	test/UniformBinningTest.cc \
+	test/UniformSamplingTest.cc
 
 test_DEPENDENCIES = $(lib_LIBRARIES)
 test_LDADD = -lboost_unit_test_framework -L. -llikely
@@ -637,6 +638,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UniformBinning.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UniformBinningTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UniformSampling.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UniformSamplingTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WeightedAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WeightedCombiner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo1.Po@am__quote@
@@ -1079,6 +1081,20 @@ UniformBinningTest.obj: test/UniformBinningTest.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/UniformBinningTest.cc' object='UniformBinningTest.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UniformBinningTest.obj `if test -f 'test/UniformBinningTest.cc'; then $(CYGPATH_W) 'test/UniformBinningTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/UniformBinningTest.cc'; fi`
+
+UniformSamplingTest.o: test/UniformSamplingTest.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UniformSamplingTest.o -MD -MP -MF $(DEPDIR)/UniformSamplingTest.Tpo -c -o UniformSamplingTest.o `test -f 'test/UniformSamplingTest.cc' || echo '$(srcdir)/'`test/UniformSamplingTest.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UniformSamplingTest.Tpo $(DEPDIR)/UniformSamplingTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/UniformSamplingTest.cc' object='UniformSamplingTest.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UniformSamplingTest.o `test -f 'test/UniformSamplingTest.cc' || echo '$(srcdir)/'`test/UniformSamplingTest.cc
+
+UniformSamplingTest.obj: test/UniformSamplingTest.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT UniformSamplingTest.obj -MD -MP -MF $(DEPDIR)/UniformSamplingTest.Tpo -c -o UniformSamplingTest.obj `if test -f 'test/UniformSamplingTest.cc'; then $(CYGPATH_W) 'test/UniformSamplingTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/UniformSamplingTest.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/UniformSamplingTest.Tpo $(DEPDIR)/UniformSamplingTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/UniformSamplingTest.cc' object='UniformSamplingTest.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o UniformSamplingTest.obj `if test -f 'test/UniformSamplingTest.cc'; then $(CYGPATH_W) 'test/UniformSamplingTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/UniformSamplingTest.cc'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
