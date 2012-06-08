@@ -145,6 +145,8 @@ demo2_LDADD = -L. -llikely
 test_SOURCES = test/test.cc \
 	test/CovarianceMatrixTest.cc \
 	test/UniformBinningTest.cc \
-	test/UniformSamplingTest.cc
+	test/UniformSamplingTest.cc \
+	test/NonUniformBinningTest.cc \
+	test/NonUniformSamplingTest.cc
 test_DEPENDENCIES = $(lib_LIBRARIES)
 test_LDADD = -lboost_unit_test_framework -L. -llikely

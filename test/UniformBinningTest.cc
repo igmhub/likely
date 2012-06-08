@@ -37,7 +37,6 @@ BOOST_AUTO_TEST_CASE( shouldReturnCorrectBinIndexOrThrowErrorForOutOfRangeIndex 
 }
 
 BOOST_AUTO_TEST_CASE( shouldReturnCorrectNumberOfBins ) {
-	int result = axis->getNBins();
 	BOOST_CHECK_EQUAL(axis->getNBins(), 20);
 }
 

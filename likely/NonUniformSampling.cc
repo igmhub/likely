@@ -30,7 +30,7 @@ local::NonUniformSampling::NonUniformSampling(std::vector<double> const &sampleP
 local::NonUniformSampling::~NonUniformSampling() { }
 
 int local::NonUniformSampling::getBinIndex(double value) const {
-    if(value < _samplePoints[0]) {
+    if(value < (_samplePoints[0] - _ftol*(_samplePoints[1]-_samplePoints[0]))) {
         throw BinningError("getBinIndex: value is below binning interval.");
     }
     for(int sample = 0; sample < _samplePoints.size(); ++sample) {
