@@ -15,11 +15,27 @@ local::FitModel::FitModel(std::string const &name)
 local::FitModel::~FitModel() { }
 
 void local::FitModel::defineParameter(std::string const &name, double value, double error) {
+    _nameIndexMap.insert(NameIndexMap::value_type(name,_parameters.size()));
     _parameters.push_back(FitParameter(name,value,error));
+    _parameterValue.push_back(value);
+    _parameterValueChanged.push_back(true);
 }
 
 int local::FitModel::getNParameters(bool onlyFloating) const {
     return onlyFloating ? countFloatingFitParameters(_parameters) : _parameters.size();
+}
+
+bool local::FitModel::updateParameterValues(Parameters const &values) {
+    int nValues(_parameterValue.size());
+    if(values.size() != nValues) {
+        throw RuntimeError("FitModel::updateParameterValues: invalid values size.");
+    }
+    bool anyChanged(false);
+    for(int index = 0; index < nValues; ++index) {
+        _setParameterValue(index,values[index]);
+        if(_parameterValueChanged[index]) anyChanged = true;
+    }
+    return anyChanged;
 }
 
 void  local::FitModel::printToStream(std::ostream &out, std::string const &formatSpec) const {
@@ -27,10 +43,26 @@ void  local::FitModel::printToStream(std::ostream &out, std::string const &forma
     printFitParametersToStream(_parameters,out,formatSpec);
 }
 
-void local::FitModel::configure(std::string const &script) {
+void local::FitModel::configureFitParameters(std::string const &script) {
     modifyFitParameters(_parameters,script);
 }
 
-local::FunctionMinimumPtr local::FitModel::findMinimum(FunctionPtr fptr, std::string const &method) const {
+local::FunctionMinimumPtr local::FitModel::findMinimum(FunctionPtr fptr, std::string const &method) {
     return local::findMinimum(fptr, _parameters, method);
+}
+
+int local::FitModel::_checkIndex(int index) const {
+    if(index < 0 || index >= _parameters.size()) {
+        throw RuntimeError("FitModel: invalid parameter index.");
+    }
+    return index;
+}
+
+int local::FitModel::_getIndex(std::string const &name) const {
+    // Could remember the last find result to speed this up if necessary.
+    NameIndexMap::const_iterator where = _nameIndexMap.find(name);
+    if(where == _nameIndexMap.end()) {
+        throw RuntimeError("FitModel: unknown parameter \"" + name + "\"");
+    }
+    return where->second;
 }

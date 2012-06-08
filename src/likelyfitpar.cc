@@ -8,6 +8,26 @@
 
 namespace lk = likely;
 
+class TestModel : public lk::FitModel {
+public:
+    TestModel() : lk::FitModel("Test Model") {
+        defineParameter("p1",1);
+        defineParameter("p2",2);
+        defineParameter("p3",3);
+    }
+    virtual ~TestModel() { }
+    void printChangedAndReset() {
+        for(int index = 0; index < getNParameters(); ++index) {
+            std::cout << "index " << index << " value " << getParameterValue(index)
+                << " changed? " << isParameterValueChanged(index) << std::endl;
+        }
+        resetParameterValuesChanged();
+    }
+    bool update(lk::Parameters const &values) {
+        return updateParameterValues(values);
+    }
+};
+
 int main(int argc, char *argv[]) {
     lk::FitParameters params;
     params.push_back(lk::FitParameter("param1",1,0.1));
@@ -43,4 +63,23 @@ int main(int argc, char *argv[]) {
     catch(lk::RuntimeError const &e) {
         // We expect this since commas are not allowed in names.
     }
+    
+    TestModel model;
+    model.printToStream(std::cout);
+    model.printChangedAndReset();
+    model.printChangedAndReset();
+    model.setParameterValue("p2",22);
+    model.printChangedAndReset();
+    lk::Parameters pvalues(model.getNParameters());
+    pvalues[0] = -1;
+    pvalues[1] = model.getParameterValue("p2");
+    pvalues[2] = model.getParameterValue("p3");
+    std::cout << "update any changes? " << model.update(pvalues) << std::endl;
+    model.printChangedAndReset();
+    pvalues[1] = -2;
+    pvalues[2] = -3;
+    std::cout << "update any changes? " << model.update(pvalues) << std::endl;
+    model.printChangedAndReset();
+    std::cout << "update any changes? " << model.update(pvalues) << std::endl;
+    model.printChangedAndReset();
 }
