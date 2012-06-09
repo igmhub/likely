@@ -151,18 +151,20 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
 }
 
 void local::BinnedData::_setWeighted(bool weighted) const {
-    // This is a no-op unless we have a covariance matrix.
-    if(!hasCovariance()) return;
     // Are we already in the desired state?
     if(weighted == _weighted) return;
-    if(weighted) {
-        // Change data to Cinv.data
-        _covariance->multiplyByInverseCovariance(_data);
+    // Do we need to do any work to change state?
+    if(hasCovariance() && getNBinsWithData() > 0) {
+        if(weighted) {
+            // Change data to Cinv.data
+            _covariance->multiplyByInverseCovariance(_data);
+        }
+        else {
+            // Change Cinv.data to data = C.Cinv.data
+            _covariance->multiplyByCovariance(_data);
+        }
     }
-    else {
-        // Change Cinv.data to data = C.Cinv.data
-        _covariance->multiplyByCovariance(_data);
-    }
+    // Record our new state.
     _weighted = weighted;
 }
 
@@ -280,16 +282,16 @@ bool local::BinnedData::hasData(int index) const {
     return !(_offset[index] == EMPTY_BIN);
 }
 
-double local::BinnedData::getData(int index) const {
+double local::BinnedData::getData(int index, bool weighted) const {
     if(!hasData(index)) {
         throw RuntimeError("BinnedData::getData: bin is empty.");
     }
-    _setWeighted(false);
+    _setWeighted(weighted);
     return _data[_offset[index]];
 }
 
-void local::BinnedData::setData(int index, double value) {
-    _setWeighted(false);
+void local::BinnedData::setData(int index, double value, bool weighted) {
+    _setWeighted(weighted);
     if(hasData(index)) {
         _data[_offset[index]] = value;
     }
@@ -306,11 +308,11 @@ void local::BinnedData::setData(int index, double value) {
     }
 }
 
-void local::BinnedData::addData(int index, double offset) {
+void local::BinnedData::addData(int index, double offset, bool weighted) {
     if(!hasData(index)) {
         throw RuntimeError("BinnedData::addData: bin is empty.");        
     }
-    _setWeighted(false);
+    _setWeighted(weighted);
     _data[_offset[index]] += offset;
 }
 
@@ -348,8 +350,8 @@ void local::BinnedData::setCovariance(int index1, int index2, double value) {
     if(!isCovarianceModifiable()) {
         throw RuntimeError("BinnedData::setCovariance: cannot modify shared covariance.");
     }
-    // Make sure that our _data vector is independent of our _covariance before it changes.
-    _setWeighted(false);
+    // Note that we do not call _setWeighted here, so we are changing the meaning
+    // of _data in a way that depends on the current value of _weighted.
     _covariance->setCovariance(_offset[index1],_offset[index2],value);
 }
 
@@ -367,8 +369,8 @@ void local::BinnedData::setInverseCovariance(int index1, int index2, double valu
     if(!isCovarianceModifiable()) {
         throw RuntimeError("BinnedData::setInverseCovariance: cannot modify shared covariance.");
     }
-    // Make sure that our _data vector is independent of our _covariance before it changes.
-    _setWeighted(false);
+    // Note that we do not call _setWeighted here, so we are changing the meaning
+    // of _data in a way that depends on the current value of _weighted.
     _covariance->setInverseCovariance(_offset[index1],_offset[index2],value);
 }
 

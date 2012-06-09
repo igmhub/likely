@@ -117,16 +117,31 @@ namespace likely {
         // An empty bin is one that has never had any value assigned to it.
         bool hasData(int index) const;
         // Returns the data associated with the specified global index or else throws a
-        // RuntimeError if this bin does not contain any data.
-        double getData(int index) const;
+        // RuntimeError if this bin does not contain any data. If weighted is true, then
+        // the value returned is (Cinv.data)[index] instead of data[index]. Be aware that
+        // going back and forth between weighted and unweighted access requires potentially
+        // expensive covariance matrix operations. If this data has no covariance, then
+        // weighted and unweighted values are equivalent.
+        double getData(int index, bool weighted = false) const;
         // Sets the data value for the bin associated with the specified global index. After
         // calling this method successfully, hasData(index) will be true. Note that once this
         // object has started filling a covariance matrix, i.e., hasCovariance() == true, then
         // no new bins can be filled (but already filled bins can have their values changed.)
-        void setData(int index, double value);
+        // If weighted is true, then the value set is (Cinv.data)[index] instead of data[index].
+        // Be aware that going back and forth between weighted and unweighted access requires
+        // potentially expensive covariance matrix operations. If this data has no covariance, then
+        // weighted and unweighted values are equivalent.
+        void setData(int index, double value, bool weighted = false);
         // Adds the specified offset to the value for the specified bin, which must already
-        // have data associated with it.
-        void addData(int index, double offset);
+        // have data associated with it. If weighted is true, then the value being updated is
+        // (Cinv.data)[index] instead of data[index]. Be aware that going back and forth between
+        // weighted and unweighted access requires potentially expensive covariance matrix operations.
+        // If this data has no covariance, then weighted and unweighted values are equivalent.
+        void addData(int index, double offset, bool weighted = false);
+        // Returns true if our internal data representation is currently weighted, i.e.,
+        // stored as Cinv.data rather than data. Changes to our internal representation are
+        // triggered automatically, so this method simply allows these changes to be tracked.
+        bool isDataWeighted() const;
 
         // Returns true if covariance data is available.
         bool hasCovariance() const;
@@ -146,14 +161,22 @@ namespace likely {
         void dropCovariance();
         // Returns the (inverse) covariance matrix element for the specified pair of global
         // indices, or throws a RuntimeError if either of the corresponding bins has no data,
-        // or if no covariance has been specified for this data.
+        // or if no covariance has been specified for this data. Be aware that going back and
+        // forth between Covariance and InverseCovariance operations requires potentially
+        // expensive matrix operations.
         double getCovariance(int index1, int index2) const;
         double getInverseCovariance(int index1, int index2) const;
         // Sets the (inverse) covariance matrix element for the specified pair of global
         // indices, or throws a RuntimeError if either of the corresponding bins has no data.
         // After the first call to one of these methods, hasCovariance() == true and no
         // further calls to setData are allowed for bins that do not already have data.
-        // Throws a RuntimeError if we have an unmodifiable covariance matrix.
+        // Throws a RuntimeError if we have an unmodifiable covariance matrix. Be aware that
+        // going back and forth between Covariance and InverseCovariance operations requires
+        // potentially expensive matrix operations. Note that changing the (inverse) covariance
+        // with these methods does not directly change the contents of our data vector, but
+        // it does change the meaning of weighted data. For example, if isDataWeighted() is true,
+        // then setCovariance() changes the subsequent result of getData(...,weighted=false) but
+        // not of getData(...,weighted=true).
         void setCovariance(int index1, int index2, double value);
         void setInverseCovariance(int index1, int index2, double value);
         // Returns a const shared pointer to our covariance matrix, if any.
@@ -233,6 +256,7 @@ namespace likely {
     inline int BinnedData::getNBinsWithData() const { return _index.size(); }
     inline std::vector<AbsBinningCPtr> BinnedData::getAxisBinning() const { return _axisBinning; }
     inline bool BinnedData::hasCovariance() const { return _covariance.get() != 0; }
+    inline bool BinnedData::isDataWeighted() const { return _weighted; }
     inline CovarianceMatrixCPtr BinnedData::getCovarianceMatrix() const { return _covariance; }
     inline bool BinnedData::isCovarianceModifiable() const {
         return 0 == _covariance.get() || _covariance.unique();
