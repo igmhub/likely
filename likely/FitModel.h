@@ -11,7 +11,12 @@
 
 namespace likely {
 	class FitModel {
+	// Represents a model that is parameterized by FitParameters, with support for "lazy"
+	// implementations that only do expensive operations when specific parameter values change,
+	// and convenient parameter configuration via a simple scripting language.
 	public:
+	    // Creates a new FitModel with the specified name. The definition of model parameters is
+	    // delegated to subclass constructors.
 		FitModel(std::string const &name);
 		virtual ~FitModel();
 		// Returns a copy of our model name.
