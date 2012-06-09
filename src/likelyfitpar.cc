@@ -39,10 +39,10 @@ int main(int argc, char *argv[]) {
     lk::modifyFitParameters(params," fix [param2] = -2; fix [param1]");
     lk::printFitParametersToStream(params,std::cout);    
 
-    lk::modifyFitParameters(params,"release [param1] ;");
+    lk::modifyFitParameters(params,"release [par*] ;");
     lk::printFitParametersToStream(params,std::cout);    
 
-    lk::modifyFitParameters(params,"value[param3]=-123; error[param1]=1e-2");
+    lk::modifyFitParameters(params,"value[param3*]=-123; error[param1]=1e-2");
     lk::printFitParametersToStream(params,std::cout);
 
     lk::modifyFitParameters(params,"error [(1-beta)*bias] = 0.5");
@@ -62,6 +62,14 @@ int main(int argc, char *argv[]) {
     }
     catch(lk::RuntimeError const &e) {
         // We expect this since commas are not allowed in names.
+        std::cout << "Got expected RuntimeError" << std::endl;
+    }    
+    try {
+        lk::modifyFitParameters(params,"release [aram*]");
+    }
+    catch(lk::RuntimeError const &e) {
+        // We expect this since the pattern does not match any names.
+        std::cout << "Got expected RuntimeError" << std::endl;
     }
     
     TestModel model;

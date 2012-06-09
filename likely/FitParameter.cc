@@ -7,6 +7,7 @@
 #include "boost/function.hpp"
 #include "boost/bind.hpp"
 #include "boost/regex.hpp"
+#include "boost/foreach.hpp"
 #include "boost/spirit/include/qi.hpp"
 #include "boost/spirit/include/phoenix_core.hpp"
 #include "boost/spirit/include/phoenix_operator.hpp"
@@ -34,6 +35,9 @@ local::FitParameter::FitParameter(std::string const &name, double value, double 
     boost::regex pattern(std::string("[") + getValidNameCharacters() + "]+");
     if(!boost::regex_match(name,pattern)) {
         throw RuntimeError("FitParameter: name uses invalid characters \"" + name + "\"");
+    }
+    if('*' == name[name.size()-1]) {
+        throw RuntimeError("FitParameter: name cannot end with asterisk.");
     }
     setValue(value);
     setError(error);
@@ -134,7 +138,7 @@ namespace fitpar {
 
         FitParameters &params;
         std::string theName;
-        int index;
+        std::vector<int> selected;
         
         void beginName() {
             theName.clear();
@@ -143,23 +147,40 @@ namespace fitpar {
             theName += c;
         }
         void endName() {
-            index = findFitParameterByName(params,theName);
+            selected.resize(0);
+            if('*' == theName[theName.size()-1]) {
+                theName.erase(theName.end()-1);
+                boost::regex pattern(std::string("^\\Q")+theName+"\\E");
+                for(int index = 0; index < params.size(); ++index) {
+                    if(boost::regex_search(params[index].getName(),pattern)) {
+                        selected.push_back(index);
+                    }
+                }
+                if(selected.empty()) {
+                    throw RuntimeError("FitParameter: wildcard pattern must match at least one name.");
+                }
+            }
+            else {
+                selected.push_back(findFitParameterByName(params,theName));
+            }
         }
         void setValue(double value) {
-            params[index].setValue(value);
+            BOOST_FOREACH(int index, selected) params[index].setValue(value);
         }
         void setError(double error) {
-            params[index].setError(error);
+            BOOST_FOREACH(int index, selected) params[index].setError(error);
         }
         void fix() {
-            params[index].fix();
+            BOOST_FOREACH(int index, selected) params[index].fix();
         }
         void fixat(double value) {
-            params[index].setValue(value);
-            params[index].fix();
+            BOOST_FOREACH(int index, selected) {
+                params[index].setValue(value);
+                params[index].fix();
+            }
         }
         void release() {
-            params[index].release();
+            BOOST_FOREACH(int index, selected) params[index].release();
         }
     };
 } // grammar
