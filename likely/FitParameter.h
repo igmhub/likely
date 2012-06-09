@@ -16,7 +16,9 @@ namespace likely {
 	// from this class.
 	public:
 	    // Creates a new FitParameter or throws a RuntimeError if the optional error
-	    // is negative. Zero error implies that the parameter is fixed.
+	    // is negative or the name uses invalid characters. The valid characters are
+	    // " a-zA-Z0-9()*/+-", and a name cannot end with an asterisk. A zero error
+	    // implies that the parameter is fixed.
 		FitParameter(std::string const &name, double value, double error = 0);
         // Returns a copy of this parameter's name.
         std::string getName() const;
@@ -85,7 +87,9 @@ namespace likely {
     // Multiple commands separated by semicolons are executed in the order they appear.
     // Command verbs (value,error,fix,release) are case sensitive. Arbitrary whitespace
     // is allowed between tokens, except within names delimited by [ ], where whitespace
-    // is considered part of the name.
+    // is considered part of the name. If <name> ends with an asterisk, it is interpreted
+    // as a wildcard that matches zero or more trailing characters, and must match at
+    // least one parameter name.
     void modifyFitParameters(FitParameters &parameters, std::string const &script);
 
 } // likely

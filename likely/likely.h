@@ -28,6 +28,7 @@
 #include "likely/BinnedDataResampler.h"
 
 #include "likely/FitParameter.h"
+#include "likely/FitModel.h"
 #include "likely/AbsEngine.h"
 #include "likely/FunctionMinimum.h"
 

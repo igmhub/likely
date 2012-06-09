@@ -40,13 +40,16 @@ namespace likely {
 		// Returns the fixed size of this covariance matrix.
         int getSize() const;
         // Returns the specified (inverse) covariance matrix element or throws a RuntimeError.
-        // (row,col) and (col,row) give the same result by construction.
+        // (row,col) and (col,row) give the same result by construction. Be aware that
+        // going back and forth between Covariance and InverseCovariance operations requires
+        // potentially expensive matrix operations.
         double getCovariance(int row, int col) const;
         double getInverseCovariance(int row, int col) const;
         // Sets the specified (inverse) covariance matrix element or throws a RuntimeError.
         // Row and column indices should be in the range [0,size-1]. Setting any element with
         // row != col will also set the symmetric element in the matrix. Diagonal elements
-        // (row == col) must be positive.
+        // (row == col) must be positive. Be aware that going back and forth between Covariance
+        // and InverseCovariance operations requires potentially expensive matrix operations.
         void setCovariance(int row, int col, double value);
         void setInverseCovariance(int row, int col, double value);
 

@@ -16,6 +16,9 @@ namespace likely {
 	class Interpolator {
 	public:
         typedef std::vector<double> CoordinateValues;
+        // Creates a new interpolator from the specified x,y vectors. Supported algorithms are
+        // described at http://www.gnu.org/software/gsl/manual/html_node/Interpolation-Types.html
+        // (but with the gsl_interp_ prefix ommitted from the GSL function name).
         Interpolator(CoordinateValues const &x, CoordinateValues const &y,
             std::string const &algorithm);
         virtual ~Interpolator();
