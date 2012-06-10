@@ -146,7 +146,7 @@ likelywsum_OBJECTS = $(am_likelywsum_OBJECTS)
 am_test_OBJECTS = test.$(OBJEXT) CovarianceMatrixTest.$(OBJEXT) \
 	UniformBinningTest.$(OBJEXT) UniformSamplingTest.$(OBJEXT) \
 	NonUniformBinningTest.$(OBJEXT) \
-	NonUniformSamplingTest.$(OBJEXT)
+	NonUniformSamplingTest.$(OBJEXT) BinnedDataTest.$(OBJEXT)
 test_OBJECTS = $(am_test_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -415,7 +415,8 @@ test_SOURCES = test/test.cc \
 	test/UniformBinningTest.cc \
 	test/UniformSamplingTest.cc \
 	test/NonUniformBinningTest.cc \
-	test/NonUniformSamplingTest.cc
+	test/NonUniformSamplingTest.cc \
+	test/BinnedDataTest.cc
 
 test_DEPENDENCIES = $(lib_LIBRARIES)
 test_LDADD = -lboost_unit_test_framework -L. -llikely
@@ -620,6 +621,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BinnedData.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BinnedDataResampler.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BinnedDataTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceMatrix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceMatrixTest.Po@am__quote@
@@ -1130,6 +1132,20 @@ NonUniformSamplingTest.obj: test/NonUniformSamplingTest.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/NonUniformSamplingTest.cc' object='NonUniformSamplingTest.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o NonUniformSamplingTest.obj `if test -f 'test/NonUniformSamplingTest.cc'; then $(CYGPATH_W) 'test/NonUniformSamplingTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/NonUniformSamplingTest.cc'; fi`
+
+BinnedDataTest.o: test/BinnedDataTest.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT BinnedDataTest.o -MD -MP -MF $(DEPDIR)/BinnedDataTest.Tpo -c -o BinnedDataTest.o `test -f 'test/BinnedDataTest.cc' || echo '$(srcdir)/'`test/BinnedDataTest.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/BinnedDataTest.Tpo $(DEPDIR)/BinnedDataTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/BinnedDataTest.cc' object='BinnedDataTest.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BinnedDataTest.o `test -f 'test/BinnedDataTest.cc' || echo '$(srcdir)/'`test/BinnedDataTest.cc
+
+BinnedDataTest.obj: test/BinnedDataTest.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT BinnedDataTest.obj -MD -MP -MF $(DEPDIR)/BinnedDataTest.Tpo -c -o BinnedDataTest.obj `if test -f 'test/BinnedDataTest.cc'; then $(CYGPATH_W) 'test/BinnedDataTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/BinnedDataTest.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/BinnedDataTest.Tpo $(DEPDIR)/BinnedDataTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/BinnedDataTest.cc' object='BinnedDataTest.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BinnedDataTest.obj `if test -f 'test/BinnedDataTest.cc'; then $(CYGPATH_W) 'test/BinnedDataTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/BinnedDataTest.cc'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

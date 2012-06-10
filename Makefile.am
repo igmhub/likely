@@ -147,6 +147,7 @@ test_SOURCES = test/test.cc \
 	test/UniformBinningTest.cc \
 	test/UniformSamplingTest.cc \
 	test/NonUniformBinningTest.cc \
-	test/NonUniformSamplingTest.cc
+	test/NonUniformSamplingTest.cc \
+	test/BinnedDataTest.cc
 test_DEPENDENCIES = $(lib_LIBRARIES)
 test_LDADD = -lboost_unit_test_framework -L. -llikely
