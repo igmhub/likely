@@ -31,11 +31,13 @@ namespace likely {
         // as reported by setParameterValue() or returned by getParameterValue().
         virtual void configureFitParameters(std::string const &script);
         // Finds the minimum of the specified function with respect to our parameters,
-        // using the specified method. Use the configure method to change the initial (default)
-        // parameter values and errors. Note that, depending on how fptr is implemented, our
-        // current parameter values might change as a result of this operation, but our
-        // parameter configuration is guaranteed not to change.
-        FunctionMinimumPtr findMinimum(FunctionPtr fptr, std::string const &method);
+        // using the specified method. Use the configureFitParameters method to change the initial
+        // parameter values and errors for this and subsequent minimizations, or provide an optional
+        // config script to make one-time changes that only apply to this minimization. Note that,
+        // depending on how fptr is implemented, our current parameter values might change as a result
+        // of this operation, but our parameter configuration is guaranteed not to change.
+        FunctionMinimumPtr findMinimum(FunctionPtr fptr, std::string const &method,
+            std::string const &oneTimeConfig = "");
         // Returns the current value of the named parameter, or throws a RuntimeError for an
         // invalid parameter name. If no value has ever been set, the default value specified
         // when this parameter was first defined is returned. Calls to configureFitParmeters()
