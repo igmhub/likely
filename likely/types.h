@@ -60,6 +60,10 @@ namespace likely {
     class AbsAccumulator;
     typedef boost::shared_ptr<AbsAccumulator> AbsAccumulatorPtr;
     
+    // Represents a smart pointer to a fit parameter statistics object.
+    class FitParameterStatistics;
+    typedef boost::shared_ptr<FitParameterStatistics> FitParameterStatisticsPtr;
+    
 } // likely
 
 #endif // LIKELY_TYPES
