@@ -637,3 +637,15 @@ void local::CovarianceMatrix::addInverse(CovarianceMatrix const &other, double w
         }
     }
 }
+
+int local::CovarianceMatrix::getNElements() const {
+    // Prepare to read from the covariance matrix, and return zero if nothing has
+    // been allocated yet.
+    if(!_readsCov()) return 0;
+    // Loop over all elements.
+    int nelem(0);
+    for(int index = 0; index < _ncov; ++index) {
+        if(_cov[index] != 0) nelem++;
+    }
+    return nelem;
+}

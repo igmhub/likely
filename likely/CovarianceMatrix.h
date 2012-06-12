@@ -39,6 +39,8 @@ namespace likely {
 
 		// Returns the fixed size of this covariance matrix.
         int getSize() const;
+        // Returns the number of non-zero covariance matrix elements stored in this object.
+        int getNElements() const;
         // Returns the specified (inverse) covariance matrix element or throws a RuntimeError.
         // (row,col) and (col,row) give the same result by construction. Be aware that
         // going back and forth between Covariance and InverseCovariance operations requires
