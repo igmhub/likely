@@ -100,6 +100,8 @@ local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCov
     _random.sampleWithReplacement(_counts,size);
     // Create an empty dataset with the right axis binning.
     BinnedDataPtr resample(_observations[0]->clone(true));
+    // We cannot fix a non-existent covariance.
+    if(!resample->hasCovariance()) fixCovariance = false;
     // Initialize matrix needed to fix final covariance.
     likely::CovarianceMatrixPtr D;
     int nbins = _observations[0]->getNBinsWithData();
