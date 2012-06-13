@@ -237,6 +237,9 @@ namespace likely {
         // Our data vector which might be weighted.
         mutable std::vector<double> _data;
         CovarianceMatrixPtr _covariance;
+        // In case we have no covariance, we need a scalar that plays the role of Cinv, to
+        // implement weighted operations such as add() and chiSquare().
+        double _weight;
         // Is our _data vector weighted by _Cinv?
         mutable bool _weighted;
         // Have we been finalized?
