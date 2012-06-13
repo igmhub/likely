@@ -67,8 +67,21 @@ bool local::getSubset(int n, unsigned long seqno, std::vector<int> &subset) {
     return true;
 }
 
-// This should not be random. Instead: jackknife(int ndrop, int &seqno) updates seqno to
-// iterate over all ways to drop ndrop observations and returns an empty ptr after the last one.
+local::BinnedDataCPtr local::BinnedDataResampler::getObservation(int index) const {
+    if(index < 0 || index >= getNObservations()) {
+        throw RuntimeError("BinnedDataResampler::getObservation: index of our range.");
+    }
+    return _observations[index];
+}
+
+local::BinnedDataPtr local::BinnedDataResampler::getObservationCopy(int index) const {
+    if(index < 0 || index >= getNObservations()) {
+        throw RuntimeError("BinnedDataResampler::getObservation: index of our range.");
+    }
+    BinnedDataPtr copy(_observations[index]->clone());
+    return copy;
+}
+
 local::BinnedDataPtr local::BinnedDataResampler::jackknife(int ndrop, unsigned long seqno) const {
     int nobs(_observations.size());
     if(ndrop < 0 || ndrop >= nobs) {
