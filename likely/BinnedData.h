@@ -188,7 +188,8 @@ namespace likely {
         // Calculates the chi-square = (data-pred).Cinv.(data-pred) for the specified
         // vector of predicted data, or throws a RuntimeError. The predicted data vector
         // must use the same index sequence as our index iterator. (The copy by value
-        // used here is an optimization, not a mistake.)
+        // used here is an optimization, not a mistake.) If no covariance is available,
+        // then Cinv=identity is assumed.
         double chiSquare(std::vector<double> pred) const;
         
         // Prunes our data to the subset of bins listed by their global index in the
@@ -236,6 +237,9 @@ namespace likely {
         // Our data vector which might be weighted.
         mutable std::vector<double> _data;
         CovarianceMatrixPtr _covariance;
+        // In case we have no covariance, we need a scalar that plays the role of Cinv, to
+        // implement weighted operations such as add() and chiSquare().
+        double _weight;
         // Is our _data vector weighted by _Cinv?
         mutable bool _weighted;
         // Have we been finalized?

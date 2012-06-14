@@ -15,6 +15,7 @@ noinst_PROGRAMS = demo1 demo2
 liblikely_la_SOURCES = \
 	likely/FitParameter.cc \
 	likely/FitModel.cc \
+	likely/FitParameterStatistics.cc \
 	likely/FunctionMinimum.cc \
 	likely/AbsEngine.cc \
 	likely/EngineRegistry.cc \
@@ -49,6 +50,7 @@ nobase_include_HEADERS = \
 	likely/RuntimeError.h \
 	likely/FitParameter.h \
 	likely/FitModel.h \
+	likely/FitParameterStatistics.h \
 	likely/FunctionMinimum.h \
 	likely/AbsEngine.h \
 	likely/EngineRegistry.h \

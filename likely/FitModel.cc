@@ -47,8 +47,19 @@ void local::FitModel::configureFitParameters(std::string const &script) {
     modifyFitParameters(_parameters,script);
 }
 
-local::FunctionMinimumPtr local::FitModel::findMinimum(FunctionPtr fptr, std::string const &method) {
-    return local::findMinimum(fptr, _parameters, method);
+local::FunctionMinimumPtr local::FitModel::findMinimum(FunctionPtr fptr, std::string const &method,
+std::string const &oneTimeConfig) {
+    if(0 < oneTimeConfig.length()) {
+        // Apply the config script to a copy of our parameters.
+        FitParameters modified(_parameters);
+        modifyFitParameters(modified,oneTimeConfig);
+        // Minimize using the modified parameters.
+        return local::findMinimum(fptr, modified, method);
+    }
+    else {
+        // Minimize using un-modified parameters.
+        return local::findMinimum(fptr, _parameters, method);
+    }
 }
 
 int local::FitModel::_checkIndex(int index) const {

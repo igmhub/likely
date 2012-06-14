@@ -29,6 +29,7 @@
 
 #include "likely/FitParameter.h"
 #include "likely/FitModel.h"
+#include "likely/FitParameterStatistics.h"
 #include "likely/AbsEngine.h"
 #include "likely/FunctionMinimum.h"
 

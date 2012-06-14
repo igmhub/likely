@@ -27,6 +27,9 @@ namespace likely {
         double getMinValue() const;
         // Returns a copy of our FitParameters.
         FitParameters getFitParameters() const;
+        // Returns the number of fit parameters. If onlyFloating is true, only the number
+        // of floating parameters is returned.
+        int getNParameters(bool onlyFloating = false) const;
 		// Returns a vector of parameter values at this minimum. If onlyFloating is true, only
 		// the values of floating parameters are included in the returned vector.
         Parameters getParameters(bool onlyFloating = false) const;
@@ -101,6 +104,9 @@ namespace likely {
     }
     inline FunctionMinimum::Status FunctionMinimum::getStatus() const { return _status; }
     inline std::string FunctionMinimum::getStatusMessage() const { return _statusMessage; }
+    inline int FunctionMinimum::getNParameters(bool onlyFloating) const {
+        return onlyFloating ? _nFloating : _parameters.size();
+    }
 	
 } // likely
 

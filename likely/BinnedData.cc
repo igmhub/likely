@@ -55,6 +55,7 @@ void local::BinnedData::_initialize() {
         _nbins *= binning->getNBins();
     }
     _offset.resize(_nbins,EMPTY_BIN);
+    _weight = 1;
     _weighted = false;
     _finalized = false;
 }
@@ -81,6 +82,7 @@ void local::swap(BinnedData& a, BinnedData& b) {
     swap(a._index,b._index);
     swap(a._data,b._data);
     swap(a._covariance,b._covariance);
+    swap(a._weight,b._weight);
     swap(a._weighted,b._weighted);
     swap(a._finalized,b._finalized);
 }
@@ -116,36 +118,39 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
         // If the other dataset has a covariance matrix, initialize ours now.
         if(other.hasCovariance()) {
             _covariance.reset(new CovarianceMatrix(getNBinsWithData()));
-            // Our zero data vector should be interpreted as Cinv.data for the
-            // purposes of adding to the other dataset, below.
-            _weighted = true;
         }
+        else {
+            // The scalar _weight plays the role of Cinv in the absence of any _covariance.
+            // This assignment should be redundant with the ctor assignment.
+            _weight = 1;
+        }
+        // Our zero data vector should be interpreted as Cinv.data for the
+        // purposes of adding to the other dataset, below. We don't call _setWeighted here
+        // because we don't actually want to transform the existing _data.
+        _weighted = true;
     }
     else {
-        // We already have data, so try to add the other data to ours.
+        // We already have data, so we will try to add the other data to ours.
         if(!isCongruent(other)) {
             throw RuntimeError("BinnedData::add: datasets are not congruent.");
         }
-    }
-    // Do we have a covariance matrix to use for weighting?
-    if(!hasCovariance()) {
-        // Add data bin by bin when neither dataset has a covariance matrix.
-        for(int offset = 0; offset < _index.size(); ++offset) {
-            _data[offset] += weight*other._data[offset];
-        }
-    }
-    else {
-        if(!isCovarianceModifiable()) {
+        // If we have a covariance, it must be modifiable.
+        if(hasCovariance() && !isCovarianceModifiable()) {
             throw RuntimeError("BinnedData::add: cannot modify shared covariance.");
         }
-        // Add the weighted _data vectors, element by element, and save the result in our _data.
-        _setWeighted(true);
-        other._setWeighted(true);
-        for(int offset = 0; offset < _data.size(); ++offset) {
-            _data[offset] += weight*other._data[offset];
-        }
+    }
+    // Add the weighted _data vectors, element by element, and save the result in our _data.
+    _setWeighted(true);
+    other._setWeighted(true);
+    for(int offset = 0; offset < _data.size(); ++offset) {
+        _data[offset] += weight*other._data[offset];
+    }
+    if(hasCovariance()) {
         // Add Cinv matrices and save the result as our new Cinv matrix.
-        _covariance->addInverse(*other._covariance,weight);
+        _covariance->addInverse(*other._covariance,weight);        
+    }
+    else {
+        _weight += other._weight*weight;
     }
     return *this;
 }
@@ -153,15 +158,24 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
 void local::BinnedData::_setWeighted(bool weighted) const {
     // Are we already in the desired state?
     if(weighted == _weighted) return;
-    // Do we need to do any work to change state?
-    if(hasCovariance() && getNBinsWithData() > 0) {
-        if(weighted) {
+    if(weighted) {
+        if(hasCovariance() && getNBinsWithData() > 0) {
             // Change data to Cinv.data
             _covariance->multiplyByInverseCovariance(_data);
         }
-        else {
+        else if(_weight != 1) {
+            // Scale data by _weight, which plays the role of Cinv.
+            for(int offset = 0; offset < _data.size(); ++offset) _data[offset] *= _weight;
+        }
+    }
+    else {
+        if(hasCovariance() && getNBinsWithData() > 0) {
             // Change Cinv.data to data = C.Cinv.data
             _covariance->multiplyByCovariance(_data);
+        }
+        else if(_weight != 1) {
+            // Scale data by 1/_weight, which plays the role of C.
+            for(int offset = 0; offset < _data.size(); ++offset) _data[offset] /= _weight;
         }
     }
     // Record our new state.
@@ -446,18 +460,17 @@ void local::BinnedData::prune(std::set<int> const &keep) {
 }
 
 double local::BinnedData::chiSquare(std::vector<double> pred) const {
-    if(!hasCovariance()) {
-        throw RuntimeError("BinnedData::chiSquare: no covariance available.");
-    }
     if(pred.size() != getNBinsWithData()) {
         throw RuntimeError("BinnedData::chiSquare: prediction vector has wrong size.");
     }
     // Subtract our data vector from the prediction.
     IndexIterator nextIndex(begin());
     std::vector<double>::iterator nextPred(pred.begin());
+    double residual, unweighted(0);
     while(nextIndex != end()) {
-        *nextPred++ -= getData(*nextIndex++);
+        residual = (*nextPred++ -= getData(*nextIndex++));
+        unweighted += residual*residual;
     }
     // Our input vector now holds deltas. Our covariance does the rest of the work.
-    return _covariance->chiSquare(pred);
+    return hasCovariance() ? _covariance->chiSquare(pred) : unweighted*_weight;
 }
