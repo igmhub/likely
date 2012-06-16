@@ -8,6 +8,8 @@
 
 #include <cassert>
 #include <iostream>
+#include <fstream>
+#include <cmath>
 
 namespace lk = likely;
 namespace po = boost::program_options;
@@ -33,11 +35,35 @@ private:
     int _ndim;
 };
 
+class Fitter {
+public:
+    Fitter(Model &model) : _model(model) { }
+    lk::FunctionMinimumPtr fit(lk::BinnedDataCPtr data) {
+        _data = data;
+        lk::FunctionPtr fptr(new lk::Function(*this));
+        return _model.findMinimum(fptr,"mn2::vmetric");
+    }
+    // Returns chiSquare/2 for the specified model parameter values.
+    double operator()(lk::Parameters const &params) const {
+        assert(params.size() == _model.getNParameters());
+        std::vector<double> point, prediction;
+        for(lk::BinnedData::IndexIterator iter = _data->begin(); iter != _data->end(); ++iter) {
+            int index(*iter);
+            _data->getBinCenters(index,point);
+            prediction.push_back(_model.evaluate(point,params));
+        }
+        return 0.5*_data->chiSquare(prediction);
+    }
+private:
+    Model &_model;
+    lk::BinnedDataCPtr _data;
+};
+
 int main(int argc, char **argv) {
     
     // Configure command-line option processing
-    int ndim,nbin,ndata,seed;
-    double range,sigma0;
+    int ndim,nbin,ndata,ntrial,seed;
+    double range,sigma0,covScale;
     po::options_description cli("Resampling methods test program");
     cli.add_options()
         ("help,h", "Prints this info and exits.")
@@ -47,8 +73,11 @@ int main(int argc, char **argv) {
         ("range", po::value<double>(&range)->default_value(2),
             "Data spans [-range,+range] in each dimension.")
         ("ndata", po::value<int>(&ndata)->default_value(10),"Number of random datasets to generate.")
+        ("ntrial", po::value<int>(&ntrial)->default_value(100), "Number of bootstrap trials to fit.")
         ("sigma0", po::value<double>(&sigma0)->default_value(1),
             "True value of sigma used to generate random datasets.")
+        ("cov-scale", po::value<double>(&covScale)->default_value(100),
+            "Scale of random dataset covariances to generate.")
         ("seed", po::value<int>(&seed)->default_value(123),
             "Random seed for generating initial parameter values.")
         ;
@@ -76,6 +105,9 @@ int main(int argc, char **argv) {
         std::cerr << "Expected nbin > 0." << std::endl;
         return -1;
     }
+    if(ntrial <= 0) {
+        std::cerr << "Expected ntrial > 0." << std::endl;
+    }
     if(range <= 0) {
         std::cerr << "Expected range > 0." << std::endl;
         return -1;
@@ -86,12 +118,9 @@ int main(int argc, char **argv) {
     }
 
     try {
-        // Initialize our random engine.
-        lk::Random &random = lk::Random::instance();
-        random.setSeed(seed);
-        
-        // Create the model.
+        // Create the model and fitter we will use.
         Model model(ndim);
+        Fitter fitter(model);
         
         // Create a prototype dataset.
         std::vector<lk::AbsBinningCPtr> axes;
@@ -108,6 +137,8 @@ int main(int argc, char **argv) {
             prototype->getBinCenters(index,point);
             prototype->setData(index,model.evaluate(point,params));
         }
+        int size(prototype->getNBinsWithData());
+        std::cout << "Data has " << size << " bins with data." << std::endl;
         
         // Create our resampler.
         lk::BinnedDataResampler resampler(seed);
@@ -117,8 +148,7 @@ int main(int argc, char **argv) {
             // Clone our prototype.
             lk::BinnedDataPtr data(prototype->clone());
             // Generate a random covariance matrix with determinant 1 for this dataset.
-            lk::CovarianceMatrixPtr covariance =
-                lk::generateRandomCovariance(data->getNBinsWithData(),seed);
+            lk::CovarianceMatrixPtr covariance = lk::generateRandomCovariance(size,seed,covScale);
             data->setCovarianceMatrix(covariance);
             // Sample the covariance to generate random offset for each bin.
             boost::shared_array<double> offsets = covariance->sample(1,seed);
@@ -130,6 +160,23 @@ int main(int argc, char **argv) {
             resampler.addObservation(data);
         }
         std::cout << "Resampling " << resampler.getNObservations() << " observations." << std::endl;
+        
+        // Fit the combined data.
+        lk::BinnedDataCPtr combined = resampler.combined();
+        lk::FunctionMinimumPtr combinedFit = fitter.fit(combined);
+        combinedFit->printToStream(std::cout);
+        
+        // Loop over bootstrap trials.
+        lk::Parameters fitted;
+        std::ofstream out("bstrials.dat");
+        out << "sigma" << std::endl;
+        for(int i = 0; i < ntrial; ++i) {
+            lk::BinnedDataCPtr sample = resampler.bootstrap(ndata);
+            lk::FunctionMinimumPtr sampleFit = fitter.fit(sample);
+            fitted = sampleFit->getParameters(true);
+            out << fitted[0] << std::endl;
+        }
+        out.close();
     }
     catch(lk::RuntimeError const &e) {
         std::cerr << e.what() << std::endl;
