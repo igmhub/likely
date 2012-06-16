@@ -202,10 +202,10 @@ namespace likely {
     // is assumed to be in the BLAS packed format implied by packedMatrixIndex(row,col).
     static void symmetricMatrixMultiply(std::vector<double> const &matrix,
         std::vector<double> const &vector, std::vector<double> &result);
-    // Generates a random symmetric positive-definite matrix with the specified determinant.
-    // Uses the random generator provided or else the default Random::instance().
-    CovarianceMatrixPtr generateRandomCovariance(int size, double determinant = 1,
-        Random *random = 0);
+    // Generates a random symmetric positive-definite matrix with the specified determinant
+    // and random seed. The input seed will be updated to a new value that can be used for
+    // subsequent calls.
+    CovarianceMatrixPtr generateRandomCovariance(int size, int &seed, double determinant = 1);
 
 } // likely
 

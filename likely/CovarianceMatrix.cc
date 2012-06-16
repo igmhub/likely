@@ -554,32 +554,29 @@ void local::CovarianceMatrix::replaceWithTripleProduct(CovarianceMatrix const &o
     }
 }
 
-local::CovarianceMatrixPtr local::generateRandomCovariance(int size, double determinant, Random *random) {
+local::CovarianceMatrixPtr local::generateRandomCovariance(int size, int &seed, double determinant) {
     if(size <= 0) {
         throw RuntimeError("generateRandomCovariance: expected size > 0.");
     }
     if(determinant <= 0) {
         throw RuntimeError("generateRandomCovariance: expected determinant > 0.");
     }
-    // Use the default generator if none was specified.
-    if(0 == random) random = &Random::instance();
-    // Allocate the storage we will need.
+    // Initialize the storage we will need.
+    int sizeSq(size*size);
     CovarianceMatrixPtr C(new CovarianceMatrix(size));
-    std::vector<double> M;
-    M.reserve(size*size);
-    std::vector<double> MtM(size*size);
+    boost::shared_array<double> M;
+    std::vector<double> MtM(sizeSq);
     // Loop over trials to generate a positive-definite random matrix.
     int ntrials(0), maxtrials(10);
+    size_t nrandom(sizeSq);
     while(ntrials++ < maxtrials) {
         // Generate a random matrix M
-        M.resize(0);
-        for(int index = 0; index < size*size; ++index) {
-            // Elements are uniformly distributed on [-0.5,+0.5). The range used here is irrelevant
-            // since we will be rescaling to get the desired determinant. However, the choice of a
-            // uniform distribution does determine the distribution properties of the generated
-            // covariance matrices. Might want to provide an option for e.g, Gaussian instead?
-            M.push_back(random->getUniform()-0.5);
-        }
+        M = Random::fillDoubleArrayUniform(nrandom,seed++);
+        // Offset [0,1) to [-0.5,+0.5). The range used here is irrelevant
+        // since we will be rescaling to get the desired determinant. However, the choice of a
+        // uniform distribution does determine the distribution properties of the generated
+        // covariance matrices. Might want to provide an option for e.g, Gaussian instead?
+        for(int index = 0; index < sizeSq; ++index) M[index] -= 0.5;
 
         // Mt.M is positive definite iff M is invertible (i.e., has full rank and no zero singular values)
         // At this point, we can either calculate the singular values with BLAS DGESVD or go ahead and
