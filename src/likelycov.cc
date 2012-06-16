@@ -26,7 +26,8 @@ int main(int argc, char **argv) {
     cov.setCovariance(0,1,0.1);
     cov.setCovariance(1,2,-0.2);
     std::cout << cov.getMemoryState() << std::endl;
-    cov.sample(1);
+    int seed(123);
+    cov.sample(1,seed);
     std::cout << cov.getMemoryState() << std::endl;
     
     lk::CovarianceMatrix empty(size);
@@ -123,7 +124,8 @@ int main(int argc, char **argv) {
     
     {
         getrusage(RUSAGE_SELF,&t1);
-        boost::shared_array<double> residuals = cov.sample(nsample);
+        int seed(123);
+        boost::shared_array<double> residuals = cov.sample(nsample,seed);
         getrusage(RUSAGE_SELF,&t2);
         lk::CovarianceAccumulator accum(size);
         for(int row = 0; row < nsample; ++row) {
@@ -153,17 +155,19 @@ int main(int argc, char **argv) {
 
     {
         lk::CovarianceMatrixCPtr R;
+        int seed(123);
         for(int k = 0; k < 100; ++k) {
             // Generate a random covariance and check its determinant.
-            R = lk::generateRandomCovariance(10,2.);
-            std::cout << "det(R) = " << R->getDeterminant() << std::endl;
+            R = lk::generateRandomCovariance(10,seed,2.);
         }
         R->printToStream(std::cout);
+        std::cout << "det(R) = " << R->getDeterminant() << std::endl;
     }
 
     // Benchmark single samples
     int ntrial = 10000;
     {
+        int seed(123);
         std::vector<double> delta(size);
         boost::shared_array<double> delta2;
         for(nsample = 1; nsample <= 50; ++nsample) {
@@ -175,7 +179,7 @@ int main(int argc, char **argv) {
             }
             getrusage(RUSAGE_SELF,&t2);
             for(int trial = 0; trial < ntrial; ++trial) {
-                delta2 = cov.sample(nsample);
+                delta2 = cov.sample(nsample,seed);
             }
             getrusage(RUSAGE_SELF,&t3);
             int ntot(nsample*ntrial);
