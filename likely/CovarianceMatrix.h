@@ -66,6 +66,8 @@ namespace likely {
         // or throws a RuntimeError.
         double chiSquare(std::vector<double> const &delta) const;
 
+        // Multiplies all elements of the covariance matrix by the specified positive scale factor.
+        void applyScaleFactor(double scaleFactor);
         // Replaces the original covariance matrix contents C with the triple matrix
         // product A.Cinv.A for the specified other covariance matrix A. For A,C both positive
         // definite, the result is a new (positive definite) covariance matrix.

@@ -662,3 +662,13 @@ double local::CovarianceMatrix::getDeterminant() const {
     return det;
 }
 
+void local::CovarianceMatrix::applyScaleFactor(double scaleFactor) {
+    if(scaleFactor <= 0) {
+        throw RuntimeError("CovarianceMatrix::applyScaleFactor: expected scaleFactor > 0.");
+    }
+    if(!_readsCov()) {
+        throw RuntimeError("CovarianceMatrix::applyScaleFactor: no elements have been set.");
+    }
+    _changesCov();
+    for(int index = 0; index < _ncov; ++index) _cov[index] *= scaleFactor;
+}
