@@ -32,7 +32,7 @@ extern "C" {
 namespace local = likely;
 
 local::CovarianceMatrix::CovarianceMatrix(int size)
-: _size(size), _compressed(false), _nextSeed(0)
+: _size(size), _compressed(false)
 {
     if(size <= 0) {
         throw RuntimeError("CovarianceMatrix: expected size > 0.");
@@ -43,7 +43,7 @@ local::CovarianceMatrix::CovarianceMatrix(int size)
 }
 
 local::CovarianceMatrix::CovarianceMatrix(std::vector<double> packed)
-: _ncov(packed.size()), _compressed(false), _nextSeed(0)
+: _ncov(packed.size()), _compressed(false)
 {
     if(_ncov == 0) {
         throw RuntimeError("CovarianceMatrix: expected packed size > 0.");
@@ -78,7 +78,6 @@ void local::swap(CovarianceMatrix& a, CovarianceMatrix& b) {
     swap(a._diag,b._diag);
     swap(a._offdiagIndex,b._offdiagIndex);
     swap(a._offdiagValue,b._offdiagValue);
-    swap(a._nextSeed,b._nextSeed);
 }
 
 size_t local::CovarianceMatrix::getMemoryUsage() const {
@@ -617,7 +616,7 @@ local::CovarianceMatrixPtr local::generateRandomCovariance(int size, double dete
     return C;
 }
 
-boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int seed) const {
+boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int &seed) const {
     if(nsample <= 0) {
         throw RuntimeError("CovarianceMatrix: expected nsample > 0.");
     }
@@ -635,8 +634,7 @@ boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int see
     }
     // Generate double-precision normally distributed (but uncorrelated) random numbers.
     std::size_t nrandom(nsample*_size), ngen(nrandom);
-    if(0 == seed) seed = ++_nextSeed;
-    boost::shared_array<double> array = Random::fillDoubleArrayNormal(ngen,seed);
+    boost::shared_array<double> array = Random::fillDoubleArrayNormal(ngen,seed++);
     // Consider this array to be a rectangular matrix M of dimensions _size x nsample and
     // calculate (expanded).(M) to obtain a new matrix of dimensions _size x nsample
     // containing correlated residual vectors of length _size in each of its nsample columns.
