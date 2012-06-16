@@ -151,6 +151,16 @@ int main(int argc, char **argv) {
         accum.getCovariance()->printToStream(std::cout);
     }
 
+    {
+        lk::CovarianceMatrixCPtr R;
+        for(int k = 0; k < 100; ++k) {
+            // Generate a random covariance and check its determinant.
+            R = lk::generateRandomCovariance(10,2.);
+            std::cout << "det(R) = " << R->getDeterminant() << std::endl;
+        }
+        R->printToStream(std::cout);
+    }
+
     // Benchmark single samples
     int ntrial = 10000;
     {
@@ -173,4 +183,5 @@ int main(int argc, char **argv) {
                 << 1e3*elapsed(t2,t3)/ntot << std::endl;
         }
     }
+    
 }

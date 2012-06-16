@@ -555,6 +555,68 @@ void local::CovarianceMatrix::replaceWithTripleProduct(CovarianceMatrix const &o
     }
 }
 
+local::CovarianceMatrixPtr local::generateRandomCovariance(int size, double determinant, Random *random) {
+    if(size <= 0) {
+        throw RuntimeError("generateRandomCovariance: expected size > 0.");
+    }
+    if(determinant <= 0) {
+        throw RuntimeError("generateRandomCovariance: expected determinant > 0.");
+    }
+    // Use the default generator if none was specified.
+    if(0 == random) random = &Random::instance();
+    // Allocate the storage we will need.
+    CovarianceMatrixPtr C(new CovarianceMatrix(size));
+    std::vector<double> M;
+    M.reserve(size*size);
+    std::vector<double> MtM(size*size);
+    // Loop over trials to generate a positive-definite random matrix.
+    int ntrials(0), maxtrials(10);
+    while(ntrials++ < maxtrials) {
+        // Generate a random matrix M
+        M.resize(0);
+        for(int index = 0; index < size*size; ++index) {
+            // Elements are uniformly distributed on [-0.5,+0.5). The range used here is irrelevant
+            // since we will be rescaling to get the desired determinant. However, the choice of a
+            // uniform distribution does determine the distribution properties of the generated
+            // covariance matrices. Might want to provide an option for e.g, Gaussian instead?
+            M.push_back(random->getUniform()-0.5);
+        }
+
+        // Mt.M is positive definite iff M is invertible (i.e., has full rank and no zero singular values)
+        // At this point, we can either calculate the singular values with BLAS DGESVD or go ahead and
+        // calculate Mt.M and then check that it can be Cholesky decomposed. We do the latter since
+        // the Cholesky decomposition will be cached and is potentially useful.
+    
+        // Multiply Mt.M to get a symmetric matrix that will be positive definite if M is invertible.
+        char uplo = 'U', trans = 'T';
+        double alpha(1),beta(0);
+        dsyrk_(&uplo,&trans,&size,&size,&alpha,&M[0],&size,&beta,&MtM[0],&size);
+    
+        // Copy the upper triangle of MtM into a new CovarianceMatrix.
+        // Loop over elements.
+        for(int col = 0; col < size; ++col) {
+            for(int row = 0; row <= col; ++row) {
+                C->setCovariance(row,col,MtM[col*size + row]);
+            }
+        }
+        // Calculate the re-scaling factor required to get the requested determinant. This
+        // will throw a RuntimeError in case our original M was not invertible.
+        try {
+            double rescale = std::pow(determinant/C->getDeterminant(),1./size);
+            C->applyScaleFactor(rescale);
+            break;
+        }
+        catch(RuntimeError const &e) {
+            // Oh well, try again.
+        }
+    }
+    if(ntrials == maxtrials) {
+        // This is really unlikely, so something is probably wrong.
+        throw RuntimeError("generateRandomCovariance: failed after maxtrials.");
+    }
+    return C;
+}
+
 boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int seed) const {
     if(nsample <= 0) {
         throw RuntimeError("CovarianceMatrix: expected nsample > 0.");
