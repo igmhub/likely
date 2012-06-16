@@ -33,12 +33,11 @@
 #include "likely/AbsEngine.h"
 #include "likely/FunctionMinimum.h"
 
-// The following "engine" class are not included here since they are considered
-// part of the lower-level implementation and their availability depends on how
-// the package was built. Note that including them will indirectly pull in
-// some GSL and Minuit headers and so require an appropriate include path.
-/*
 #include "likely/MarkovChainEngine.h"
+// The following "engine" class are not included here since their availability
+// depends on how the package was built. Note that including them will indirectly
+// pull in some GSL and Minuit headers and so requires an appropriate include path.
+/*
 #include "likely/GslEngine.h"
 #include "likely/MinuitEngine.h"
 */
