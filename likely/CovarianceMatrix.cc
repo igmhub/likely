@@ -554,12 +554,12 @@ void local::CovarianceMatrix::replaceWithTripleProduct(CovarianceMatrix const &o
     }
 }
 
-local::CovarianceMatrixPtr local::generateRandomCovariance(int size, int &seed, double determinant) {
+local::CovarianceMatrixPtr local::generateRandomCovariance(int size, int &seed, double scale) {
     if(size <= 0) {
         throw RuntimeError("generateRandomCovariance: expected size > 0.");
     }
-    if(determinant <= 0) {
-        throw RuntimeError("generateRandomCovariance: expected determinant > 0.");
+    if(scale <= 0) {
+        throw RuntimeError("generateRandomCovariance: expected scale > 0.");
     }
     // Initialize the storage we will need.
     int sizeSq(size*size);
@@ -598,7 +598,7 @@ local::CovarianceMatrixPtr local::generateRandomCovariance(int size, int &seed, 
         // Calculate the re-scaling factor required to get the requested determinant. This
         // will throw a RuntimeError in case our original M was not invertible.
         try {
-            double rescale = std::pow(determinant/C->getDeterminant(),1./size);
+            double rescale = scale*std::pow(C->getDeterminant(),-1./size);
             C->applyScaleFactor(rescale);
             break;
         }
