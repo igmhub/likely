@@ -53,7 +53,7 @@ FitParameters const &parameters, std::string const &algorithm)
 local::MarkovChainEngine::~MarkovChainEngine() { }
 
 int local::MarkovChainEngine::generate(FunctionMinimumPtr fmin, int nAccepts,
-int maxTrials, Callback callback) {
+int maxTrials, Callback callback, int callbackInterval) const {
     // We are using the standard Metropolis-Hastings algorithm here. The only subtlety is
     // that we don't generate trials by taking a random step from our current location,
     // so our proposal pdf Q(p',p) for moving from p (current) to p' (trial) is
@@ -80,6 +80,7 @@ int maxTrials, Callback callback) {
     int nTrials(0),remaining(nAccepts);
     Parameters trial;
     while(remaining > 0 && (maxTrials == 0 || nTrials < maxTrials)) {
+        nTrials++;
         // Take a trial step sampled from the estimated function minimum's covariance.
         // The setRandomParameters method returns the value of -log(W(trial)) and 
         // includes any fixed parameters in trial.
@@ -96,18 +97,17 @@ int maxTrials, Callback callback) {
         double logProbRatio(currentNLL-trialNLL-currentNLW+trialNLW);
         // Do we accept this trial step?
         if(logProbRatio >= 0 || _random.getUniform() < std::exp(logProbRatio)) {
-            current.swap(trial);
+            current = trial;
             currentNLL = trialNLL;
             currentNLW = trialNLW;
-            if(callback) callback(trial, trialNLL, true);
+            if(callback && (0 == nTrials%callbackInterval)) callback(current, trial, trialNLL, true);
             remaining--;
         }
         else {
-            if(callback) callback(trial, trialNLL, false);
+            if(callback && (0 == nTrials%callbackInterval)) callback(current, trial, trialNLL, false);
         }
         // Accumulate covariance statistics...
-        nTrials++;
-        // Use the initial guess at the minimum for caculating residuals of our
+        // Use the initial guess at the minimum for calculating residuals of our
         // floating parameters that are hopefully small, to minimize round-off error.
         fmin->filterParameterValues(current,residual);
         for(int j = 0; j < _nFloating; ++j) residual[j] -= initialFloating[j];
