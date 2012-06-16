@@ -181,6 +181,9 @@ namespace likely {
         void setInverseCovariance(int index1, int index2, double value);
         // Returns a const shared pointer to our covariance matrix, if any.
         CovarianceMatrixCPtr getCovarianceMatrix() const;
+        // Replaces our covariance matrix, if any, with the specified matrix or throws a
+        // RuntimeError.
+        void setCovarianceMatrix(CovarianceMatrixPtr covariance);
         // Transforms our covariance matrix C by replacing it with C.Dinv.C. On return, D
         // contains our original covariance matrix.
         void transformCovariance(CovarianceMatrixPtr D);

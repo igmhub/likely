@@ -400,6 +400,16 @@ void local::BinnedData::transformCovariance(CovarianceMatrixPtr D) {
     swap(*D,*_covariance);
 }
 
+void local::BinnedData::setCovarianceMatrix(CovarianceMatrixPtr covariance) {
+    if(isFinalized()) {
+        throw RuntimeError("BinnedData::setCovarianceMatrix: object is finalized.");
+    }
+    if(covariance->getSize() != getNBinsWithData()) {
+        throw RuntimeError("BinnedData::setCovarianceMatrix: new covariance has the wrong size.");
+    }
+    _covariance = covariance;
+}
+
 bool local::BinnedData::compress(bool weighted) const {
     _setWeighted(weighted);
     return _covariance.get() ? _covariance->compress() : false;
