@@ -649,3 +649,16 @@ int local::CovarianceMatrix::getNElements() const {
     }
     return nelem;
 }
+
+double local::CovarianceMatrix::getDeterminant() const {
+    // Calculate our Cholesky decomposition now, if necessary.
+    _readsCholesky();
+    // Our determinant is the product of diagonal Cholesky matrix elements squared.
+    double det(1);
+    for(int index = 0; index < _size; ++index) {
+        double diag(_cholesky[symmetricMatrixIndex(index,index,_size)]);
+        det *= diag*diag;
+    }
+    return det;
+}
+
