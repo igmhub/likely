@@ -4,7 +4,9 @@
 #include "likely/likely.h"
 
 #include "boost/program_options.hpp"
-#include "boost/format.hpp"
+#include "boost/foreach.hpp"
+#include "boost/bind.hpp"
+#include "boost/ref.hpp"
 
 #include <cassert>
 #include <iostream>
@@ -13,6 +15,13 @@
 
 namespace lk = likely;
 namespace po = boost::program_options;
+
+void dumpParameterValues(lk::Parameters const &params, std::ostream &out) {
+    BOOST_FOREACH(double pvalue, params) {
+        out << ' ' << pvalue;
+    }
+    out << std::endl;
+}
 
 class Model : public lk::FitModel {
 public:
@@ -38,10 +47,21 @@ private:
 class Fitter {
 public:
     Fitter(Model &model) : _model(model) { }
+    // Fits the specified data to our model.
     lk::FunctionMinimumPtr fit(lk::BinnedDataCPtr data) {
         _data = data;
         lk::FunctionPtr fptr(new lk::Function(*this));
         return _model.findMinimum(fptr,"mn2::vmetric");
+    }
+    // Generates MCMC samples (and updates fmin)
+    void mcmc(lk::FunctionMinimumPtr fmin, int nmc, int nskip, std::ostream &out) {
+        lk::FunctionPtr fptr(new lk::Function(*this));
+        lk::FitParameters params(fmin->getFitParameters());
+        lk::MarkovChainEngine engine(fptr,lk::GradientCalculatorPtr(),params,"saunter");
+        lk::Parameters pvalues;
+        int ntrial(nmc*nskip);
+        lk::MarkovChainEngine::Callback callback = boost::bind(dumpParameterValues,_1,boost::ref(out));
+        engine.generate(fmin,ntrial,ntrial,callback,nskip);
     }
     // Returns chiSquare/2 for the specified model parameter values.
     double operator()(lk::Parameters const &params) const {
@@ -62,7 +82,7 @@ private:
 int main(int argc, char **argv) {
     
     // Configure command-line option processing
-    int ndim,nbin,ndata,ntrial,seed;
+    int ndim,nbin,ndata,nmc,nskip,ntrial,seed;
     double range,sigma0,covScale;
     po::options_description cli("Resampling methods test program");
     cli.add_options()
@@ -73,6 +93,8 @@ int main(int argc, char **argv) {
         ("range", po::value<double>(&range)->default_value(2),
             "Data spans [-range,+range] in each dimension.")
         ("ndata", po::value<int>(&ndata)->default_value(10),"Number of random datasets to generate.")
+        ("nmc", po::value<int>(&nmc)->default_value(100), "Number of MCMC samples to generate.")
+        ("nskip", po::value<int>(&nskip)->default_value(10), "Number of MCMC trials to skip per sample.")
         ("ntrial", po::value<int>(&ntrial)->default_value(100), "Number of bootstrap trials to fit.")
         ("sigma0", po::value<double>(&sigma0)->default_value(1),
             "True value of sigma used to generate random datasets.")
@@ -97,25 +119,12 @@ int main(int argc, char **argv) {
         return 1;
     }
     bool verbose(vm.count("verbose"));
-    if(ndim <= 0) {
-        std::cerr << "Expected ndim > 0." << std::endl;
-        return -1;
-    }
-    if(nbin <= 0) {
-        std::cerr << "Expected nbin > 0." << std::endl;
-        return -1;
-    }
-    if(ntrial <= 0) {
-        std::cerr << "Expected ntrial > 0." << std::endl;
-    }
-    if(range <= 0) {
-        std::cerr << "Expected range > 0." << std::endl;
-        return -1;
-    }
-    if(sigma0 <= 0) {
-        std::cerr << "Expected sigma0 > 0." << std::endl;
-        return -1;
-    }
+    assert(ndim > 0);
+    assert(nbin > 0);
+    assert(ndata > 0);
+    assert(nmc > 0);
+    assert(nskip > 0);
+    assert(ntrial > 0);
 
     try {
         // Create the model and fitter we will use.
@@ -138,17 +147,18 @@ int main(int argc, char **argv) {
             prototype->setData(index,model.evaluate(point,params));
         }
         int size(prototype->getNBinsWithData());
-        std::cout << "Data has " << size << " bins with data." << std::endl;
         
         // Create our resampler.
         lk::BinnedDataResampler resampler(seed);
         
         // Generate random datasets.
+        std::cout << "Generating " << ndata << " datasets with " << size << " bins..." << std::endl;
+        lk::CovarianceMatrixPtr covariance;
         for(int i = 0; i < ndata; ++i) {
             // Clone our prototype.
             lk::BinnedDataPtr data(prototype->clone());
             // Generate a random covariance matrix with determinant 1 for this dataset.
-            lk::CovarianceMatrixPtr covariance = lk::generateRandomCovariance(size,seed,covScale);
+            if(0 == i) covariance = lk::generateRandomCovariance(size,seed,covScale);
             data->setCovarianceMatrix(covariance);
             // Sample the covariance to generate random offset for each bin.
             boost::shared_array<double> offsets = covariance->sample(1,seed);
@@ -159,24 +169,47 @@ int main(int argc, char **argv) {
             // Add this dataset to our resampler.
             resampler.addObservation(data);
         }
-        std::cout << "Resampling " << resampler.getNObservations() << " observations." << std::endl;
         
         // Fit the combined data.
         lk::BinnedDataCPtr combined = resampler.combined();
         lk::FunctionMinimumPtr combinedFit = fitter.fit(combined);
         combinedFit->printToStream(std::cout);
         
-        // Loop over bootstrap trials.
-        lk::Parameters fitted;
-        std::ofstream out("bstrials.dat");
-        out << "sigma" << std::endl;
-        for(int i = 0; i < ntrial; ++i) {
-            lk::BinnedDataCPtr sample = resampler.bootstrap(ndata);
-            lk::FunctionMinimumPtr sampleFit = fitter.fit(sample);
-            fitted = sampleFit->getParameters(true);
-            out << fitted[0] << std::endl;
+        // Dump the likelihood curve for the combined data.
+        {
+            std::ofstream out("likely.dat");
+            std::vector<double> params(1);
+            for(int i = 0; i < 1000; ++i) {
+                params[0] = 2e-3*(i+1);
+                double nll= fitter(params);
+                double prob = std::exp(-nll/size);
+                out << params[0] << ' ' << prob << std::endl;
+            }
+            out.close();
         }
-        out.close();
+        
+        // Generate MCMC samples from the combined likelihood.
+        {
+            std::cout << "Generating " << nmc << " MCMC samples with skip " << nskip << "..." << std::endl;
+            std::ofstream out("mcmc.dat");
+            out << "sigma" << std::endl;
+            fitter.mcmc(combinedFit,nmc,nskip,out);
+            out.close();
+        }
+        // Loop over bootstrap trials.
+        {
+            std::cout << "Generating " << ntrial << " bootstrap trials..." << std::endl;
+            lk::Parameters fitted;
+            std::ofstream out("bstrials.dat");
+            out << "sigma" << std::endl;
+            for(int i = 0; i < ntrial; ++i) {
+                lk::BinnedDataCPtr sample = resampler.bootstrap(ndata,false);
+                lk::FunctionMinimumPtr sampleFit = fitter.fit(sample);
+                dumpParameterValues(sampleFit->getParameters(true),out);
+                if((i+1)%1000==0) std::cout << "...completed " << (i+1) << " trials" << std::endl;
+            }
+            out.close();
+        }
     }
     catch(lk::RuntimeError const &e) {
         std::cerr << e.what() << std::endl;
