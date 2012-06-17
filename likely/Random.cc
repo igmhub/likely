@@ -131,7 +131,9 @@ int seed, int stride, int minimum) {
     return ngen;
 }
 
-boost::shared_array<double> local::Random::fillDoubleArrayUniform(std::size_t &nrandom, int seed) {
+boost::shared_array<double> local::Random::fillDoubleArrayUniform(std::size_t &nrandom) {
+    // Get the next seed to use.
+    uint32_t seed = _generator();
     // Get the number of random 64-bit integers to generate.
     nrandom = _initializeFill(nrandom,seed,2,N64);
     // Allocate the shared array.
@@ -150,7 +152,9 @@ boost::shared_array<double> local::Random::fillDoubleArrayUniform(std::size_t &n
     return sarray;
 }
 
-boost::shared_array<double> local::Random::fillDoubleArrayNormal(std::size_t &nrandom, int seed) {
+boost::shared_array<double> local::Random::fillDoubleArrayNormal(std::size_t &nrandom) {
+    // Get the next seed to use.
+    uint32_t seed = _generator();
     // Round nrandom up to an even number to simplify alignment issues.
     if(nrandom % 2) nrandom++;
     // Get the number of random 32-bit integers to generate.
@@ -181,7 +185,9 @@ boost::shared_array<double> local::Random::fillDoubleArrayNormal(std::size_t &nr
     return sarray;
 }
 
-boost::shared_array<float> local::Random::fillFloatArrayNormal(std::size_t &nrandom, int seed) {
+boost::shared_array<float> local::Random::fillFloatArrayNormal(std::size_t &nrandom) {
+    // Get the next seed to use.
+    uint32_t seed = _generator();
     // Get the number of random 32-bit integers to generate.
     nrandom = _initializeFill(nrandom,seed,4,N32);
     // Allocate the shared array

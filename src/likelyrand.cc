@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
     {
         std::size_t nrandom(repeat);
         boost::shared_array<double> dbuffer;
-        BENCHMARK_ASSIGN(dbuffer,fillDoubleArrayUniform,(nrandom,seed));
+        BENCHMARK_ASSIGN(dbuffer,fillDoubleArrayUniform,(nrandom));
         lk::WeightedAccumulator stats;
         lk::QuantileAccumulator median, q90(0.9);
         for(int i = 0; i < repeat; ++i) {
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
     {
         std::size_t nrandom(repeat);
         boost::shared_array<float> fbuffer;
-        BENCHMARK_ASSIGN(fbuffer,fillFloatArrayNormal,(nrandom,seed));
+        BENCHMARK_ASSIGN(fbuffer,fillFloatArrayNormal,(nrandom));
         lk::WeightedAccumulator stats;
         lk::QuantileAccumulator median, sigma(1-0.5*0.317310508);
         for(int i = 0; i < repeat; ++i) {
@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
     {
         std::size_t nrandom(repeat);
         boost::shared_array<double> dbuffer;
-        BENCHMARK_ASSIGN(dbuffer,fillDoubleArrayNormal,(nrandom,seed));
+        BENCHMARK_ASSIGN(dbuffer,fillDoubleArrayNormal,(nrandom));
         lk::WeightedAccumulator stats;
         lk::QuantileAccumulator median, sigma(1-0.5*0.317310508);
         for(int i = 0; i < repeat; ++i) {
@@ -152,15 +152,15 @@ int main(int argc, char **argv) {
         double sum;
         std::size_t nrand1 = size,nrand2 = size,nrand3 = size;
         {
-            boost::shared_array<double> buf = lk::Random::fillDoubleArrayUniform(nrand1,seed);
+            boost::shared_array<double> buf = random.fillDoubleArrayUniform(nrand1);
             for(int k = 0; k < nrand1; ++k) sum += buf[k];
         }
         {
-            boost::shared_array<double> buf = lk::Random::fillDoubleArrayNormal(nrand2,seed);
+            boost::shared_array<double> buf = random.fillDoubleArrayNormal(nrand2);
             for(int k = 0; k < nrand2; ++k) sum += buf[k];
         }
         {
-            boost::shared_array<float> buf = lk::Random::fillFloatArrayNormal(nrand3,seed);
+            boost::shared_array<float> buf = random.fillFloatArrayNormal(nrand3);
             for(int k = 0; k < nrand3; ++k) sum += buf[k];
         }
         std::cout << size << ' ' << nrand1 << ' ' << nrand2 << ' ' << nrand3 << std::endl;
