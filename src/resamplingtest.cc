@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     
     // Configure command-line option processing
     int ndim,nbin,ndata,nmc,nskip,ntrial,nexpt,seed;
-    double range,sigma0,covScale;
+    double range,sigma0,covScale,covRescale;
     po::options_description cli("Resampling methods test program");
     cli.add_options()
         ("help,h", "Prints this info and exits.")
@@ -87,8 +87,11 @@ int main(int argc, char **argv) {
         ("nexpt", po::value<int>(&nexpt)->default_value(1), "Number of experiments to perform.")
         ("sigma0", po::value<double>(&sigma0)->default_value(1),
             "True value of sigma used to generate random datasets.")
-        ("cov-scale", po::value<double>(&covScale)->default_value(100),
+        ("cov-scale", po::value<double>(&covScale)->default_value(1),
             "Scale of random dataset covariances to generate.")
+        ("cov-rescale", po::value<double>(&covRescale)->default_value(1),
+            "Amount to rescale covariance used in likelihood fits.")
+        ("same-cov", "All datasets generated with same covariance matrix.")
         ("seed", po::value<int>(&seed)->default_value(123),
             "Random seed for generating initial parameter values.")
         ("dump", "Dumps analysis results to text files.")
@@ -108,7 +111,7 @@ int main(int argc, char **argv) {
         std::cout << cli << std::endl;
         return 1;
     }
-    bool verbose(vm.count("verbose")), dump(vm.count("dump"));
+    bool verbose(vm.count("verbose")), dump(vm.count("dump")), sameCov(vm.count("same-cov"));
     assert(ndim > 0);
     assert(nbin > 0);
     assert(ndata > 0);
@@ -119,7 +122,7 @@ int main(int argc, char **argv) {
     if(nexpt > 1) {
         verbose = false;
         dump = false;
-        //std::cout << "mcfrac bsfrac" << std::endl;
+        std::cout << "mc bs" << std::endl;
     }
 
     try {
@@ -160,17 +163,19 @@ int main(int argc, char **argv) {
                 // Clone our prototype.
                 lk::BinnedDataPtr data(prototype->clone());
                 // Generate a random covariance matrix with determinant 1 for this dataset.
-                if(0 == i) {
-                    //covariance = lk::generateRandomCovariance(size,covScale);
-                    covariance = lk::createDiagonalCovariance(size,0.1);
+                if(0 == i || !sameCov) {
+                    covariance = lk::generateRandomCovariance(size,covScale);
+                    //covariance = lk::createDiagonalCovariance(size,0.1);
                 }
-                data->setCovarianceMatrix(covariance);
                 // Sample the covariance to generate random offset for each bin.
                 boost::shared_array<double> offsets = covariance->sample(1);
                 int nextOffset(0);
                 for(lk::BinnedData::IndexIterator iter = data->begin(); iter != data->end(); ++iter) {
                     data->addData(*iter,offsets[nextOffset++]);
                 }
+                // The data is associated with a possibly rescaled covariance.
+                if(covRescale != 1) covariance->applyScaleFactor(covRescale);
+                data->setCovarianceMatrix(covariance);
                 // Add this dataset to our resampler.
                 resampler.addObservation(data);
             }
@@ -181,7 +186,7 @@ int main(int argc, char **argv) {
             if(verbose) combinedFit->printToStream(std::cout);
         
             // Dump the likelihood curve for the combined data.
-            {
+            if(dump) {
                 std::ofstream out("likely.dat");
                 std::vector<double> params(1);
                 for(int i = 0; i < 1000; ++i) {
@@ -209,7 +214,8 @@ int main(int argc, char **argv) {
                 if(dump) out->close();
             }
             // Loop over bootstrap trials.
-            double bsfrac;
+            double bsfrac(-1);
+            int errors(0),warnings(0);
             {
                 if(verbose) std::cout << "Generating " << ntrial << " bootstrap trials..." << std::endl;
                 lk::Parameters fitted;
@@ -220,8 +226,15 @@ int main(int argc, char **argv) {
                 }
                 int count = 0;
                 for(int i = 0; i < ntrial; ++i) {
-                    lk::BinnedDataCPtr sample = resampler.bootstrap(ndata,false);
+                    lk::BinnedDataCPtr sample = resampler.bootstrap(ndata,!sameCov);
                     lk::FunctionMinimumPtr sampleFit = fitter.fit(sample);
+                    if(sampleFit->getStatus() == lk::FunctionMinimum::ERROR) {
+                        errors++;
+                        continue;
+                    }
+                    else if(sampleFit->getStatus() == lk::FunctionMinimum::WARNING) {
+                        warnings++;
+                    }
                     double sigma = sampleFit->getParameters()[0];
                     if(sigma < sigma0) count++;
                     if(dump) *out << sigma << std::endl;
@@ -229,14 +242,21 @@ int main(int argc, char **argv) {
                         std::cout << "...completed " << (i+1) << " trials" << std::endl;
                     }
                 }
-                bsfrac = (double)count/ntrial;
+                if(errors < ntrial) bsfrac = (double)count/(ntrial-errors);
+                if(verbose) {
+                    std::cout << errors << " errors, " << warnings << " warnings" << std::endl;
+                }
                 if(dump) out->close();
             }
             std::cout << mcfrac << ' ' << bsfrac << std::endl;
         }
     }
+    catch(int e) { }
+    /*
     catch(lk::RuntimeError const &e) {
         std::cerr << e.what() << std::endl;
+        throw e;
     }
+    */
     return 0;
 }
