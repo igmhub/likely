@@ -202,6 +202,11 @@ namespace likely {
     // is assumed to be in the BLAS packed format implied by packedMatrixIndex(row,col).
     static void symmetricMatrixMultiply(std::vector<double> const &matrix,
         std::vector<double> const &vector, std::vector<double> &result);
+        
+    // Creates a diagonal covariance matrix with constant elements (first form) or specified
+    // positive elements (second form).
+    CovarianceMatrixPtr createDiagonalCovariance(int size, double diagonalValue = 1);
+    CovarianceMatrixPtr createDiagonalCovariance(std::vector<double> diagonalValues);
     // Generates a random symmetric positive-definite matrix with the specified scale and
     // using the specified random seed, which will be updated to a new value that can be used for
     // subsequent calls. The scale fixes the determinant of the generated matrix to scale^size,

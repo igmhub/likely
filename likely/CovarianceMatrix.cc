@@ -729,3 +729,22 @@ void local::CovarianceMatrix::applyScaleFactor(double scaleFactor) {
     _changesCov();
     for(int index = 0; index < _ncov; ++index) _cov[index] *= scaleFactor;
 }
+
+local::CovarianceMatrixPtr local::createDiagonalCovariance(int size, double diagonalValue) {
+    if(size <= 0) {
+        throw RuntimeError("createDiagonalCovariance: expected size > 0.");
+    }
+    if(diagonalValue <= 0) {
+        throw RuntimeError("createDiagonalCovariance: expected diagonalValue > 0.");
+    }
+    CovarianceMatrixPtr C(new CovarianceMatrix(size));
+    for(int k = 0; k < size; ++k) C->setCovariance(k,k,diagonalValue);
+    return C;
+}
+
+local::CovarianceMatrixPtr local::createDiagonalCovariance(std::vector<double> diagonalValues) {
+    int size(diagonalValues.size());
+    CovarianceMatrixPtr C(new CovarianceMatrix(size));
+    for(int k = 0; k < size; ++k) C->setCovariance(k,k,diagonalValues[k]);
+    return C;
+}
