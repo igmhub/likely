@@ -92,12 +92,11 @@ namespace likely {
         // for faster generation.) The elements k of the n-th generated vector are at
         // array[n*getSize()+k] with n = 0..(nsample-1) and k = 0..(getSize()-1). All memory
         // allocated by this method will be freed when the returned shared array's reference
-        // count goes to zero. Uses the specified seed and updates the input value to a new
-        // value that can be reused for subsequent calls. This method is optimized for
+        // count goes to zero. See above for random parameter usage. This method is optimized for
         // generating large numbers of residual vectors, and is slower than repeated use of
         // the single-sample method above for small values of nsample (on a macbookpro, the
         // crossover is around nsample = 32 and this method is ~4x faster for large nsample).
-        boost::shared_array<double> sample(int nsample, int &seed) const;
+        boost::shared_array<double> sample(int nsample, Random *random = 0) const;
         
         // Prunes this covariance matrix by eliminating any rows and columns corresponding to
         // indices not specified in the keep set. Throws a RuntimeError if any indices are
@@ -207,12 +206,11 @@ namespace likely {
     // positive elements (second form).
     CovarianceMatrixPtr createDiagonalCovariance(int size, double diagonalValue = 1);
     CovarianceMatrixPtr createDiagonalCovariance(std::vector<double> diagonalValues);
-    // Generates a random symmetric positive-definite matrix with the specified scale and
-    // using the specified random seed, which will be updated to a new value that can be used for
-    // subsequent calls. The scale fixes the determinant of the generated matrix to scale^size,
-    // which is the determinant of scale*[identity matrix] and means that the generated
-    // covariances are directly proportional to scale.
-    CovarianceMatrixPtr generateRandomCovariance(int size, int &seed, double scale = 1);
+    // Generates a random symmetric positive-definite matrix with the specified scale, which
+    // fixes the determinant of the generated matrix to scale^size, which is the determinant of
+    // scale*[identity matrix] and means that the generated covariances are directly proportional
+    // to scale. Uses the random generator provided, if any, or else the default generator.
+    CovarianceMatrixPtr generateRandomCovariance(int size, double scale = 1, Random *random = 0);
 
 } // likely
 

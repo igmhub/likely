@@ -554,13 +554,15 @@ void local::CovarianceMatrix::replaceWithTripleProduct(CovarianceMatrix const &o
     }
 }
 
-local::CovarianceMatrixPtr local::generateRandomCovariance(int size, int &seed, double scale) {
+local::CovarianceMatrixPtr local::generateRandomCovariance(int size, double scale, Random *random) {
     if(size <= 0) {
         throw RuntimeError("generateRandomCovariance: expected size > 0.");
     }
     if(scale <= 0) {
         throw RuntimeError("generateRandomCovariance: expected scale > 0.");
     }
+    // Use the default generator if none was specified.
+    if(0 == random) random = &Random::instance();
     // Initialize the storage we will need.
     int sizeSq(size*size);
     CovarianceMatrixPtr C(new CovarianceMatrix(size));
@@ -571,7 +573,7 @@ local::CovarianceMatrixPtr local::generateRandomCovariance(int size, int &seed, 
     size_t nrandom(sizeSq);
     while(ntrials++ < maxtrials) {
         // Generate a random matrix M
-        M = Random::fillDoubleArrayUniform(nrandom,seed++);
+        M = random->fillDoubleArrayUniform(nrandom);
         // Offset [0,1) to [-0.5,+0.5). The range used here is irrelevant
         // since we will be rescaling to get the desired determinant. However, the choice of a
         // uniform distribution does determine the distribution properties of the generated
@@ -613,7 +615,7 @@ local::CovarianceMatrixPtr local::generateRandomCovariance(int size, int &seed, 
     return C;
 }
 
-boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int &seed) const {
+boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, Random *random) const {
     if(nsample <= 0) {
         throw RuntimeError("CovarianceMatrix: expected nsample > 0.");
     }
@@ -629,9 +631,11 @@ boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int &se
             expanded[row*_size + col] = *ptr++;
         }
     }
+    // Use the default generator if none was specified.
+    if(0 == random) random = &Random::instance();
     // Generate double-precision normally distributed (but uncorrelated) random numbers.
     std::size_t nrandom(nsample*_size), ngen(nrandom);
-    boost::shared_array<double> array = Random::fillDoubleArrayNormal(ngen,seed++);
+    boost::shared_array<double> array = random->fillDoubleArrayNormal(ngen);
     // Consider this array to be a rectangular matrix M of dimensions _size x nsample and
     // calculate (expanded).(M) to obtain a new matrix of dimensions _size x nsample
     // containing correlated residual vectors of length _size in each of its nsample columns.
