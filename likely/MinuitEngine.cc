@@ -136,11 +136,13 @@ void local::MinuitEngine::minimize(FunctionMinimumPtr fmin, double prec, int max
     // to our engine-neutral return object.
     if(mnmin.HasValidParameters()) {
         if(mnmin.HasValidCovariance()) {
-            // The Minuit packing of covariance matrix elements is directly
-            // compatible with what the FunctionMinimum ctor expects.
-            CovarianceMatrixCPtr covariance(new CovarianceMatrix(mnmin.UserCovariance().Data()));
-            fmin->updateCovariance(covariance);
-            if(!mnmin.HasAccurateCovar()) {
+            if(mnmin.HasAccurateCovar()) {
+                // The Minuit packing of covariance matrix elements is directly
+                // compatible with what the FunctionMinimum ctor expects.
+                CovarianceMatrixCPtr covariance(new CovarianceMatrix(mnmin.UserCovariance().Data()));
+                fmin->updateCovariance(covariance);
+            }
+            else {
                 fmin->setStatus(FunctionMinimum::WARNING,"Covariance estimate is not accurate.");
             }
         }
