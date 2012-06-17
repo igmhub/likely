@@ -455,9 +455,9 @@ double local::CovarianceMatrix::chiSquare(std::vector<double> const &delta) cons
     return result;
 }
 
-double local::CovarianceMatrix::sample(std::vector<double> &delta, Random *random) const {
+double local::CovarianceMatrix::sample(std::vector<double> &delta, RandomPtr random) const {
     // Use the default generator if none was specified.
-    if(0 == random) random = &Random::instance();
+    if(!random) random = Random::instance();
     // Clear the vector and prepare for filling.
     delta.resize(0);
     delta.reserve(_size);
@@ -554,7 +554,7 @@ void local::CovarianceMatrix::replaceWithTripleProduct(CovarianceMatrix const &o
     }
 }
 
-local::CovarianceMatrixPtr local::generateRandomCovariance(int size, double scale, Random *random) {
+local::CovarianceMatrixPtr local::generateRandomCovariance(int size, double scale, RandomPtr random) {
     if(size <= 0) {
         throw RuntimeError("generateRandomCovariance: expected size > 0.");
     }
@@ -562,7 +562,7 @@ local::CovarianceMatrixPtr local::generateRandomCovariance(int size, double scal
         throw RuntimeError("generateRandomCovariance: expected scale > 0.");
     }
     // Use the default generator if none was specified.
-    if(0 == random) random = &Random::instance();
+    if(!random) random = Random::instance();
     // Initialize the storage we will need.
     int sizeSq(size*size);
     CovarianceMatrixPtr C(new CovarianceMatrix(size));
@@ -615,7 +615,7 @@ local::CovarianceMatrixPtr local::generateRandomCovariance(int size, double scal
     return C;
 }
 
-boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, Random *random) const {
+boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, RandomPtr random) const {
     if(nsample <= 0) {
         throw RuntimeError("CovarianceMatrix: expected nsample > 0.");
     }
@@ -632,7 +632,7 @@ boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, Random 
         }
     }
     // Use the default generator if none was specified.
-    if(0 == random) random = &Random::instance();
+    if(!random) random = Random::instance();
     // Generate double-precision normally distributed (but uncorrelated) random numbers.
     std::size_t nrandom(nsample*_size), ngen(nrandom);
     boost::shared_array<double> array = random->fillDoubleArrayNormal(ngen);

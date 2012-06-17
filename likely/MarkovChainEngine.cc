@@ -29,8 +29,8 @@ typedef std::vector<Accumulator> Accumulators;
 namespace local = likely;
 
 local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, GradientCalculatorPtr gc,
-FitParameters const &parameters, std::string const &algorithm)
-: _f(f), _random(Random::instance())
+FitParameters const &parameters, std::string const &algorithm, RandomPtr random)
+: _f(f), _random(random)
 {
     _nParam = parameters.size();
     _nFloating = countFloatingFitParameters(parameters);
@@ -48,6 +48,7 @@ FitParameters const &parameters, std::string const &algorithm)
     else {
         throw RuntimeError("MarkovChainEngine: unknown algorithm '" + algorithm + "'");
     }
+    if(!_random) _random = Random::instance();
 }
 
 local::MarkovChainEngine::~MarkovChainEngine() { }
@@ -96,7 +97,7 @@ int maxTrials, Callback callback, int callbackInterval) const {
         // Calculate log( L(trial)/L(current) W(current)/W(trial) )
         double logProbRatio(currentNLL-trialNLL-currentNLW+trialNLW);
         // Do we accept this trial step?
-        if(logProbRatio >= 0 || _random.getUniform() < std::exp(logProbRatio)) {
+        if(logProbRatio >= 0 || _random->getUniform() < std::exp(logProbRatio)) {
             current = trial;
             currentNLL = trialNLL;
             currentNLW = trialNLW;

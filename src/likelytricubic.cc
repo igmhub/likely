@@ -85,14 +85,14 @@ int main(int argc, char **argv) {
         }
         // Interpolate in this datacube at random points.
         lk::TriCubicInterpolator interpolator(data,spacing,nx,ny,nz);
-        lk::Random &random(lk::Random::instance());
-        random.setSeed(1234);
+        lk::RandomPtr random = lk::Random::instance();
+        random->setSeed(1234);
         lk::WeightedAccumulator stats;
         double lx(nx*spacing), ly(ny*spacing), lz(nz*spacing);
         for(int trial = 0; trial < ntrial; ++trial) {
-            double x = (random.getUniform()-0.25)*4*lx;
-            double y = (random.getUniform()-0.25)*4*ly;
-            double z = (random.getUniform()-0.25)*4*lz;
+            double x = (random->getUniform()-0.25)*4*lx;
+            double y = (random->getUniform()-0.25)*4*ly;
+            double z = (random->getUniform()-0.25)*4*lz;
             double error = interpolator(x,y,z) - f(x,y,z);
             stats.accumulate(error);
         }

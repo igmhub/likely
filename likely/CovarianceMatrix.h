@@ -14,7 +14,6 @@
 #include <iosfwd>
 
 namespace likely {
-    class Random;
     // Represents a covariance matrix.
 	class CovarianceMatrix {
 	public:
@@ -84,7 +83,7 @@ namespace likely {
         // density implied by this object, or throws a RuntimeError. Returns the value of
         // delta.Cinv.delta/2 which is the negative log-likelihood of the generated sample.
         // Uses the random generator provided or else the default Random::instance().
-        double sample(std::vector<double> &delta, Random *random = 0) const;
+        double sample(std::vector<double> &delta, RandomPtr random = RandomPtr()) const;
         // Generates the specified number of random residuals vectors by sampling the Gaussian
         // probability density implied by this object, or throws a RuntimeError. The generated
         // vectors are stored consecutively in the returned shared_array object, which will
@@ -96,7 +95,7 @@ namespace likely {
         // generating large numbers of residual vectors, and is slower than repeated use of
         // the single-sample method above for small values of nsample (on a macbookpro, the
         // crossover is around nsample = 32 and this method is ~4x faster for large nsample).
-        boost::shared_array<double> sample(int nsample, Random *random = 0) const;
+        boost::shared_array<double> sample(int nsample, RandomPtr random = RandomPtr()) const;
         
         // Prunes this covariance matrix by eliminating any rows and columns corresponding to
         // indices not specified in the keep set. Throws a RuntimeError if any indices are
@@ -209,8 +208,9 @@ namespace likely {
     // Generates a random symmetric positive-definite matrix with the specified scale, which
     // fixes the determinant of the generated matrix to scale^size, which is the determinant of
     // scale*[identity matrix] and means that the generated covariances are directly proportional
-    // to scale. Uses the random generator provided, if any, or else the default generator.
-    CovarianceMatrixPtr generateRandomCovariance(int size, double scale = 1, Random *random = 0);
+    // to scale. Uses the random generator provided or else the default Random::instance().
+    CovarianceMatrixPtr generateRandomCovariance(int size, double scale = 1,
+        RandomPtr random = RandomPtr());
 
 } // likely
 

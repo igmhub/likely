@@ -9,13 +9,12 @@
 #include "boost/function.hpp"
 
 namespace likely {
-    class Random;
 	class MarkovChainEngine : public AbsEngine {
 	public:
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters.
 		MarkovChainEngine(FunctionPtr f, GradientCalculatorPtr gc, FitParameters const &parameters,
-            std::string const &algorithm);
+            std::string const &algorithm, RandomPtr random = RandomPtr());
 		virtual ~MarkovChainEngine();
         // Searches for a minimum by taking a sequence of random steps.
         void minimize(FunctionMinimumPtr fmin,
@@ -35,7 +34,7 @@ namespace likely {
 	private:
         int _nParam,_nFloating;
         FunctionPtr _f;
-        mutable Random &_random;
+        mutable RandomPtr _random;
 	}; // MarkovChainEngine
 
     // Registers our named methods.

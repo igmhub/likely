@@ -3,6 +3,8 @@
 #ifndef LIKELY_RANDOM
 #define LIKELY_RANDOM
 
+#include "likely/types.h"
+
 #include "boost/random/mersenne_twister.hpp"
 #include "boost/function.hpp"
 #include "boost/smart_ptr.hpp"
@@ -60,8 +62,11 @@ namespace likely {
         // can be used for other distributions. This should only be used on the
         // global shared instance.
         boost::mt19937 &getGenerator();
-        // Returns the global shared Random instance.
-        static Random &instance();
+        // Returns a shared pointer to the global default Random instance. The reference count
+        // of the returned object will never be less than one, so it will never be deleted. This
+        // means that a shared pointer is not necessary, but we use it here so the default instance
+        // can be used interchangeably with a non-default instance in other class APIs.
+        static RandomPtr instance();
 	private:
 	    // Performs common initialization for the fillXArrayY methods and returns the actual
 	    // array size to allocate for filling, which will be >= nrandom.

@@ -97,8 +97,7 @@ int main(int argc, char **argv) {
     }
 
     // Initialize the random number generator.
-    lk::Random &random(lk::Random::instance());
-    random.setSeed(seed);
+    lk::Random::instance()->setSeed(seed);
     
     try {
         // Open the summary output file.

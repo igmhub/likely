@@ -18,7 +18,7 @@ double elapsed(struct rusage const &before, struct rusage const &after) {
 
 int main(int argc, char **argv) {
 
-    lk::Random::instance().setSeed(123);
+    lk::Random::instance()->setSeed(123);
     
     int size(3);
     lk::CovarianceMatrix cov(size);

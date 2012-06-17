@@ -16,6 +16,10 @@ namespace likely {
     // Represents a gradient vector of function partial derivatives.
     typedef std::vector<double> Gradient;
 
+    // Represents a smart pointer to a random number generator.
+    class Random;
+    typedef boost::shared_ptr<Random> RandomPtr;
+
     // Declares a smart pointer to a const binning object.
     class AbsBinning;
     typedef boost::shared_ptr<const AbsBinning> AbsBinningCPtr;

@@ -28,9 +28,12 @@ _gauss(boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >
 {
 }
 
-local::Random &local::Random::instance() {
-    static Random *_instance = new Random();
-    return *_instance;
+local::RandomPtr local::Random::instance() {
+    // Allocate a new Random object the first time we are called, and associate it with
+    // a static RandomPtr, so its reference count is always at least one.
+    static RandomPtr _instance(new Random());
+    // Return the static RandomPtr by value, creating a copy and increasing its reference count.
+    return _instance;
 }
 
 void local::Random::setSeed(int seedValue) {
