@@ -71,8 +71,8 @@ namespace likely {
         int getNAxes() const;
         // Returns the total number of bins covering the rectangular volume of our axes.
         int getNBinsTotal() const;
-        // Returns the number of bins with data, which is never more than getNumBinsTotal().
-        // The hasData method defines exactly what constitutes a bin with data.
+        // Returns the number of bins with data, which is never more than getNBinsTotal().
+        // The hasData(...) method defines exactly what constitutes a bin with data.
         int getNBinsWithData() const;
         // Returns a vector of shared pointers to our axis specification objects.
         std::vector<AbsBinningCPtr> getAxisBinning() const;
