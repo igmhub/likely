@@ -77,10 +77,10 @@ int main(int argc, char **argv) {
         ("help,h", "Prints this info and exits.")
         ("verbose", "Prints additional information.")
         ("ndim", po::value<int>(&ndim)->default_value(2),"Number of dimensions for binning data.")
-        ("nbin", po::value<int>(&nbin)->default_value(10),"Number of data bins in each dimension.")
+        ("nbin", po::value<int>(&nbin)->default_value(5),"Number of data bins in each dimension.")
         ("range", po::value<double>(&range)->default_value(2),
             "Data spans [-range,+range] in each dimension.")
-        ("ndata", po::value<int>(&ndata)->default_value(10),"Number of random datasets to generate.")
+        ("ndata", po::value<int>(&ndata)->default_value(15),"Number of random datasets to generate.")
         ("nmc", po::value<int>(&nmc)->default_value(100), "Number of MCMC samples to generate.")
         ("nskip", po::value<int>(&nskip)->default_value(10), "Number of MCMC trials to skip per sample.")
         ("ntrial", po::value<int>(&ntrial)->default_value(100), "Number of bootstrap trials to fit.")
@@ -92,6 +92,8 @@ int main(int argc, char **argv) {
         ("cov-rescale", po::value<double>(&covRescale)->default_value(1),
             "Amount to rescale covariance used in likelihood fits.")
         ("same-cov", "All datasets generated with same covariance matrix.")
+        ("bs-combined", "Bootstrap samples are assigned the combined covariance.")
+        ("unweighted", "Bootstrap samples are unweighted.")
         ("seed", po::value<int>(&seed)->default_value(123),
             "Random seed for generating initial parameter values.")
         ("dump", "Dumps analysis results to text files.")
@@ -111,7 +113,8 @@ int main(int argc, char **argv) {
         std::cout << cli << std::endl;
         return 1;
     }
-    bool verbose(vm.count("verbose")), dump(vm.count("dump")), sameCov(vm.count("same-cov"));
+    bool verbose(vm.count("verbose")), dump(vm.count("dump")), sameCov(vm.count("same-cov")),
+        bsCombined(vm.count("bs-combined")), unweighted(vm.count("unweighted"));
     assert(ndim > 0);
     assert(nbin > 0);
     assert(ndata > 0);
@@ -152,7 +155,7 @@ int main(int argc, char **argv) {
         for(int expt = 0; expt < nexpt; ++expt) {
         
             // Create our resampler.
-            lk::BinnedDataResampler resampler;
+            lk::BinnedDataResampler resampler, unweightedResampler;
         
             // Generate random datasets.
             if(verbose) {
@@ -175,16 +178,24 @@ int main(int argc, char **argv) {
                 }
                 // The data is associated with a possibly rescaled covariance.
                 if(covRescale != 1) covariance->applyScaleFactor(covRescale);
-                data->setCovarianceMatrix(covariance);
+                data->setCovarianceMatrix(covariance);                
                 // Add this dataset to our resampler.
                 resampler.addObservation(data);
+                if(unweighted) {
+                    lk::BinnedDataPtr copy(data->clone());
+                    copy->dropCovariance();
+                    unweightedResampler.addObservation(copy);
+                }
             }
         
             // Fit the combined data.
             lk::BinnedDataCPtr combined = resampler.combined();
             lk::FunctionMinimumPtr combinedFit = fitter.fit(combined);
             if(verbose) combinedFit->printToStream(std::cout);
-        
+            if(combinedFit->getStatus() != lk::FunctionMinimum::OK) continue;
+            // Make a copy of the combined dataset's covariance.
+            lk::CovarianceMatrixPtr combinedCovariance(new lk::CovarianceMatrix(*combined->getCovarianceMatrix()));
+
             // Dump the likelihood curve for the combined data.
             if(dump) {
                 std::ofstream out("likely.dat");
@@ -226,7 +237,19 @@ int main(int argc, char **argv) {
                 }
                 int count = 0;
                 for(int i = 0; i < ntrial; ++i) {
-                    lk::BinnedDataCPtr sample = resampler.bootstrap(ndata,!sameCov);
+                    lk::BinnedDataPtr sample;
+                    if(unweighted) {
+                        sample = unweightedResampler.bootstrap(ndata,false);
+                    }
+                    else {
+                        sample = resampler.bootstrap(ndata,!sameCov);
+                    }
+                    if(bsCombined) {
+                        // Make sure our data vector is unweighted.
+                        sample->getData(*sample->begin(),false);
+                        // (Re)set the covariance to use with this data.
+                        sample->setCovarianceMatrix(combinedCovariance);
+                    }
                     lk::FunctionMinimumPtr sampleFit = fitter.fit(sample);
                     if(sampleFit->getStatus() == lk::FunctionMinimum::ERROR) {
                         errors++;
