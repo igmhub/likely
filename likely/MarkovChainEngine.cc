@@ -116,7 +116,15 @@ int maxTrials, Callback callback, int callbackInterval) const {
     }
     // Record the covariance of the samples we have generated. Do this before updating
     // the parameter values, so that the updated errors are available.
-    fmin->updateCovariance(accumulator.getCovariance());
+    try {
+        // Make sure we have a valid positive-definite matrix before we use it.
+        CovarianceMatrixCPtr C = accumulator.getCovariance();
+        C->getDeterminant();
+        fmin->updateCovariance(C);
+    }
+    catch(RuntimeError const &e) {
+        // Stick with our original covariance estimate for now.
+    }
     // Record the best minimum found so far (rather than the sample mean).
     fmin->updateParameterValues(minNLL, minParams);
     // Return the number of samples generated.

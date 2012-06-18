@@ -139,8 +139,17 @@ void local::MinuitEngine::minimize(FunctionMinimumPtr fmin, double prec, int max
             if(mnmin.HasAccurateCovar()) {
                 // The Minuit packing of covariance matrix elements is directly
                 // compatible with what the FunctionMinimum ctor expects.
-                CovarianceMatrixCPtr covariance(new CovarianceMatrix(mnmin.UserCovariance().Data()));
-                fmin->updateCovariance(covariance);
+                try {
+                    // Check that we really have a positive definite matrix before we save it.
+                    CovarianceMatrixCPtr C(new CovarianceMatrix(mnmin.UserCovariance().Data()));
+                    C->getDeterminant();
+                    fmin->updateCovariance(C);
+                }
+                catch(RuntimeError const &e) {
+                    // The fact that this sometimes happens when HasValidCovariance() and HasAccurateCovar()
+                    // are both true would appear to be a bug in Minuit2...
+                    fmin->setStatus(FunctionMinimum::ERROR,"Minuit reports invalid covariance.");
+                }
             }
             else {
                 fmin->setStatus(FunctionMinimum::WARNING,"Covariance estimate is not accurate.");
