@@ -126,10 +126,12 @@ local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCov
     for(int obsIndex = 0; obsIndex < _observations.size(); ++obsIndex) {
         int count(_counts[obsIndex]);
         if(0 == count) continue;
+        if(count > 1) duplicatesFound = true;
         BinnedDataCPtr observation = _observations[obsIndex];
         resample->add(*observation,count);
         if(fixCovariance) D->addInverse(*(observation->getCovarianceMatrix()),count*count);
     }
-    if(fixCovariance) resample->transformCovariance(D);
+    // We can skip this relatively expensive operation if all counts are 0,1.
+    if(duplicatesFound && fixCovariance) resample->transformCovariance(D);
     return resample;
 }
