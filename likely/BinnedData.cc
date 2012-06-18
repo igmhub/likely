@@ -6,7 +6,10 @@
 #include "likely/CovarianceMatrix.h"
 
 #include "boost/foreach.hpp"
+#include "boost/format.hpp"
 #include "boost/lexical_cast.hpp"
+
+#include <iostream>
 
 namespace local = likely;
 
@@ -483,4 +486,12 @@ double local::BinnedData::chiSquare(std::vector<double> pred) const {
     }
     // Our input vector now holds deltas. Our covariance does the rest of the work.
     return hasCovariance() ? _covariance->chiSquare(pred) : unweighted*_weight;
+}
+
+void local::BinnedData::printToStream(std::ostream &out, std::string format) const {
+    boost::format indexFormat("[%4d] "),valueFormat(format);
+    for(IndexIterator iter = begin(); iter != end(); ++iter) {
+        int index(*iter);
+        out << (indexFormat % index) << (valueFormat % getData(index)) << std::endl;
+    }
 }
