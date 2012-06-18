@@ -121,8 +121,8 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
         }
         else {
             // The scalar _weight plays the role of Cinv in the absence of any _covariance.
-            // This assignment should be redundant with the ctor assignment.
-            _weight = 1;
+            // Set it to zero here since we will be adding the other data's weight below.
+            _weight = 0;
         }
         // Our zero data vector should be interpreted as Cinv.data for the
         // purposes of adding to the other dataset, below. We don't call _setWeighted here
