@@ -12,7 +12,7 @@ bin_PROGRAMS = likelytest likelymc likelyinterp likelywsum likelyinteg likelyran
 noinst_PROGRAMS = demo1 demo2
 
 # targets that contain unit tests
-check_PROGRAMS = test
+check_PROGRAMS = likelycheck
 
 # instructions for building the library
 liblikely_la_SOURCES = \
@@ -142,12 +142,12 @@ demo2_SOURCES = src/demo2.cc
 demo2_DEPENDENCIES = $(lib_LIBRARIES)
 demo2_LDADD = -L. -llikely
 
-test_SOURCES = test/test.cc \
+likelycheck_SOURCES = test/likelycheck.cc \
 	test/CovarianceMatrixTest.cc \
 	test/UniformBinningTest.cc \
 	test/UniformSamplingTest.cc \
 	test/NonUniformBinningTest.cc \
 	test/NonUniformSamplingTest.cc \
 	test/BinnedDataTest.cc
-test_DEPENDENCIES = $(lib_LIBRARIES)
-test_LDADD = -lboost_unit_test_framework -L. -llikely
+likelycheck_DEPENDENCIES = $(lib_LIBRARIES)
+likelycheck_LDADD = -lboost_unit_test_framework -L. -llikely

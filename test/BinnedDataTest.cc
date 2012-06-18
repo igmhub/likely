@@ -28,4 +28,14 @@ BOOST_AUTO_TEST_CASE( shouldThrowBinningErrorInConstructorWithInvalidParameters 
 	BOOST_CHECK_EQUAL(1, 1);
 }
 
+// clone, =, swap
+// +=, add
+// isCongruent
+// getIndex (binIndices, values)
+// getIndexAtOffset, getOffsetForIndex
+// getBinIndices
+// getBinWidths
+// hasData, getData, setData, addData
+
+
 BOOST_AUTO_TEST_SUITE_END() // BinnedData
