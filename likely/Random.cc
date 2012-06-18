@@ -28,9 +28,12 @@ _gauss(boost::variate_generator<boost::mt19937&, boost::normal_distribution<> >
 {
 }
 
-local::Random &local::Random::instance() {
-    static Random *_instance = new Random();
-    return *_instance;
+local::RandomPtr local::Random::instance() {
+    // Allocate a new Random object the first time we are called, and associate it with
+    // a static RandomPtr, so its reference count is always at least one.
+    static RandomPtr _instance(new Random());
+    // Return the static RandomPtr by value, creating a copy and increasing its reference count.
+    return _instance;
 }
 
 void local::Random::setSeed(int seedValue) {
@@ -131,7 +134,9 @@ int seed, int stride, int minimum) {
     return ngen;
 }
 
-boost::shared_array<double> local::Random::fillDoubleArrayUniform(std::size_t &nrandom, int seed) {
+boost::shared_array<double> local::Random::fillDoubleArrayUniform(std::size_t &nrandom) {
+    // Get the next seed to use.
+    uint32_t seed = _generator();
     // Get the number of random 64-bit integers to generate.
     nrandom = _initializeFill(nrandom,seed,2,N64);
     // Allocate the shared array.
@@ -150,7 +155,9 @@ boost::shared_array<double> local::Random::fillDoubleArrayUniform(std::size_t &n
     return sarray;
 }
 
-boost::shared_array<double> local::Random::fillDoubleArrayNormal(std::size_t &nrandom, int seed) {
+boost::shared_array<double> local::Random::fillDoubleArrayNormal(std::size_t &nrandom) {
+    // Get the next seed to use.
+    uint32_t seed = _generator();
     // Round nrandom up to an even number to simplify alignment issues.
     if(nrandom % 2) nrandom++;
     // Get the number of random 32-bit integers to generate.
@@ -181,7 +188,9 @@ boost::shared_array<double> local::Random::fillDoubleArrayNormal(std::size_t &nr
     return sarray;
 }
 
-boost::shared_array<float> local::Random::fillFloatArrayNormal(std::size_t &nrandom, int seed) {
+boost::shared_array<float> local::Random::fillFloatArrayNormal(std::size_t &nrandom) {
+    // Get the next seed to use.
+    uint32_t seed = _generator();
     // Get the number of random 32-bit integers to generate.
     nrandom = _initializeFill(nrandom,seed,4,N32);
     // Allocate the shared array

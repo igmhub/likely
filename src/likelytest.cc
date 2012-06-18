@@ -85,11 +85,11 @@ int main(int argc, char **argv) {
     }
 
     // Initialize a uniform random number generator.
-    lk::Random &random(lk::Random::instance());
-    random.setSeed(seed);
+    lk::RandomPtr random = lk::Random::instance();
+    random->setSeed(seed);
     boost::uniform_on_sphere<> spherical(npar);
     boost::variate_generator<boost::mt19937&, boost::uniform_on_sphere<> >
-        randomOnSphere(random.getGenerator(),spherical);
+        randomOnSphere(random->getGenerator(),spherical);
     
     // Print out column headings for the output we generate below.
     std::cout << "method ncall ngrad accuracy error" << std::endl;

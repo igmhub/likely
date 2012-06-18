@@ -6,7 +6,10 @@
 #include "likely/CovarianceMatrix.h"
 
 #include "boost/foreach.hpp"
+#include "boost/format.hpp"
 #include "boost/lexical_cast.hpp"
+
+#include <iostream>
 
 namespace local = likely;
 
@@ -121,8 +124,8 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
         }
         else {
             // The scalar _weight plays the role of Cinv in the absence of any _covariance.
-            // This assignment should be redundant with the ctor assignment.
-            _weight = 1;
+            // Set it to zero here since we will be adding the other data's weight below.
+            _weight = 0;
         }
         // Our zero data vector should be interpreted as Cinv.data for the
         // purposes of adding to the other dataset, below. We don't call _setWeighted here
@@ -400,6 +403,16 @@ void local::BinnedData::transformCovariance(CovarianceMatrixPtr D) {
     swap(*D,*_covariance);
 }
 
+void local::BinnedData::setCovarianceMatrix(CovarianceMatrixPtr covariance) {
+    if(isFinalized()) {
+        throw RuntimeError("BinnedData::setCovarianceMatrix: object is finalized.");
+    }
+    if(covariance->getSize() != getNBinsWithData()) {
+        throw RuntimeError("BinnedData::setCovarianceMatrix: new covariance has the wrong size.");
+    }
+    _covariance = covariance;
+}
+
 bool local::BinnedData::compress(bool weighted) const {
     _setWeighted(weighted);
     return _covariance.get() ? _covariance->compress() : false;
@@ -473,4 +486,12 @@ double local::BinnedData::chiSquare(std::vector<double> pred) const {
     }
     // Our input vector now holds deltas. Our covariance does the rest of the work.
     return hasCovariance() ? _covariance->chiSquare(pred) : unweighted*_weight;
+}
+
+void local::BinnedData::printToStream(std::ostream &out, std::string format) const {
+    boost::format indexFormat("[%4d] "),valueFormat(format);
+    for(IndexIterator iter = begin(); iter != end(); ++iter) {
+        int index(*iter);
+        out << (indexFormat % index) << (valueFormat % getData(index)) << std::endl;
+    }
 }

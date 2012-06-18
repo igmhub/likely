@@ -77,5 +77,31 @@ int main(int argc, char **argv) {
         }
     }
     
+    // Test unweighted vs weighted data combinations.
+    {
+        int nbins(3);
+        lk::CovarianceMatrixPtr C(lk::createDiagonalCovariance(nbins,1));
+        lk::AbsBinningCPtr bins(new lk::UniformBinning(0.,1.,nbins));
+        lk::BinnedData d1(bins), d2(bins), d3(bins), c1(bins), c2(bins), c3(bins);
+        for(int k = 0; k < nbins; ++k) {
+            d1.setData(k,1.); c1.setData(k,1.);
+            d2.setData(k,2.); c2.setData(k,2.);
+            d3.setData(k,3.); c3.setData(k,3.);
+        }
+        c1.setCovarianceMatrix(C);
+        c2.setCovarianceMatrix(C);
+        c3.setCovarianceMatrix(C);
+
+        lk::BinnedData d123(bins), c123(bins);
+        d123 += d1;
+        c123 += c1;
+        d123.printToStream(std::cout);
+        c123.printToStream(std::cout);
+        d123 += d2;
+        c123 += c2;
+        d123.printToStream(std::cout);
+        c123.printToStream(std::cout);
+    }
+    
     return 0;
 }

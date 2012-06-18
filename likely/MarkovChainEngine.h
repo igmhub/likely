@@ -9,32 +9,32 @@
 #include "boost/function.hpp"
 
 namespace likely {
-    class Random;
 	class MarkovChainEngine : public AbsEngine {
 	public:
 	    // Creates a new engine for the specified function of the specified number
 	    // of parameters.
 		MarkovChainEngine(FunctionPtr f, GradientCalculatorPtr gc, FitParameters const &parameters,
-            std::string const &algorithm);
+            std::string const &algorithm, RandomPtr random = RandomPtr());
 		virtual ~MarkovChainEngine();
         // Searches for a minimum by taking a sequence of random steps.
         void minimize(FunctionMinimumPtr fmin,
             double prec, int maxSteps, int acceptsPerParam, int maxTrialsPerParam);
 	    // Generates samples using a FunctionMinimum's covariance to specify the proposal
 	    // function until the specified number of trials have been accepted or the specified
-	    // maximum number of trials has been generated. Use maxTrials=0 for unlimited trials.
-	    // Updates the function minimum with an improved estimate and returns the total
-	    // number of trials generated (including duplicates after a trial is rejected).
+	    // maximum number of trials has been generated. Returns the total number of trials
+	    // generated (including duplicates after a trial is rejected). Use maxTrials=0 for
+	    // unlimited trials. Updates the function minimum with an improved estimate.
 	    // Provide an optional callback to see all trial steps. The callback parameters
-	    // are the trial parameters, the function value at these parameters, and a boolean
-	    // to flag if the trial is accepted.
-        typedef boost::function<void (Parameters const&, double, bool)> Callback;
+	    // are the current and trial parameters, the function value at these parameters,
+	    // and a boolean to flag if the trial is accepted. The callback is invoked every
+	    // callbackInterval steps.
+        typedef boost::function<void (Parameters const&, Parameters const&, double, bool)> Callback;
         int generate(FunctionMinimumPtr fmin, int nAccepts, int maxTrials,
-            Callback callback = Callback());
+            Callback callback = Callback(), int callbackInterval = 1) const;
 	private:
         int _nParam,_nFloating;
         FunctionPtr _f;
-        Random &_random;
+        mutable RandomPtr _random;
 	}; // MarkovChainEngine
 
     // Registers our named methods.

@@ -4,7 +4,6 @@
 #define LIKELY_BINNED_DATA_RESAMPLER
 
 #include "likely/types.h"
-#include "likely/Random.h"
 
 #include <vector>
 
@@ -24,11 +23,10 @@ namespace likely {
 	//  XPtr bs = boost::dynamic_pointer_cast<X>(resampler.bootstrap(100));
 	//
 	public:
-	    // Creates a new resampler using the specified random seed.
-		BinnedDataResampler(int randomSeed);
+	    // Creates a new resampler using the random generator provided, or else the default
+	    // Random::instance().
+		BinnedDataResampler(RandomPtr random = RandomPtr());
 		virtual ~BinnedDataResampler();
-		// Sets the random seed value to use for subsequent random resampling.
-        void setSeed(int seedValue);
 		// Adds a new observation for resampling. Throws a RuntimeError if this observation
 		// has already been added or is not congruent with existing observations. Calls to
 		// this method can be interspersed with calls to resampling methods below.
@@ -67,12 +65,11 @@ namespace likely {
         // will be roughly twice as large as the correct values obtained with fixCovariance = true.
         BinnedDataPtr bootstrap(int size, bool fixCovariance = true) const;
 	private:
-        mutable Random _random;
+        mutable RandomPtr _random;
         std::vector<BinnedDataCPtr> _observations;
         mutable std::vector<int> _subset, _counts;
 	}; // BinnedDataResampler
 	
-    inline void BinnedDataResampler::setSeed(int seedValue) { _random.setSeed(seedValue); }
     inline int BinnedDataResampler::getNObservations() const { return _observations.size(); }
     
     // Fills the integer vector provided with a subset of [0,1,...,n-1] of length m=subset.size().

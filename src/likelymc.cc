@@ -18,10 +18,10 @@ namespace po = boost::program_options;
 
 std::ofstream cycleOut,resultsOut;
 
-void saveSample(lk::Parameters const &params, double fVal, bool accepted) {
+void saveSample(lk::Parameters const &current, lk::Parameters const &trial, double fVal, bool accepted) {
     boost::format real(" %.5f");
     cycleOut << (accepted ? 1 : 0) << real % fVal;
-    for(int i = 0; i < params.size(); ++i) cycleOut << real % params[i];
+    for(int i = 0; i < trial.size(); ++i) cycleOut << real % trial[i];
     cycleOut << std::endl;
 }
 
@@ -97,8 +97,7 @@ int main(int argc, char **argv) {
     }
 
     // Initialize the random number generator.
-    lk::Random &random(lk::Random::instance());
-    random.setSeed(seed);
+    lk::Random::instance()->setSeed(seed);
     
     try {
         // Open the summary output file.

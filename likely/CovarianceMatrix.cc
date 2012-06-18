@@ -32,7 +32,7 @@ extern "C" {
 namespace local = likely;
 
 local::CovarianceMatrix::CovarianceMatrix(int size)
-: _size(size), _compressed(false), _nextSeed(0)
+: _size(size), _compressed(false)
 {
     if(size <= 0) {
         throw RuntimeError("CovarianceMatrix: expected size > 0.");
@@ -43,7 +43,7 @@ local::CovarianceMatrix::CovarianceMatrix(int size)
 }
 
 local::CovarianceMatrix::CovarianceMatrix(std::vector<double> packed)
-: _ncov(packed.size()), _compressed(false), _nextSeed(0)
+: _ncov(packed.size()), _compressed(false)
 {
     if(_ncov == 0) {
         throw RuntimeError("CovarianceMatrix: expected packed size > 0.");
@@ -78,7 +78,6 @@ void local::swap(CovarianceMatrix& a, CovarianceMatrix& b) {
     swap(a._diag,b._diag);
     swap(a._offdiagIndex,b._offdiagIndex);
     swap(a._offdiagValue,b._offdiagValue);
-    swap(a._nextSeed,b._nextSeed);
 }
 
 size_t local::CovarianceMatrix::getMemoryUsage() const {
@@ -456,9 +455,9 @@ double local::CovarianceMatrix::chiSquare(std::vector<double> const &delta) cons
     return result;
 }
 
-double local::CovarianceMatrix::sample(std::vector<double> &delta, Random *random) const {
+double local::CovarianceMatrix::sample(std::vector<double> &delta, RandomPtr random) const {
     // Use the default generator if none was specified.
-    if(0 == random) random = &Random::instance();
+    if(!random) random = Random::instance();
     // Clear the vector and prepare for filling.
     delta.resize(0);
     delta.reserve(_size);
@@ -555,7 +554,68 @@ void local::CovarianceMatrix::replaceWithTripleProduct(CovarianceMatrix const &o
     }
 }
 
-boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int seed) const {
+local::CovarianceMatrixPtr local::generateRandomCovariance(int size, double scale, RandomPtr random) {
+    if(size <= 0) {
+        throw RuntimeError("generateRandomCovariance: expected size > 0.");
+    }
+    if(scale <= 0) {
+        throw RuntimeError("generateRandomCovariance: expected scale > 0.");
+    }
+    // Use the default generator if none was specified.
+    if(!random) random = Random::instance();
+    // Initialize the storage we will need.
+    int sizeSq(size*size);
+    CovarianceMatrixPtr C(new CovarianceMatrix(size));
+    boost::shared_array<double> M;
+    std::vector<double> MtM(sizeSq);
+    // Loop over trials to generate a positive-definite random matrix.
+    int ntrials(0), maxtrials(10);
+    size_t nrandom(sizeSq);
+    while(ntrials++ < maxtrials) {
+        // Generate a random matrix M
+        M = random->fillDoubleArrayUniform(nrandom);
+        // Offset [0,1) to [-0.5,+0.5). The range used here is irrelevant
+        // since we will be rescaling to get the desired determinant. However, the choice of a
+        // uniform distribution does determine the distribution properties of the generated
+        // covariance matrices. Might want to provide an option for e.g, Gaussian instead?
+        for(int index = 0; index < sizeSq; ++index) M[index] -= 0.5;
+
+        // Mt.M is positive definite iff M is invertible (i.e., has full rank and no zero singular values)
+        // At this point, we can either calculate the singular values with BLAS DGESVD or go ahead and
+        // calculate Mt.M and then check that it can be Cholesky decomposed. We do the latter since
+        // the Cholesky decomposition will be cached and is potentially useful.
+    
+        // Multiply Mt.M to get a symmetric matrix that will be positive definite if M is invertible.
+        char uplo = 'U', trans = 'T';
+        double alpha(1),beta(0);
+        dsyrk_(&uplo,&trans,&size,&size,&alpha,&M[0],&size,&beta,&MtM[0],&size);
+    
+        // Copy the upper triangle of MtM into a new CovarianceMatrix.
+        // Loop over elements.
+        for(int col = 0; col < size; ++col) {
+            for(int row = 0; row <= col; ++row) {
+                C->setCovariance(row,col,MtM[col*size + row]);
+            }
+        }
+        // Calculate the re-scaling factor required to get the requested determinant. This
+        // will throw a RuntimeError in case our original M was not invertible.
+        try {
+            double rescale = scale*std::pow(C->getDeterminant(),-1./size);
+            C->applyScaleFactor(rescale);
+            break;
+        }
+        catch(RuntimeError const &e) {
+            // Oh well, try again.
+        }
+    }
+    if(ntrials == maxtrials) {
+        // This is really unlikely, so something is probably wrong.
+        throw RuntimeError("generateRandomCovariance: failed after maxtrials.");
+    }
+    return C;
+}
+
+boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, RandomPtr random) const {
     if(nsample <= 0) {
         throw RuntimeError("CovarianceMatrix: expected nsample > 0.");
     }
@@ -571,10 +631,11 @@ boost::shared_array<double> local::CovarianceMatrix::sample(int nsample, int see
             expanded[row*_size + col] = *ptr++;
         }
     }
+    // Use the default generator if none was specified.
+    if(!random) random = Random::instance();
     // Generate double-precision normally distributed (but uncorrelated) random numbers.
     std::size_t nrandom(nsample*_size), ngen(nrandom);
-    if(0 == seed) seed = ++_nextSeed;
-    boost::shared_array<double> array = Random::fillDoubleArrayNormal(ngen,seed);
+    boost::shared_array<double> array = random->fillDoubleArrayNormal(ngen);
     // Consider this array to be a rectangular matrix M of dimensions _size x nsample and
     // calculate (expanded).(M) to obtain a new matrix of dimensions _size x nsample
     // containing correlated residual vectors of length _size in each of its nsample columns.
@@ -648,4 +709,46 @@ int local::CovarianceMatrix::getNElements() const {
         if(_cov[index] != 0) nelem++;
     }
     return nelem;
+}
+
+double local::CovarianceMatrix::getDeterminant() const {
+    // Calculate our Cholesky decomposition now, if necessary.
+    _readsCholesky();
+    // Our determinant is the product of diagonal Cholesky matrix elements squared.
+    double det(1);
+    for(int index = 0; index < _size; ++index) {
+        double diag(_cholesky[symmetricMatrixIndex(index,index,_size)]);
+        det *= diag*diag;
+    }
+    return det;
+}
+
+void local::CovarianceMatrix::applyScaleFactor(double scaleFactor) {
+    if(scaleFactor <= 0) {
+        throw RuntimeError("CovarianceMatrix::applyScaleFactor: expected scaleFactor > 0.");
+    }
+    if(!_readsCov()) {
+        throw RuntimeError("CovarianceMatrix::applyScaleFactor: no elements have been set.");
+    }
+    _changesCov();
+    for(int index = 0; index < _ncov; ++index) _cov[index] *= scaleFactor;
+}
+
+local::CovarianceMatrixPtr local::createDiagonalCovariance(int size, double diagonalValue) {
+    if(size <= 0) {
+        throw RuntimeError("createDiagonalCovariance: expected size > 0.");
+    }
+    if(diagonalValue <= 0) {
+        throw RuntimeError("createDiagonalCovariance: expected diagonalValue > 0.");
+    }
+    CovarianceMatrixPtr C(new CovarianceMatrix(size));
+    for(int k = 0; k < size; ++k) C->setCovariance(k,k,diagonalValue);
+    return C;
+}
+
+local::CovarianceMatrixPtr local::createDiagonalCovariance(std::vector<double> diagonalValues) {
+    int size(diagonalValues.size());
+    CovarianceMatrixPtr C(new CovarianceMatrix(size));
+    for(int k = 0; k < size; ++k) C->setCovariance(k,k,diagonalValues[k]);
+    return C;
 }

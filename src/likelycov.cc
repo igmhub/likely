@@ -17,6 +17,9 @@ double elapsed(struct rusage const &before, struct rusage const &after) {
 }
 
 int main(int argc, char **argv) {
+
+    lk::Random::instance()->setSeed(123);
+    
     int size(3);
     lk::CovarianceMatrix cov(size);
     std::cout << cov.getMemoryState() << std::endl;
@@ -151,6 +154,16 @@ int main(int argc, char **argv) {
         accum.getCovariance()->printToStream(std::cout);
     }
 
+    {
+        lk::CovarianceMatrixCPtr R;
+        for(int k = 0; k < 100; ++k) {
+            // Generate a random covariance and check its determinant.
+            R = lk::generateRandomCovariance(10,2.);
+        }
+        R->printToStream(std::cout);
+        std::cout << "det(R) = " << R->getDeterminant() << std::endl;
+    }
+
     // Benchmark single samples
     int ntrial = 10000;
     {
@@ -173,4 +186,5 @@ int main(int argc, char **argv) {
                 << 1e3*elapsed(t2,t3)/ntot << std::endl;
         }
     }
+    
 }

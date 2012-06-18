@@ -3,6 +3,7 @@
 #include "likely/BinnedDataResampler.h"
 #include "likely/RuntimeError.h"
 #include "likely/BinnedData.h"
+#include "likely/Random.h"
 #include "likely/CovarianceMatrix.h"
 
 #include "boost/math/special_functions/binomial.hpp"
@@ -11,9 +12,10 @@
 
 namespace local = likely;
 
-local::BinnedDataResampler::BinnedDataResampler(int randomSeed)
+local::BinnedDataResampler::BinnedDataResampler(RandomPtr random)
+: _random(random)
 {
-    setSeed(randomSeed);
+    if(!_random) _random = Random::instance();
 }
 
 local::BinnedDataResampler::~BinnedDataResampler() { }
@@ -110,7 +112,7 @@ local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCov
         _counts.resize(_observations.size(),0);
     }
     // Generate a random sample with replacement.
-    _random.sampleWithReplacement(_counts,size);
+    _random->sampleWithReplacement(_counts,size);
     // Create an empty dataset with the right axis binning.
     BinnedDataPtr resample(_observations[0]->clone(true));
     // We cannot fix a non-existent covariance.
@@ -124,10 +126,12 @@ local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCov
     for(int obsIndex = 0; obsIndex < _observations.size(); ++obsIndex) {
         int count(_counts[obsIndex]);
         if(0 == count) continue;
+        if(count > 1) duplicatesFound = true;
         BinnedDataCPtr observation = _observations[obsIndex];
         resample->add(*observation,count);
         if(fixCovariance) D->addInverse(*(observation->getCovarianceMatrix()),count*count);
     }
-    if(fixCovariance) resample->transformCovariance(D);
+    // We can skip this relatively expensive operation if all counts are 0,1.
+    if(duplicatesFound && fixCovariance) resample->transformCovariance(D);
     return resample;
 }

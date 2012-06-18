@@ -9,6 +9,8 @@
 
 #include <vector>
 #include <set>
+#include <string>
+#include <iosfwd>
 
 namespace likely {
     // Represents data that is binned independently along one or more axes. Not all possible
@@ -181,6 +183,9 @@ namespace likely {
         void setInverseCovariance(int index1, int index2, double value);
         // Returns a const shared pointer to our covariance matrix, if any.
         CovarianceMatrixCPtr getCovarianceMatrix() const;
+        // Replaces our covariance matrix, if any, with the specified matrix or throws a
+        // RuntimeError.
+        void setCovarianceMatrix(CovarianceMatrixPtr covariance);
         // Transforms our covariance matrix C by replacing it with C.Dinv.C. On return, D
         // contains our original covariance matrix.
         void transformCovariance(CovarianceMatrixPtr D);
@@ -228,6 +233,10 @@ namespace likely {
         // the binning objects whose pointers are passed to our constructor. Use includeCovariance
         // to specify if the memory usage of any covariance matrix should be included in the result.
         std::size_t getMemoryUsage(bool includeCovariance = true) const;
+        
+        // Prints the (unweighted) data associated with this object to the specified output stream.
+        // To print an associated covariance matrix, use getCovarianceMatrix()->printToStream(out,...).
+        void printToStream(std::ostream &out, std::string format = std::string("%+10.3lg")) const;
 
 	private:
         int _nbins;
