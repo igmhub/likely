@@ -97,15 +97,17 @@ int maxTrials, Callback callback, int callbackInterval) const {
         // Calculate log( L(trial)/L(current) W(current)/W(trial) )
         double logProbRatio(currentNLL-trialNLL-currentNLW+trialNLW);
         // Do we accept this trial step?
+        bool accepted(false);
         if(logProbRatio >= 0 || _random->getUniform() < std::exp(logProbRatio)) {
             current = trial;
             currentNLL = trialNLL;
             currentNLW = trialNLW;
-            if(callback && (0 == nTrials%callbackInterval)) callback(current, trial, trialNLL, true);
+            accepted = true;
             remaining--;
         }
-        else {
-            if(callback && (0 == nTrials%callbackInterval)) callback(current, trial, trialNLL, false);
+        // Invoke the callback now, if any.
+        if(callback && (0 == nTrials%callbackInterval)) {
+            callback(current, trial, currentNLL, trialNLL, accepted);
         }
         // Accumulate covariance statistics...
         // Use the initial guess at the minimum for calculating residuals of our

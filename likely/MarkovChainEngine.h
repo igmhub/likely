@@ -25,10 +25,10 @@ namespace likely {
 	    // generated (including duplicates after a trial is rejected). Use maxTrials=0 for
 	    // unlimited trials. Updates the function minimum with an improved estimate.
 	    // Provide an optional callback to see all trial steps. The callback parameters
-	    // are the current and trial parameters, the function value at these parameters,
+	    // are the current and trial parameters, the function values at these parameters,
 	    // and a boolean to flag if the trial is accepted. The callback is invoked every
-	    // callbackInterval steps.
-        typedef boost::function<void (Parameters const&, Parameters const&, double, bool)> Callback;
+	    // callbackInterval steps, with the first call after callbackInterval steps.
+        typedef boost::function<void (Parameters const&, Parameters const&, double, double, bool)> Callback;
         int generate(FunctionMinimumPtr fmin, int nAccepts, int maxTrials,
             Callback callback = Callback(), int callbackInterval = 1) const;
 	private:
