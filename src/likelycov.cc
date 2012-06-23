@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
             R = lk::generateRandomCovariance(10,2.);
         }
         R->printToStream(std::cout);
-        std::cout << "det(R) = " << R->getDeterminant() << std::endl;
+        std::cout << "log(detR) = " << R->getLogDeterminant() << std::endl;
     }
 
     // Benchmark single samples

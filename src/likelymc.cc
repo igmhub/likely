@@ -18,9 +18,10 @@ namespace po = boost::program_options;
 
 std::ofstream cycleOut,resultsOut;
 
-void saveSample(lk::Parameters const &current, lk::Parameters const &trial, double fVal, bool accepted) {
+void saveSample(lk::Parameters const &current, lk::Parameters const &trial,
+double fCurrent, double fTrial, bool accepted) {
     boost::format real(" %.5f");
-    cycleOut << (accepted ? 1 : 0) << real % fVal;
+    cycleOut << (accepted ? 1 : 0) << real % fTrial;
     for(int i = 0; i < trial.size(); ++i) cycleOut << real % trial[i];
     cycleOut << std::endl;
 }

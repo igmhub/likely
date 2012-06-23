@@ -196,6 +196,20 @@ namespace likely {
         // used here is an optimization, not a mistake.) If no covariance is available,
         // then Cinv=identity is assumed.
         double chiSquare(std::vector<double> pred) const;
+        // Calculates the "decorrelated" weights for the specified prediction vector and
+        // saves the results in the vector provided. Decorrelated weights are defined as:
+        //
+        //  dweight[j] = Sum[ Cinv[j,k] (data[k]-pred[k])/(data[j]-pred[j]), {k,0,npar-1} ]
+        //
+        // so that the usual uncorrelated chiSquare formula gives identical results to the
+        // chiSquare calculated by the full covariance (e.g., using the method above) if
+        // we use dweight[k] for sigma[k]^(-2):
+        //
+        //  chiSquare(pred) = Sum[ (data[k]-pred[k])^2 dweight[k] ].
+        //
+        // In case any data[j]==pred[j], any non-zero value of dsigma[j] satisfies this
+        // relation so we chose dweight[j] = Cinv[j,j].
+        void getDecorrelatedWeights(std::vector<double> const &pred, std::vector<double> &dweights) const;
         
         // Prunes our data to the subset of bins listed by their global index in the
         // specified keep vector. Throws a RuntimeError if any indices are out of range.

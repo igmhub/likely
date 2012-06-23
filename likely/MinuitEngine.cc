@@ -142,7 +142,7 @@ void local::MinuitEngine::minimize(FunctionMinimumPtr fmin, double prec, int max
                 try {
                     // Check that we really have a positive definite matrix before we save it.
                     CovarianceMatrixCPtr C(new CovarianceMatrix(mnmin.UserCovariance().Data()));
-                    C->getDeterminant();
+                    C->getLogDeterminant();
                     fmin->updateCovariance(C);
                 }
                 catch(RuntimeError const &e) {

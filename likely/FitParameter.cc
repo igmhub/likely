@@ -75,7 +75,8 @@ bool onlyFloating) {
     }
 }
 
-int local::countFloatingFitParameters(FitParameters const &parameters) {
+int local::countFitParameters(FitParameters const &parameters, bool onlyFloating) {
+    if(!onlyFloating) return parameters.size();
     int count(0);
     for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
         if(iter->isFloating()) count++;
@@ -100,6 +101,22 @@ int local::findFitParameterByName(FitParameters const &parameters, std::string c
         if(name == iter->getName()) return std::distance(parameters.begin(),iter);
     }
     throw RuntimeError("findFitParameterByName: name not found: '" + name + "'");
+}
+
+void local::setFitParameterValues(FitParameters &parameters, Parameters::const_iterator first,
+Parameters::const_iterator last, bool onlyFloating) {
+    if(std::distance(first,last) != countFitParameters(parameters, onlyFloating)) {
+        throw RuntimeError("setFitParameterValues: wrong number of values provided.");
+    }
+    Parameters::const_iterator nextValue(first);
+    for(FitParameters::iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
+        if(!onlyFloating || iter->isFloating()) iter->setValue(*nextValue++);
+    }
+}
+
+void local::setFitParameterValues(FitParameters &parameters, Parameters const &values,
+bool onlyFloating) {
+    setFitParameterValues(parameters,values.begin(),values.end(),onlyFloating);
 }
 
 namespace likely {

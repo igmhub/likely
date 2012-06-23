@@ -32,8 +32,8 @@ local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, GradientCalculatorPtr
 FitParameters const &parameters, std::string const &algorithm, RandomPtr random)
 : _f(f), _random(random)
 {
-    _nParam = parameters.size();
-    _nFloating = countFloatingFitParameters(parameters);
+    _nParam = countFitParameters(parameters,false);
+    _nFloating = countFitParameters(parameters,true);
     if(0 == _nFloating) {
         throw RuntimeError("MarkovChainEngine: number of floating parameters must be > 0.");
     }
@@ -97,15 +97,17 @@ int maxTrials, Callback callback, int callbackInterval) const {
         // Calculate log( L(trial)/L(current) W(current)/W(trial) )
         double logProbRatio(currentNLL-trialNLL-currentNLW+trialNLW);
         // Do we accept this trial step?
+        bool accepted(false);
         if(logProbRatio >= 0 || _random->getUniform() < std::exp(logProbRatio)) {
             current = trial;
             currentNLL = trialNLL;
             currentNLW = trialNLW;
-            if(callback && (0 == nTrials%callbackInterval)) callback(current, trial, trialNLL, true);
+            accepted = true;
             remaining--;
         }
-        else {
-            if(callback && (0 == nTrials%callbackInterval)) callback(current, trial, trialNLL, false);
+        // Invoke the callback now, if any.
+        if(callback && (0 == nTrials%callbackInterval)) {
+            callback(current, trial, currentNLL, trialNLL, accepted);
         }
         // Accumulate covariance statistics...
         // Use the initial guess at the minimum for calculating residuals of our
@@ -119,7 +121,7 @@ int maxTrials, Callback callback, int callbackInterval) const {
     try {
         // Make sure we have a valid positive-definite matrix before we use it.
         CovarianceMatrixCPtr C = accumulator.getCovariance();
-        C->getDeterminant();
+        C->getLogDeterminant();
         fmin->updateCovariance(C);
     }
     catch(RuntimeError const &e) {

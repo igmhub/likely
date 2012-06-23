@@ -42,8 +42,8 @@ namespace likely {
         int getSize() const;
         // Returns the number of non-zero covariance matrix elements stored in this object.
         int getNElements() const;
-        // Returns the determinant of this covariance matrix.
-        double getDeterminant() const;
+        // Returns the (natural) log of the determinant of this covariance matrix.
+        double getLogDeterminant() const;
         
         // Returns the specified (inverse) covariance matrix element or throws a RuntimeError.
         // (row,col) and (col,row) give the same result by construction. Be aware that

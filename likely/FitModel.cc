@@ -22,7 +22,7 @@ void local::FitModel::defineParameter(std::string const &name, double value, dou
 }
 
 int local::FitModel::getNParameters(bool onlyFloating) const {
-    return onlyFloating ? countFloatingFitParameters(_parameters) : _parameters.size();
+    return countFitParameters(_parameters, onlyFloating);
 }
 
 bool local::FitModel::updateParameterValues(Parameters const &values) {

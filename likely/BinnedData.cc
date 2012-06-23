@@ -488,6 +488,42 @@ double local::BinnedData::chiSquare(std::vector<double> pred) const {
     return hasCovariance() ? _covariance->chiSquare(pred) : unweighted*_weight;
 }
 
+void local::BinnedData::getDecorrelatedWeights(std::vector<double> const &pred,
+std::vector<double> &dweights) const {
+    int nbins(getNBinsWithData());
+    if(pred.size() != nbins) {
+        throw RuntimeError("BinnedData::getDecorrelatedErrors: prediction vector has wrong size.");
+    }
+    dweights.reserve(nbins);
+    dweights.resize(0);
+    // Subtract the prediction from our data vector.
+    std::vector<double> delta;
+    delta.reserve(nbins);
+    std::vector<double>::const_iterator nextPred(pred.begin());
+    for(IndexIterator iter = begin(); iter != end(); ++iter) {
+        delta.push_back(getData(*iter) - *nextPred++);
+    }
+    // Loop over bins
+    for(int j = 0; j < nbins; ++j) {
+        double dweight(0);
+        if(hasCovariance()) {
+            double deltaj(delta[j]);
+            if(0 == deltaj) {
+                dweight = _covariance->getInverseCovariance(j,j);
+            }
+            else {
+                for(int k = 0; k < nbins; ++k) {
+                    dweight += _covariance->getInverseCovariance(j,k)*delta[k]/deltaj;
+                }
+            }
+        }
+        else {
+            dweight = _weight;
+        }
+        dweights.push_back(dweight);
+    }
+}
+
 void local::BinnedData::printToStream(std::ostream &out, std::string format) const {
     boost::format indexFormat("[%4d] "),valueFormat(format);
     for(IndexIterator iter = begin(); iter != end(); ++iter) {
