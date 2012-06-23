@@ -64,8 +64,15 @@ namespace likely {
     void getFitParameterNames(FitParameters const &parameters, std::vector<std::string> &names,
         bool onlyFloating = false);
         
-    // Returns the number of floating parameters.
-    int countFloatingFitParameters(FitParameters const &parameters);
+    // Sets parameter values. Use the optional onlyFloating parameter to only update
+    // floating parameter values.
+    void setFitParameterValues(FitParameters &parameters, Parameters const &values,
+        bool onlyFloating = false);
+    void setFitParameterValues(FitParameters &parameters, Parameters::const_iterator first,
+        Parameters::const_iterator last, bool onlyFloating = false);
+        
+    // Returns the number of total or floating parameters.
+    int countFitParameters(FitParameters const &parameters, bool onlyFloating = false);
     
     // Prints a multi-line description of FitParameters to the specified output stream.
     void printFitParametersToStream(FitParameters const &parameters, std::ostream &out,

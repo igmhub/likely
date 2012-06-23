@@ -32,8 +32,8 @@ local::MarkovChainEngine::MarkovChainEngine(FunctionPtr f, GradientCalculatorPtr
 FitParameters const &parameters, std::string const &algorithm, RandomPtr random)
 : _f(f), _random(random)
 {
-    _nParam = parameters.size();
-    _nFloating = countFloatingFitParameters(parameters);
+    _nParam = countFitParameters(parameters,false);
+    _nFloating = countFitParameters(parameters,true);
     if(0 == _nFloating) {
         throw RuntimeError("MarkovChainEngine: number of floating parameters must be > 0.");
     }

@@ -35,12 +35,12 @@ void local::FunctionMinimum::updateParameters(double minValue, FitParameters con
         if(parameters.size() != _parameters.size()) {
             throw RuntimeError("FunctionMinimum::updateParameters: unexpected parameters size.");
         }
-        if(countFloatingFitParameters(parameters) != _nFloating) {
+        if(countFitParameters(parameters,true) != _nFloating) {
             throw RuntimeError("FunctionMinimum::updateParameters: wrong number of floating parameters.");
         }
     }
     else {
-        _nFloating = countFloatingFitParameters(parameters);
+        _nFloating = countFitParameters(parameters,true);
     }
     _parameters = parameters;
     _minValue = minValue;
