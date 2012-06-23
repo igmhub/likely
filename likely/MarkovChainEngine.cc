@@ -121,7 +121,7 @@ int maxTrials, Callback callback, int callbackInterval) const {
     try {
         // Make sure we have a valid positive-definite matrix before we use it.
         CovarianceMatrixCPtr C = accumulator.getCovariance();
-        C->getDeterminant();
+        C->getLogDeterminant();
         fmin->updateCovariance(C);
     }
     catch(RuntimeError const &e) {

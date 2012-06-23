@@ -600,7 +600,8 @@ local::CovarianceMatrixPtr local::generateRandomCovariance(int size, double scal
         // Calculate the re-scaling factor required to get the requested determinant. This
         // will throw a RuntimeError in case our original M was not invertible.
         try {
-            double rescale = scale*std::pow(C->getDeterminant(),-1./size);
+            double logdet = C->getLogDeterminant();
+            double rescale = scale*std::exp(-logdet/size);
             C->applyScaleFactor(rescale);
             break;
         }
@@ -711,16 +712,16 @@ int local::CovarianceMatrix::getNElements() const {
     return nelem;
 }
 
-double local::CovarianceMatrix::getDeterminant() const {
+double local::CovarianceMatrix::getLogDeterminant() const {
     // Calculate our Cholesky decomposition now, if necessary.
     _readsCholesky();
     // Our determinant is the product of diagonal Cholesky matrix elements squared.
-    double det(1);
+    double logdet(0);
     for(int index = 0; index < _size; ++index) {
         double diag(_cholesky[symmetricMatrixIndex(index,index,_size)]);
-        det *= diag*diag;
+        logdet += 2*std::log(diag);
     }
-    return det;
+    return logdet;
 }
 
 void local::CovarianceMatrix::applyScaleFactor(double scaleFactor) {
