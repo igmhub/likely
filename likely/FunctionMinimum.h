@@ -6,14 +6,12 @@
 #include "likely/types.h"
 #include "likely/FitParameter.h"
 
-#include "boost/utility.hpp"
-
 #include <string>
 #include <iosfwd>
 
 namespace likely {
     // Represents the information known about an approximate function minimum.
-	class FunctionMinimum : public boost::noncopyable {
+	class FunctionMinimum {
 	public:
 	    // Creates a function minimum object for the specified function minimum value and
 	    // estimated location of the minimum in parameter space.
