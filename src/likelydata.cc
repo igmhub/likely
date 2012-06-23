@@ -103,5 +103,37 @@ int main(int argc, char **argv) {
         c123.printToStream(std::cout);
     }
     
+    // Test decorrelated errors
+    {
+        lk::RandomPtr random(new lk::Random());
+        random->setSeed(12345);
+        int nbins(5);
+        // Generate a random covariance matrix
+        lk::CovarianceMatrixPtr C(lk::generateRandomCovariance(nbins,1,random));
+        // Initialize an empty dataset.
+        lk::AbsBinningCPtr binning(new lk::UniformBinning(0,1,nbins));
+        lk::BinnedData data(binning);
+        // Generate random prediction and data vectors.
+        std::vector<double> pred,noise;
+        C->sample(noise,random);
+        for(int index = 0; index < nbins; ++index) {
+            double truth = random->getUniform();
+            pred.push_back(truth);
+            data.setData(index, truth + noise[index]);
+        }
+        // Comment out this line to test without a covariance matrix.
+        data.setCovarianceMatrix(C);
+        // Calculate the chi-square with the full covariance.
+        double chi2 = data.chiSquare(pred);
+        // Calculate with decorrelated errors.
+        std::vector<double> dwgt;
+        data.getDecorrelatedWeights(pred,dwgt);
+        double chi2d(0);
+        for(int index = 0; index < nbins; ++index) {
+            chi2d += noise[index]*noise[index]*dwgt[index];
+        }
+        std::cout << "chi2 = " << chi2 << ", chi2d = " << chi2d << std::endl;
+    }
+    
     return 0;
 }
