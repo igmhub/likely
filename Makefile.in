@@ -127,7 +127,8 @@ demo2_OBJECTS = $(am_demo2_OBJECTS)
 am_likelycheck_OBJECTS = likelycheck.$(OBJEXT) \
 	CovarianceMatrixTest.$(OBJEXT) UniformBinningTest.$(OBJEXT) \
 	UniformSamplingTest.$(OBJEXT) NonUniformBinningTest.$(OBJEXT) \
-	NonUniformSamplingTest.$(OBJEXT) BinnedDataTest.$(OBJEXT)
+	NonUniformSamplingTest.$(OBJEXT) BinnedDataTest.$(OBJEXT) \
+	FitParameterTest.$(OBJEXT)
 likelycheck_OBJECTS = $(am_likelycheck_OBJECTS)
 am_likelycov_OBJECTS = likelycov.$(OBJEXT)
 likelycov_OBJECTS = $(am_likelycov_OBJECTS)
@@ -279,7 +280,6 @@ RANLIB = @RANLIB@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
-SIMD_FLAGS = @SIMD_FLAGS@
 STRIP = @STRIP@
 VERSION = @VERSION@
 abs_builddir = @abs_builddir@
@@ -423,7 +423,8 @@ likelycheck_SOURCES = test/likelycheck.cc \
 	test/UniformSamplingTest.cc \
 	test/NonUniformBinningTest.cc \
 	test/NonUniformSamplingTest.cc \
-	test/BinnedDataTest.cc
+	test/BinnedDataTest.cc \
+	test/FitParameterTest.cc
 
 likelycheck_DEPENDENCIES = $(lib_LIBRARIES)
 likelycheck_LDADD = -lboost_unit_test_framework -L. -llikely
@@ -639,6 +640,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitModel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitParameter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitParameterStatistics.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitParameterTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FunctionMinimum.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslEngine.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GslErrorHandler.Plo@am__quote@
@@ -1017,6 +1019,20 @@ BinnedDataTest.obj: test/BinnedDataTest.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/BinnedDataTest.cc' object='BinnedDataTest.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BinnedDataTest.obj `if test -f 'test/BinnedDataTest.cc'; then $(CYGPATH_W) 'test/BinnedDataTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/BinnedDataTest.cc'; fi`
+
+FitParameterTest.o: test/FitParameterTest.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FitParameterTest.o -MD -MP -MF $(DEPDIR)/FitParameterTest.Tpo -c -o FitParameterTest.o `test -f 'test/FitParameterTest.cc' || echo '$(srcdir)/'`test/FitParameterTest.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FitParameterTest.Tpo $(DEPDIR)/FitParameterTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/FitParameterTest.cc' object='FitParameterTest.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FitParameterTest.o `test -f 'test/FitParameterTest.cc' || echo '$(srcdir)/'`test/FitParameterTest.cc
+
+FitParameterTest.obj: test/FitParameterTest.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT FitParameterTest.obj -MD -MP -MF $(DEPDIR)/FitParameterTest.Tpo -c -o FitParameterTest.obj `if test -f 'test/FitParameterTest.cc'; then $(CYGPATH_W) 'test/FitParameterTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/FitParameterTest.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/FitParameterTest.Tpo $(DEPDIR)/FitParameterTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/FitParameterTest.cc' object='FitParameterTest.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FitParameterTest.obj `if test -f 'test/FitParameterTest.cc'; then $(CYGPATH_W) 'test/FitParameterTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/FitParameterTest.cc'; fi`
 
 likelycov.o: src/likelycov.cc
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelycov.o -MD -MP -MF $(DEPDIR)/likelycov.Tpo -c -o likelycov.o `test -f 'src/likelycov.cc' || echo '$(srcdir)/'`src/likelycov.cc

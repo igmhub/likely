@@ -213,3 +213,43 @@ void local::modifyFitParameters(FitParameters &parameters, std::string const &sc
     }
     parameters = modified;
 }
+
+std::string local::roundValueWithError(double value, std::vector<double> const &errors, std::string const &seperator) {
+    if(!errors.size()) return (boost::format("%f") % value).str();
+    double largestOffset;
+    for(int i = 0; i < errors.size(); ++i){
+        if(errors[i] <= 0) {
+            throw RuntimeError("FitParameter::roundValueWithError: error must be > 0.");
+        }
+        // What order of magnitude are we dealing with here?
+        int order = std::ceil(std::log10(errors[i]));
+        // Check the three highest order digits
+        int power = 3 - order;
+        double offset = std::pow(10., power);
+        int firstThreeDigits = std::floor(errors[i]*offset);
+        // Adjust offset to first significant digit
+        offset /= 100.;
+        if(firstThreeDigits >= 100 && firstThreeDigits <= 355) {
+            // Adjust offset to save second significant digit
+            offset *= 10.;
+        }
+        // Save the offset to the smallest error
+        if(i == 0 || offset > largestOffset) {
+            largestOffset = offset;
+        }
+    }
+    // Configure floating point output format
+    int precision = int(std::log10(largestOffset));
+    std::string format = (boost::format("%s%df") % "%." % (precision < 0 ? 0 : precision)).str();
+    std::string formattedValueWithError;
+    // Round value and apply floating point format
+    long shiftedValue = std::floor(value*largestOffset+.5);
+    formattedValueWithError += (boost::format(format) % (shiftedValue/largestOffset)).str();
+    // Round errors and apply floating point format
+    for(int i = 0; i < errors.size(); ++i){
+        long shiftedError = std::floor(errors[i]*largestOffset + .5);
+        formattedValueWithError += (boost::format(" %s " + format) % seperator % (shiftedError/largestOffset)).str();
+    }
+    // Return formatted value with error(s)
+    return formattedValueWithError;
+}

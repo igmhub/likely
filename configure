@@ -686,6 +686,9 @@ FGREP
 EGREP
 GREP
 SED
+ac_ct_CC
+CFLAGS
+CC
 host_os
 host_vendor
 host_cpu
@@ -695,10 +698,6 @@ build_vendor
 build_cpu
 build
 LIBTOOL
-SIMD_FLAGS
-ac_ct_CC
-CFLAGS
-CC
 OBJEXT
 EXEEXT
 ac_ct_CXX
@@ -754,6 +753,7 @@ enable_fast_install
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
+with_gnu_ld
 with_gsl
 with_minuit2
 with_boost
@@ -772,8 +772,13 @@ CPPFLAGS
 CCC
 CC
 CFLAGS
+LDFLAGS
+LIBS
+CPPFLAGS
 CPP
+CPPFLAGS
 CXXCPP
+CPPFLAGS
 BOOST_ROOT'
 
 
@@ -1589,48 +1594,6 @@ fi
 
 } # ac_fn_c_try_compile
 
-# ac_fn_c_try_run LINENO
-# ----------------------
-# Try to link conftest.$ac_ext, and return whether this succeeded. Assumes
-# that executables *can* be run.
-ac_fn_c_try_run ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  if { { ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-$as_echo "$ac_try_echo"; } >&5
-  (eval "$ac_link") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } && { ac_try='./conftest$ac_exeext'
-  { { case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-$as_echo "$ac_try_echo"; } >&5
-  (eval "$ac_try") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }; then :
-  ac_retval=0
-else
-  $as_echo "$as_me: program exited with status $ac_status" >&5
-       $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-       ac_retval=$ac_status
-fi
-  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-  as_fn_set_status $ac_retval
-
-} # ac_fn_c_try_run
-
 # ac_fn_c_try_link LINENO
 # -----------------------
 # Try to link conftest.$ac_ext, and return whether this succeeded.
@@ -1744,6 +1707,48 @@ fi
   as_fn_set_status $ac_retval
 
 } # ac_fn_c_try_cpp
+
+# ac_fn_c_try_run LINENO
+# ----------------------
+# Try to link conftest.$ac_ext, and return whether this succeeded. Assumes
+# that executables *can* be run.
+ac_fn_c_try_run ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  if { { ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_link") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; } && { ac_try='./conftest$ac_exeext'
+  { { case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then :
+  ac_retval=0
+else
+  $as_echo "$as_me: program exited with status $ac_status" >&5
+       $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+       ac_retval=$ac_status
+fi
+  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+  as_fn_set_status $ac_retval
+
+} # ac_fn_c_try_run
 
 # ac_fn_c_check_func LINENO FUNC VAR
 # ----------------------------------
@@ -2848,6 +2853,204 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 # Use SIMD compiler extensions when available
+AX_EXT
+
+# Initialize libtool, which adds --enable/disable-shared configure options.
+# The boost.m4 macros used below also need this.
+ac_aux_dir=
+for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
+  if test -f "$ac_dir/install-sh"; then
+    ac_aux_dir=$ac_dir
+    ac_install_sh="$ac_aux_dir/install-sh -c"
+    break
+  elif test -f "$ac_dir/install.sh"; then
+    ac_aux_dir=$ac_dir
+    ac_install_sh="$ac_aux_dir/install.sh -c"
+    break
+  elif test -f "$ac_dir/shtool"; then
+    ac_aux_dir=$ac_dir
+    ac_install_sh="$ac_aux_dir/shtool install -c"
+    break
+  fi
+done
+if test -z "$ac_aux_dir"; then
+  as_fn_error $? "cannot find install-sh, install.sh, or shtool in \"$srcdir\" \"$srcdir/..\" \"$srcdir/../..\"" "$LINENO" 5
+fi
+
+# These three variables are undocumented and unsupported,
+# and are intended to be withdrawn in a future Autoconf release.
+# They can cause serious problems if a builder's source tree is in a directory
+# whose full name contains unusual characters.
+ac_config_guess="$SHELL $ac_aux_dir/config.guess"  # Please don't use this var.
+ac_config_sub="$SHELL $ac_aux_dir/config.sub"  # Please don't use this var.
+ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
+
+
+case `pwd` in
+  *\ * | *\	*)
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&5
+$as_echo "$as_me: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&2;} ;;
+esac
+
+
+
+macro_version='2.4'
+macro_revision='1.3293'
+
+
+
+
+
+
+
+
+
+
+
+
+
+ltmain="$ac_aux_dir/ltmain.sh"
+
+# Make sure we can run config.sub.
+$SHELL "$ac_aux_dir/config.sub" sun4 >/dev/null 2>&1 ||
+  as_fn_error $? "cannot run $SHELL $ac_aux_dir/config.sub" "$LINENO" 5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking build system type" >&5
+$as_echo_n "checking build system type... " >&6; }
+if ${ac_cv_build+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_build_alias=$build_alias
+test "x$ac_build_alias" = x &&
+  ac_build_alias=`$SHELL "$ac_aux_dir/config.guess"`
+test "x$ac_build_alias" = x &&
+  as_fn_error $? "cannot guess build type; you must specify one" "$LINENO" 5
+ac_cv_build=`$SHELL "$ac_aux_dir/config.sub" $ac_build_alias` ||
+  as_fn_error $? "$SHELL $ac_aux_dir/config.sub $ac_build_alias failed" "$LINENO" 5
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_build" >&5
+$as_echo "$ac_cv_build" >&6; }
+case $ac_cv_build in
+*-*-*) ;;
+*) as_fn_error $? "invalid value of canonical build" "$LINENO" 5;;
+esac
+build=$ac_cv_build
+ac_save_IFS=$IFS; IFS='-'
+set x $ac_cv_build
+shift
+build_cpu=$1
+build_vendor=$2
+shift; shift
+# Remember, the first character of IFS is used to create $*,
+# except with old shells:
+build_os=$*
+IFS=$ac_save_IFS
+case $build_os in *\ *) build_os=`echo "$build_os" | sed 's/ /-/g'`;; esac
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking host system type" >&5
+$as_echo_n "checking host system type... " >&6; }
+if ${ac_cv_host+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "x$host_alias" = x; then
+  ac_cv_host=$ac_cv_build
+else
+  ac_cv_host=`$SHELL "$ac_aux_dir/config.sub" $host_alias` ||
+    as_fn_error $? "$SHELL $ac_aux_dir/config.sub $host_alias failed" "$LINENO" 5
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_host" >&5
+$as_echo "$ac_cv_host" >&6; }
+case $ac_cv_host in
+*-*-*) ;;
+*) as_fn_error $? "invalid value of canonical host" "$LINENO" 5;;
+esac
+host=$ac_cv_host
+ac_save_IFS=$IFS; IFS='-'
+set x $ac_cv_host
+shift
+host_cpu=$1
+host_vendor=$2
+shift; shift
+# Remember, the first character of IFS is used to create $*,
+# except with old shells:
+host_os=$*
+IFS=$ac_save_IFS
+case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
+
+
+# Backslashify metacharacters that are still active within
+# double-quoted strings.
+sed_quote_subst='s/\(["`$\\]\)/\\\1/g'
+
+# Same as above, but do not quote variable references.
+double_quote_subst='s/\(["`\\]\)/\\\1/g'
+
+# Sed substitution to delay expansion of an escaped shell variable in a
+# double_quote_subst'ed string.
+delay_variable_subst='s/\\\\\\\\\\\$/\\\\\\$/g'
+
+# Sed substitution to delay expansion of an escaped single quote.
+delay_single_quote_subst='s/'\''/'\'\\\\\\\'\''/g'
+
+# Sed substitution to avoid accidental globbing in evaled expressions
+no_glob_subst='s/\*/\\\*/g'
+
+ECHO='\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
+ECHO=$ECHO$ECHO$ECHO$ECHO$ECHO
+ECHO=$ECHO$ECHO$ECHO$ECHO$ECHO$ECHO
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking how to print strings" >&5
+$as_echo_n "checking how to print strings... " >&6; }
+# Test print first, because it will be a builtin if present.
+if test "X`( print -r -- -n ) 2>/dev/null`" = X-n && \
+   test "X`print -r -- $ECHO 2>/dev/null`" = "X$ECHO"; then
+  ECHO='print -r --'
+elif test "X`printf %s $ECHO 2>/dev/null`" = "X$ECHO"; then
+  ECHO='printf %s\n'
+else
+  # Use this function as a fallback that always works.
+  func_fallback_echo ()
+  {
+    eval 'cat <<_LTECHO_EOF
+$1
+_LTECHO_EOF'
+  }
+  ECHO='func_fallback_echo'
+fi
+
+# func_echo_all arg...
+# Invoke $ECHO with all args, space-separated.
+func_echo_all ()
+{
+    $ECHO ""
+}
+
+case "$ECHO" in
+  printf*) { $as_echo "$as_me:${as_lineno-$LINENO}: result: printf" >&5
+$as_echo "printf" >&6; } ;;
+  print*) { $as_echo "$as_me:${as_lineno-$LINENO}: result: print -r" >&5
+$as_echo "print -r" >&6; } ;;
+  *) { $as_echo "$as_me:${as_lineno-$LINENO}: result: cat" >&5
+$as_echo "cat" >&6; } ;;
+esac
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -3387,611 +3590,6 @@ ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-
-
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for x86 cpuid  output" >&5
-$as_echo_n "checking for x86 cpuid  output... " >&6; }
-if ${ax_cv_gcc_x86_cpuid_+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test "$cross_compiling" = yes; then :
-  ax_cv_gcc_x86_cpuid_=unknown
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <stdio.h>
-int
-main ()
-{
-
-     int op = , eax, ebx, ecx, edx;
-     FILE *f;
-      __asm__("cpuid"
-        : "=a" (eax), "=b" (ebx), "=c" (ecx), "=d" (edx)
-        : "a" (op));
-     f = fopen("conftest_cpuid", "w"); if (!f) return 1;
-     fprintf(f, "%x:%x:%x:%x\n", eax, ebx, ecx, edx);
-     fclose(f);
-     return 0;
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  ax_cv_gcc_x86_cpuid_=`cat conftest_cpuid`; rm -f conftest_cpuid
-else
-  ax_cv_gcc_x86_cpuid_=unknown; rm -f conftest_cpuid
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_gcc_x86_cpuid_" >&5
-$as_echo "$ax_cv_gcc_x86_cpuid_" >&6; }
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-
-
-
-
-
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for x86 cpuid 0x00000001 output" >&5
-$as_echo_n "checking for x86 cpuid 0x00000001 output... " >&6; }
-if ${ax_cv_gcc_x86_cpuid_0x00000001+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test "$cross_compiling" = yes; then :
-  ax_cv_gcc_x86_cpuid_0x00000001=unknown
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <stdio.h>
-int
-main ()
-{
-
-     int op = 0x00000001, eax, ebx, ecx, edx;
-     FILE *f;
-      __asm__("cpuid"
-        : "=a" (eax), "=b" (ebx), "=c" (ecx), "=d" (edx)
-        : "a" (op));
-     f = fopen("conftest_cpuid", "w"); if (!f) return 1;
-     fprintf(f, "%x:%x:%x:%x\n", eax, ebx, ecx, edx);
-     fclose(f);
-     return 0;
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  ax_cv_gcc_x86_cpuid_0x00000001=`cat conftest_cpuid`; rm -f conftest_cpuid
-else
-  ax_cv_gcc_x86_cpuid_0x00000001=unknown; rm -f conftest_cpuid
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_gcc_x86_cpuid_0x00000001" >&5
-$as_echo "$ax_cv_gcc_x86_cpuid_0x00000001" >&6; }
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-
-  ecx=`echo $ax_cv_gcc_x86_cpuid_0x00000001 | cut -d ":" -f 3`
-  edx=`echo $ax_cv_gcc_x86_cpuid_0x00000001 | cut -d ":" -f 4`
-
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether mmx is supported" >&5
-$as_echo_n "checking whether mmx is supported... " >&6; }
-if ${ax_cv_have_mmx_ext+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-    ax_cv_have_mmx_ext=no
-    if test "$((0x$edx>>23&0x01))" = 1; then
-      ax_cv_have_mmx_ext=yes
-    fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_have_mmx_ext" >&5
-$as_echo "$ax_cv_have_mmx_ext" >&6; }
-
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether sse is supported" >&5
-$as_echo_n "checking whether sse is supported... " >&6; }
-if ${ax_cv_have_sse_ext+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-    ax_cv_have_sse_ext=no
-    if test "$((0x$edx>>25&0x01))" = 1; then
-      ax_cv_have_sse_ext=yes
-    fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_have_sse_ext" >&5
-$as_echo "$ax_cv_have_sse_ext" >&6; }
-
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether sse2 is supported" >&5
-$as_echo_n "checking whether sse2 is supported... " >&6; }
-if ${ax_cv_have_sse2_ext+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-    ax_cv_have_sse2_ext=no
-    if test "$((0x$edx>>26&0x01))" = 1; then
-      ax_cv_have_sse2_ext=yes
-    fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_have_sse2_ext" >&5
-$as_echo "$ax_cv_have_sse2_ext" >&6; }
-
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether sse3 is supported" >&5
-$as_echo_n "checking whether sse3 is supported... " >&6; }
-if ${ax_cv_have_sse3_ext+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-    ax_cv_have_sse3_ext=no
-    if test "$((0x$ecx&0x01))" = 1; then
-      ax_cv_have_sse3_ext=yes
-    fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_have_sse3_ext" >&5
-$as_echo "$ax_cv_have_sse3_ext" >&6; }
-
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether ssse3 is supported" >&5
-$as_echo_n "checking whether ssse3 is supported... " >&6; }
-if ${ax_cv_have_ssse3_ext+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-    ax_cv_have_ssse3_ext=no
-    if test "$((0x$ecx>>9&0x01))" = 1; then
-      ax_cv_have_ssse3_ext=yes
-    fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_have_ssse3_ext" >&5
-$as_echo "$ax_cv_have_ssse3_ext" >&6; }
-
-  if test "$ax_cv_have_mmx_ext" = yes; then
-
-$as_echo "#define HAVE_MMX /**/" >>confdefs.h
-
-     # AX_CHECK_COMPILER_FLAGS start
-ax_save_FLAGS=$CFLAGS
-CFLAGS=
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -mmmx" >&5
-$as_echo_n "checking whether C compiler accepts -mmmx... " >&6; }
-if ${ax_cv_check_cflags___mmmx+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-  ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS  -mmmx"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ax_cv_check_cflags___mmmx=yes
-else
-  ax_cv_check_cflags___mmmx=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  CFLAGS=$ax_check_save_flags
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___mmmx" >&5
-$as_echo "$ax_cv_check_cflags___mmmx" >&6; }
-if test x"$ax_cv_check_cflags___mmmx" = xyes; then :
-  ax_check_compiler_flags=yes
-else
-  ax_check_compiler_flags=no
-fi
-
-CFLAGS=$ax_save_FLAGS
-if test "x$ax_check_compiler_flags" == "xyes"; then :
-  SIMD_FLAGS="$SIMD_FLAGS -mmmx"
-else
-  :
-fi
-# AX_CHECK_COMPILER_FLAGS end
-
-  fi
-
-  if test "$ax_cv_have_sse_ext" = yes; then
-
-$as_echo "#define HAVE_SSE /**/" >>confdefs.h
-
-     # AX_CHECK_COMPILER_FLAGS start
-ax_save_FLAGS=$CFLAGS
-CFLAGS=
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -msse" >&5
-$as_echo_n "checking whether C compiler accepts -msse... " >&6; }
-if ${ax_cv_check_cflags___msse+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-  ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS  -msse"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ax_cv_check_cflags___msse=yes
-else
-  ax_cv_check_cflags___msse=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  CFLAGS=$ax_check_save_flags
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___msse" >&5
-$as_echo "$ax_cv_check_cflags___msse" >&6; }
-if test x"$ax_cv_check_cflags___msse" = xyes; then :
-  ax_check_compiler_flags=yes
-else
-  ax_check_compiler_flags=no
-fi
-
-CFLAGS=$ax_save_FLAGS
-if test "x$ax_check_compiler_flags" == "xyes"; then :
-  SIMD_FLAGS="$SIMD_FLAGS -msse"
-else
-  :
-fi
-# AX_CHECK_COMPILER_FLAGS end
-
-  fi
-
-  if test "$ax_cv_have_sse2_ext" = yes; then
-
-$as_echo "#define HAVE_SSE2 /**/" >>confdefs.h
-
-     # AX_CHECK_COMPILER_FLAGS start
-ax_save_FLAGS=$CFLAGS
-CFLAGS=
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -msse2" >&5
-$as_echo_n "checking whether C compiler accepts -msse2... " >&6; }
-if ${ax_cv_check_cflags___msse2+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-  ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS  -msse2"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ax_cv_check_cflags___msse2=yes
-else
-  ax_cv_check_cflags___msse2=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  CFLAGS=$ax_check_save_flags
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___msse2" >&5
-$as_echo "$ax_cv_check_cflags___msse2" >&6; }
-if test x"$ax_cv_check_cflags___msse2" = xyes; then :
-  ax_check_compiler_flags=yes
-else
-  ax_check_compiler_flags=no
-fi
-
-CFLAGS=$ax_save_FLAGS
-if test "x$ax_check_compiler_flags" == "xyes"; then :
-  SIMD_FLAGS="$SIMD_FLAGS -msse2"
-else
-  :
-fi
-# AX_CHECK_COMPILER_FLAGS end
-
-  fi
-
-  if test "$ax_cv_have_sse3_ext" = yes; then
-
-$as_echo "#define HAVE_SSE3 /**/" >>confdefs.h
-
-     # AX_CHECK_COMPILER_FLAGS start
-ax_save_FLAGS=$CFLAGS
-CFLAGS=
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -msse3" >&5
-$as_echo_n "checking whether C compiler accepts -msse3... " >&6; }
-if ${ax_cv_check_cflags___msse3+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-  ax_check_save_flags=$CFLAGS
-  CFLAGS="$CFLAGS  -msse3"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ax_cv_check_cflags___msse3=yes
-else
-  ax_cv_check_cflags___msse3=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  CFLAGS=$ax_check_save_flags
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___msse3" >&5
-$as_echo "$ax_cv_check_cflags___msse3" >&6; }
-if test x"$ax_cv_check_cflags___msse3" = xyes; then :
-  ax_check_compiler_flags=yes
-else
-  ax_check_compiler_flags=no
-fi
-
-CFLAGS=$ax_save_FLAGS
-if test "x$ax_check_compiler_flags" == "xyes"; then :
-  SIMD_FLAGS="$SIMD_FLAGS -msse3"
-else
-  :
-fi
-# AX_CHECK_COMPILER_FLAGS end
-
-  fi
-
-  if test "$ax_cv_have_ssse3_ext" = yes; then
-
-$as_echo "#define HAVE_SSSE3 /**/" >>confdefs.h
-
-  fi
-
-
-
-
-# Initialize libtool, which adds --enable/disable-shared configure options.
-# The boost.m4 macros used below also need this.
-ac_aux_dir=
-for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
-  if test -f "$ac_dir/install-sh"; then
-    ac_aux_dir=$ac_dir
-    ac_install_sh="$ac_aux_dir/install-sh -c"
-    break
-  elif test -f "$ac_dir/install.sh"; then
-    ac_aux_dir=$ac_dir
-    ac_install_sh="$ac_aux_dir/install.sh -c"
-    break
-  elif test -f "$ac_dir/shtool"; then
-    ac_aux_dir=$ac_dir
-    ac_install_sh="$ac_aux_dir/shtool install -c"
-    break
-  fi
-done
-if test -z "$ac_aux_dir"; then
-  as_fn_error $? "cannot find install-sh, install.sh, or shtool in \"$srcdir\" \"$srcdir/..\" \"$srcdir/../..\"" "$LINENO" 5
-fi
-
-# These three variables are undocumented and unsupported,
-# and are intended to be withdrawn in a future Autoconf release.
-# They can cause serious problems if a builder's source tree is in a directory
-# whose full name contains unusual characters.
-ac_config_guess="$SHELL $ac_aux_dir/config.guess"  # Please don't use this var.
-ac_config_sub="$SHELL $ac_aux_dir/config.sub"  # Please don't use this var.
-ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
-
-
-case `pwd` in
-  *\ * | *\	*)
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&5
-$as_echo "$as_me: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&2;} ;;
-esac
-
-
-
-macro_version='2.4'
-macro_revision='1.3293'
-
-
-
-
-
-
-
-
-
-
-
-
-
-ltmain="$ac_aux_dir/ltmain.sh"
-
-# Make sure we can run config.sub.
-$SHELL "$ac_aux_dir/config.sub" sun4 >/dev/null 2>&1 ||
-  as_fn_error $? "cannot run $SHELL $ac_aux_dir/config.sub" "$LINENO" 5
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking build system type" >&5
-$as_echo_n "checking build system type... " >&6; }
-if ${ac_cv_build+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_build_alias=$build_alias
-test "x$ac_build_alias" = x &&
-  ac_build_alias=`$SHELL "$ac_aux_dir/config.guess"`
-test "x$ac_build_alias" = x &&
-  as_fn_error $? "cannot guess build type; you must specify one" "$LINENO" 5
-ac_cv_build=`$SHELL "$ac_aux_dir/config.sub" $ac_build_alias` ||
-  as_fn_error $? "$SHELL $ac_aux_dir/config.sub $ac_build_alias failed" "$LINENO" 5
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_build" >&5
-$as_echo "$ac_cv_build" >&6; }
-case $ac_cv_build in
-*-*-*) ;;
-*) as_fn_error $? "invalid value of canonical build" "$LINENO" 5;;
-esac
-build=$ac_cv_build
-ac_save_IFS=$IFS; IFS='-'
-set x $ac_cv_build
-shift
-build_cpu=$1
-build_vendor=$2
-shift; shift
-# Remember, the first character of IFS is used to create $*,
-# except with old shells:
-build_os=$*
-IFS=$ac_save_IFS
-case $build_os in *\ *) build_os=`echo "$build_os" | sed 's/ /-/g'`;; esac
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking host system type" >&5
-$as_echo_n "checking host system type... " >&6; }
-if ${ac_cv_host+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test "x$host_alias" = x; then
-  ac_cv_host=$ac_cv_build
-else
-  ac_cv_host=`$SHELL "$ac_aux_dir/config.sub" $host_alias` ||
-    as_fn_error $? "$SHELL $ac_aux_dir/config.sub $host_alias failed" "$LINENO" 5
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_host" >&5
-$as_echo "$ac_cv_host" >&6; }
-case $ac_cv_host in
-*-*-*) ;;
-*) as_fn_error $? "invalid value of canonical host" "$LINENO" 5;;
-esac
-host=$ac_cv_host
-ac_save_IFS=$IFS; IFS='-'
-set x $ac_cv_host
-shift
-host_cpu=$1
-host_vendor=$2
-shift; shift
-# Remember, the first character of IFS is used to create $*,
-# except with old shells:
-host_os=$*
-IFS=$ac_save_IFS
-case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
-
-
-# Backslashify metacharacters that are still active within
-# double-quoted strings.
-sed_quote_subst='s/\(["`$\\]\)/\\\1/g'
-
-# Same as above, but do not quote variable references.
-double_quote_subst='s/\(["`\\]\)/\\\1/g'
-
-# Sed substitution to delay expansion of an escaped shell variable in a
-# double_quote_subst'ed string.
-delay_variable_subst='s/\\\\\\\\\\\$/\\\\\\$/g'
-
-# Sed substitution to delay expansion of an escaped single quote.
-delay_single_quote_subst='s/'\''/'\'\\\\\\\'\''/g'
-
-# Sed substitution to avoid accidental globbing in evaled expressions
-no_glob_subst='s/\*/\\\*/g'
-
-ECHO='\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
-ECHO=$ECHO$ECHO$ECHO$ECHO$ECHO
-ECHO=$ECHO$ECHO$ECHO$ECHO$ECHO$ECHO
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking how to print strings" >&5
-$as_echo_n "checking how to print strings... " >&6; }
-# Test print first, because it will be a builtin if present.
-if test "X`( print -r -- -n ) 2>/dev/null`" = X-n && \
-   test "X`print -r -- $ECHO 2>/dev/null`" = "X$ECHO"; then
-  ECHO='print -r --'
-elif test "X`printf %s $ECHO 2>/dev/null`" = "X$ECHO"; then
-  ECHO='printf %s\n'
-else
-  # Use this function as a fallback that always works.
-  func_fallback_echo ()
-  {
-    eval 'cat <<_LTECHO_EOF
-$1
-_LTECHO_EOF'
-  }
-  ECHO='func_fallback_echo'
-fi
-
-# func_echo_all arg...
-# Invoke $ECHO with all args, space-separated.
-func_echo_all ()
-{
-    $ECHO ""
-}
-
-case "$ECHO" in
-  printf*) { $as_echo "$as_me:${as_lineno-$LINENO}: result: printf" >&5
-$as_echo "printf" >&6; } ;;
-  print*) { $as_echo "$as_me:${as_lineno-$LINENO}: result: print -r" >&5
-$as_echo "print -r" >&6; } ;;
-  *) { $as_echo "$as_me:${as_lineno-$LINENO}: result: cat" >&5
-$as_echo "cat" >&6; } ;;
-esac
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for a sed that does not truncate output" >&5
 $as_echo_n "checking for a sed that does not truncate output... " >&6; }
@@ -5406,6 +5004,7 @@ fi
 $as_echo "$lt_cv_sharedlib_from_linklib_cmd" >&6; }
 sharedlib_from_linklib_cmd=$lt_cv_sharedlib_from_linklib_cmd
 test -z "$sharedlib_from_linklib_cmd" && sharedlib_from_linklib_cmd=$ECHO
+
 
 
 
@@ -15174,6 +14773,8 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
   # I'm not sure about my test for `il' (be careful: Intel's ICC pre-defines
   # the same defines as GCC's).
   for i in \
+    "defined __GNUC__ && __GNUC__ == 4 && __GNUC_MINOR__ == 8 && !defined __ICC @ gcc48" \
+    "defined __GNUC__ && __GNUC__ == 4 && __GNUC_MINOR__ == 7 && !defined __ICC @ gcc47" \
     "defined __GNUC__ && __GNUC__ == 4 && __GNUC_MINOR__ == 6 && !defined __ICC @ gcc46" \
     "defined __GNUC__ && __GNUC__ == 4 && __GNUC_MINOR__ == 5 && !defined __ICC @ gcc45" \
     "defined __GNUC__ && __GNUC__ == 4 && __GNUC_MINOR__ == 4 && !defined __ICC @ gcc44" \
@@ -15472,15 +15073,7 @@ rm -f core conftest.err conftest_ipa8_conftest.oo \
       LDFLAGS=$boost_save_LDFLAGS
       LIBS=$boost_save_LIBS
       if test x"$boost_cv_lib_unit_test_framework" = xyes; then
-        # Because Boost is often installed in non-standard locations we want to
-        # hardcode the path to the library (with rpath).  Here we assume that
-        # Libtool's macro was already invoked so we can steal its variable
-        # hardcode_libdir_flag_spec in order to get the right flags for ld.
-        boost_save_libdir=$libdir
-        libdir=$boost_ldpath
-        eval boost_rpath=\"$hardcode_libdir_flag_spec\"
-        libdir=$boost_save_libdir
-        boost_cv_lib_unit_test_framework_LDFLAGS="-L$boost_ldpath $boost_rpath"
+        boost_cv_lib_unit_test_framework_LDFLAGS="-L$boost_ldpath -Wl,-R$boost_ldpath"
         boost_cv_lib_unit_test_framework_LDPATH="$boost_ldpath"
         break 6
       else

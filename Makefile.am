@@ -152,6 +152,7 @@ likelycheck_SOURCES = test/likelycheck.cc \
 	test/UniformSamplingTest.cc \
 	test/NonUniformBinningTest.cc \
 	test/NonUniformSamplingTest.cc \
-	test/BinnedDataTest.cc
+	test/BinnedDataTest.cc \
+	test/FitParameterTest.cc
 likelycheck_DEPENDENCIES = $(lib_LIBRARIES)
 likelycheck_LDADD = -lboost_unit_test_framework -L. -llikely
