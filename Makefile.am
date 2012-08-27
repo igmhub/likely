@@ -30,6 +30,7 @@ liblikely_la_SOURCES = \
 	likely/WeightedAccumulator.cc \
 	likely/WeightedCombiner.cc \
 	likely/QuantileAccumulator.cc \
+	likely/ExactQuantileAccumulator.cc \
 	likely/TriCubicInterpolator.cc \
 	likely/AbsBinning.cc \
 	likely/UniformBinning.cc \
@@ -65,6 +66,7 @@ nobase_include_HEADERS = \
 	likely/WeightedAccumulator.h \
 	likely/WeightedCombiner.h \
 	likely/QuantileAccumulator.h \
+	likely/ExactQuantileAccumulator.cc \
 	likely/TriCubicInterpolator.h \
 	likely/AbsBinning.h \
 	likely/BinningError.h \
@@ -140,7 +142,7 @@ resamplingtest_LDADD = -lboost_program_options -L. -llikely
 
 likelyquantile_SOURCES = src/likelyquantile.cc
 likelyquantile_DEPENDENCIES = $(lib_LIBRARIES)
-likelyquantile_LDADD = -lboost_program_options -L. -llikely
+likelyquantile_LDADD = -L. -llikely
 
 demo1_SOURCES = src/demo1.cc
 demo1_DEPENDENCIES = $(lib_LIBRARIES)

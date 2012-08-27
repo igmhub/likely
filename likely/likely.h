@@ -14,6 +14,7 @@
 #include "likely/WeightedAccumulator.h"
 #include "likely/WeightedCombiner.h"
 #include "likely/QuantileAccumulator.h"
+#include "likely/ExactQuantileAccumulator.h"
 #include "likely/CovarianceAccumulator.h"
 
 #include "likely/AbsBinning.h"
