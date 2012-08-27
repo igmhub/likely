@@ -6,7 +6,7 @@ AM_LDFLAGS = -lboost_regex
 # targets to build and install
 lib_LTLIBRARIES = liblikely.la
 bin_PROGRAMS = likelytest likelymc likelyinterp likelywsum likelyinteg likelyrand \
-	likelytricubic likelycov likelydata likelyfitpar resamplingtest
+	likelytricubic likelycov likelydata likelyfitpar resamplingtest likelyquantile
 
 # extra targets that should not be installed
 noinst_PROGRAMS = demo1 demo2
@@ -30,6 +30,7 @@ liblikely_la_SOURCES = \
 	likely/WeightedAccumulator.cc \
 	likely/WeightedCombiner.cc \
 	likely/QuantileAccumulator.cc \
+	likely/ExactQuantileAccumulator.cc \
 	likely/TriCubicInterpolator.cc \
 	likely/AbsBinning.cc \
 	likely/UniformBinning.cc \
@@ -65,6 +66,7 @@ nobase_include_HEADERS = \
 	likely/WeightedAccumulator.h \
 	likely/WeightedCombiner.h \
 	likely/QuantileAccumulator.h \
+	likely/ExactQuantileAccumulator.cc \
 	likely/TriCubicInterpolator.h \
 	likely/AbsBinning.h \
 	likely/BinningError.h \
@@ -138,6 +140,10 @@ resamplingtest_SOURCES = src/resamplingtest.cc
 resamplingtest_DEPENDENCIES = $(lib_LIBRARIES)
 resamplingtest_LDADD = -lboost_program_options -L. -llikely
 
+likelyquantile_SOURCES = src/likelyquantile.cc
+likelyquantile_DEPENDENCIES = $(lib_LIBRARIES)
+likelyquantile_LDADD = -L. -llikely
+
 demo1_SOURCES = src/demo1.cc
 demo1_DEPENDENCIES = $(lib_LIBRARIES)
 demo1_LDADD = -L. -llikely
@@ -153,6 +159,7 @@ likelycheck_SOURCES = test/likelycheck.cc \
 	test/NonUniformBinningTest.cc \
 	test/NonUniformSamplingTest.cc \
 	test/BinnedDataTest.cc \
-	test/FitParameterTest.cc
+	test/FitParameterTest.cc \
+	test/ExactQuantileAccumulatorTest.cc
 likelycheck_DEPENDENCIES = $(lib_LIBRARIES)
 likelycheck_LDADD = -lboost_unit_test_framework -L. -llikely

@@ -40,7 +40,7 @@ bin_PROGRAMS = likelytest$(EXEEXT) likelymc$(EXEEXT) \
 	likelyinterp$(EXEEXT) likelywsum$(EXEEXT) likelyinteg$(EXEEXT) \
 	likelyrand$(EXEEXT) likelytricubic$(EXEEXT) likelycov$(EXEEXT) \
 	likelydata$(EXEEXT) likelyfitpar$(EXEEXT) \
-	resamplingtest$(EXEEXT)
+	resamplingtest$(EXEEXT) likelyquantile$(EXEEXT)
 noinst_PROGRAMS = demo1$(EXEEXT) demo2$(EXEEXT)
 check_PROGRAMS = likelycheck$(EXEEXT)
 
@@ -99,6 +99,7 @@ am__liblikely_la_SOURCES_DIST = likely/FitParameter.cc \
 	likely/Interpolator.cc likely/Integrator.cc likely/Random.cc \
 	likely/AbsAccumulator.cc likely/WeightedAccumulator.cc \
 	likely/WeightedCombiner.cc likely/QuantileAccumulator.cc \
+	likely/ExactQuantileAccumulator.cc \
 	likely/TriCubicInterpolator.cc likely/AbsBinning.cc \
 	likely/UniformBinning.cc likely/NonUniformBinning.cc \
 	likely/UniformSampling.cc likely/NonUniformSampling.cc \
@@ -113,11 +114,12 @@ am_liblikely_la_OBJECTS = FitParameter.lo FitModel.lo \
 	EngineRegistry.lo MarkovChainEngine.lo Interpolator.lo \
 	Integrator.lo Random.lo AbsAccumulator.lo \
 	WeightedAccumulator.lo WeightedCombiner.lo \
-	QuantileAccumulator.lo TriCubicInterpolator.lo AbsBinning.lo \
-	UniformBinning.lo NonUniformBinning.lo UniformSampling.lo \
-	NonUniformSampling.lo CovarianceMatrix.lo \
-	CovarianceAccumulator.lo BinnedData.lo BinnedDataResampler.lo \
-	TestLikelihood.lo $(am__objects_1) $(am__objects_2)
+	QuantileAccumulator.lo ExactQuantileAccumulator.lo \
+	TriCubicInterpolator.lo AbsBinning.lo UniformBinning.lo \
+	NonUniformBinning.lo UniformSampling.lo NonUniformSampling.lo \
+	CovarianceMatrix.lo CovarianceAccumulator.lo BinnedData.lo \
+	BinnedDataResampler.lo TestLikelihood.lo $(am__objects_1) \
+	$(am__objects_2)
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am_demo1_OBJECTS = demo1.$(OBJEXT)
@@ -128,7 +130,8 @@ am_likelycheck_OBJECTS = likelycheck.$(OBJEXT) \
 	CovarianceMatrixTest.$(OBJEXT) UniformBinningTest.$(OBJEXT) \
 	UniformSamplingTest.$(OBJEXT) NonUniformBinningTest.$(OBJEXT) \
 	NonUniformSamplingTest.$(OBJEXT) BinnedDataTest.$(OBJEXT) \
-	FitParameterTest.$(OBJEXT)
+	FitParameterTest.$(OBJEXT) \
+	ExactQuantileAccumulatorTest.$(OBJEXT)
 likelycheck_OBJECTS = $(am_likelycheck_OBJECTS)
 am_likelycov_OBJECTS = likelycov.$(OBJEXT)
 likelycov_OBJECTS = $(am_likelycov_OBJECTS)
@@ -142,6 +145,8 @@ am_likelyinterp_OBJECTS = likelyinterp.$(OBJEXT)
 likelyinterp_OBJECTS = $(am_likelyinterp_OBJECTS)
 am_likelymc_OBJECTS = likelymc.$(OBJEXT)
 likelymc_OBJECTS = $(am_likelymc_OBJECTS)
+am_likelyquantile_OBJECTS = likelyquantile.$(OBJEXT)
+likelyquantile_OBJECTS = $(am_likelyquantile_OBJECTS)
 am_likelyrand_OBJECTS = likelyrand.$(OBJEXT)
 likelyrand_OBJECTS = $(am_likelyrand_OBJECTS)
 am_likelytest_OBJECTS = likelytest.$(OBJEXT)
@@ -169,16 +174,18 @@ SOURCES = $(liblikely_la_SOURCES) $(demo1_SOURCES) $(demo2_SOURCES) \
 	$(likelycheck_SOURCES) $(likelycov_SOURCES) \
 	$(likelydata_SOURCES) $(likelyfitpar_SOURCES) \
 	$(likelyinteg_SOURCES) $(likelyinterp_SOURCES) \
-	$(likelymc_SOURCES) $(likelyrand_SOURCES) \
-	$(likelytest_SOURCES) $(likelytricubic_SOURCES) \
-	$(likelywsum_SOURCES) $(resamplingtest_SOURCES)
+	$(likelymc_SOURCES) $(likelyquantile_SOURCES) \
+	$(likelyrand_SOURCES) $(likelytest_SOURCES) \
+	$(likelytricubic_SOURCES) $(likelywsum_SOURCES) \
+	$(resamplingtest_SOURCES)
 DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(demo1_SOURCES) \
 	$(demo2_SOURCES) $(likelycheck_SOURCES) $(likelycov_SOURCES) \
 	$(likelydata_SOURCES) $(likelyfitpar_SOURCES) \
 	$(likelyinteg_SOURCES) $(likelyinterp_SOURCES) \
-	$(likelymc_SOURCES) $(likelyrand_SOURCES) \
-	$(likelytest_SOURCES) $(likelytricubic_SOURCES) \
-	$(likelywsum_SOURCES) $(resamplingtest_SOURCES)
+	$(likelymc_SOURCES) $(likelyquantile_SOURCES) \
+	$(likelyrand_SOURCES) $(likelytest_SOURCES) \
+	$(likelytricubic_SOURCES) $(likelywsum_SOURCES) \
+	$(resamplingtest_SOURCES)
 am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/function.h likely/function_impl.h likely/RuntimeError.h \
 	likely/FitParameter.h likely/FitModel.h \
@@ -187,14 +194,16 @@ am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/MarkovChainEngine.h likely/Interpolator.h \
 	likely/Integrator.h likely/Random.h likely/AbsAccumulator.h \
 	likely/WeightedAccumulator.h likely/WeightedCombiner.h \
-	likely/QuantileAccumulator.h likely/TriCubicInterpolator.h \
-	likely/AbsBinning.h likely/BinningError.h \
-	likely/UniformBinning.h likely/NonUniformBinning.h \
-	likely/UniformSampling.h likely/NonUniformSampling.h \
-	likely/CovarianceMatrix.h likely/CovarianceAccumulator.h \
-	likely/BinnedData.h likely/BinnedDataResampler.h \
-	likely/test/TestLikelihood.h likely/GslEngine.h \
-	likely/GslErrorHandler.h likely/MinuitEngine.h
+	likely/QuantileAccumulator.h \
+	likely/ExactQuantileAccumulator.cc \
+	likely/TriCubicInterpolator.h likely/AbsBinning.h \
+	likely/BinningError.h likely/UniformBinning.h \
+	likely/NonUniformBinning.h likely/UniformSampling.h \
+	likely/NonUniformSampling.h likely/CovarianceMatrix.h \
+	likely/CovarianceAccumulator.h likely/BinnedData.h \
+	likely/BinnedDataResampler.h likely/test/TestLikelihood.h \
+	likely/GslEngine.h likely/GslErrorHandler.h \
+	likely/MinuitEngine.h
 HEADERS = $(nobase_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -351,13 +360,14 @@ liblikely_la_SOURCES = likely/FitParameter.cc likely/FitModel.cc \
 	likely/MarkovChainEngine.cc likely/Interpolator.cc \
 	likely/Integrator.cc likely/Random.cc likely/AbsAccumulator.cc \
 	likely/WeightedAccumulator.cc likely/WeightedCombiner.cc \
-	likely/QuantileAccumulator.cc likely/TriCubicInterpolator.cc \
-	likely/AbsBinning.cc likely/UniformBinning.cc \
-	likely/NonUniformBinning.cc likely/UniformSampling.cc \
-	likely/NonUniformSampling.cc likely/CovarianceMatrix.cc \
-	likely/CovarianceAccumulator.cc likely/BinnedData.cc \
-	likely/BinnedDataResampler.cc likely/test/TestLikelihood.cc \
-	$(am__append_1) $(am__append_3)
+	likely/QuantileAccumulator.cc \
+	likely/ExactQuantileAccumulator.cc \
+	likely/TriCubicInterpolator.cc likely/AbsBinning.cc \
+	likely/UniformBinning.cc likely/NonUniformBinning.cc \
+	likely/UniformSampling.cc likely/NonUniformSampling.cc \
+	likely/CovarianceMatrix.cc likely/CovarianceAccumulator.cc \
+	likely/BinnedData.cc likely/BinnedDataResampler.cc \
+	likely/test/TestLikelihood.cc $(am__append_1) $(am__append_3)
 
 # library headers to install (nobase prefix preserves directories under bosslya)
 # Anything that includes config.h should *not* be listed here.
@@ -370,13 +380,15 @@ nobase_include_HEADERS = likely/likely.h likely/types.h \
 	likely/MarkovChainEngine.h likely/Interpolator.h \
 	likely/Integrator.h likely/Random.h likely/AbsAccumulator.h \
 	likely/WeightedAccumulator.h likely/WeightedCombiner.h \
-	likely/QuantileAccumulator.h likely/TriCubicInterpolator.h \
-	likely/AbsBinning.h likely/BinningError.h \
-	likely/UniformBinning.h likely/NonUniformBinning.h \
-	likely/UniformSampling.h likely/NonUniformSampling.h \
-	likely/CovarianceMatrix.h likely/CovarianceAccumulator.h \
-	likely/BinnedData.h likely/BinnedDataResampler.h \
-	likely/test/TestLikelihood.h $(am__append_2) $(am__append_4)
+	likely/QuantileAccumulator.h \
+	likely/ExactQuantileAccumulator.cc \
+	likely/TriCubicInterpolator.h likely/AbsBinning.h \
+	likely/BinningError.h likely/UniformBinning.h \
+	likely/NonUniformBinning.h likely/UniformSampling.h \
+	likely/NonUniformSampling.h likely/CovarianceMatrix.h \
+	likely/CovarianceAccumulator.h likely/BinnedData.h \
+	likely/BinnedDataResampler.h likely/test/TestLikelihood.h \
+	$(am__append_2) $(am__append_4)
 
 # instructions for building each program
 likelytest_SOURCES = src/likelytest.cc
@@ -412,6 +424,9 @@ likelyfitpar_LDADD = -L. -llikely
 resamplingtest_SOURCES = src/resamplingtest.cc
 resamplingtest_DEPENDENCIES = $(lib_LIBRARIES)
 resamplingtest_LDADD = -lboost_program_options -L. -llikely
+likelyquantile_SOURCES = src/likelyquantile.cc
+likelyquantile_DEPENDENCIES = $(lib_LIBRARIES)
+likelyquantile_LDADD = -L. -llikely
 demo1_SOURCES = src/demo1.cc
 demo1_DEPENDENCIES = $(lib_LIBRARIES)
 demo1_LDADD = -L. -llikely
@@ -425,7 +440,8 @@ likelycheck_SOURCES = test/likelycheck.cc \
 	test/NonUniformBinningTest.cc \
 	test/NonUniformSamplingTest.cc \
 	test/BinnedDataTest.cc \
-	test/FitParameterTest.cc
+	test/FitParameterTest.cc \
+	test/ExactQuantileAccumulatorTest.cc
 
 likelycheck_DEPENDENCIES = $(lib_LIBRARIES)
 likelycheck_LDADD = -lboost_unit_test_framework -L. -llikely
@@ -606,6 +622,9 @@ likelyinterp$(EXEEXT): $(likelyinterp_OBJECTS) $(likelyinterp_DEPENDENCIES)
 likelymc$(EXEEXT): $(likelymc_OBJECTS) $(likelymc_DEPENDENCIES) 
 	@rm -f likelymc$(EXEEXT)
 	$(CXXLINK) $(likelymc_OBJECTS) $(likelymc_LDADD) $(LIBS)
+likelyquantile$(EXEEXT): $(likelyquantile_OBJECTS) $(likelyquantile_DEPENDENCIES) 
+	@rm -f likelyquantile$(EXEEXT)
+	$(CXXLINK) $(likelyquantile_OBJECTS) $(likelyquantile_LDADD) $(LIBS)
 likelyrand$(EXEEXT): $(likelyrand_OBJECTS) $(likelyrand_DEPENDENCIES) 
 	@rm -f likelyrand$(EXEEXT)
 	$(CXXLINK) $(likelyrand_OBJECTS) $(likelyrand_LDADD) $(LIBS)
@@ -638,6 +657,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceMatrix.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceMatrixTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EngineRegistry.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ExactQuantileAccumulator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ExactQuantileAccumulatorTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitModel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitParameter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitParameterStatistics.Plo@am__quote@
@@ -672,6 +693,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyinteg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyinterp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelymc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyquantile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelyrand.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelytricubic.Po@am__quote@
@@ -796,6 +818,13 @@ QuantileAccumulator.lo: likely/QuantileAccumulator.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/QuantileAccumulator.cc' object='QuantileAccumulator.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o QuantileAccumulator.lo `test -f 'likely/QuantileAccumulator.cc' || echo '$(srcdir)/'`likely/QuantileAccumulator.cc
+
+ExactQuantileAccumulator.lo: likely/ExactQuantileAccumulator.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExactQuantileAccumulator.lo -MD -MP -MF $(DEPDIR)/ExactQuantileAccumulator.Tpo -c -o ExactQuantileAccumulator.lo `test -f 'likely/ExactQuantileAccumulator.cc' || echo '$(srcdir)/'`likely/ExactQuantileAccumulator.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ExactQuantileAccumulator.Tpo $(DEPDIR)/ExactQuantileAccumulator.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/ExactQuantileAccumulator.cc' object='ExactQuantileAccumulator.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ExactQuantileAccumulator.lo `test -f 'likely/ExactQuantileAccumulator.cc' || echo '$(srcdir)/'`likely/ExactQuantileAccumulator.cc
 
 TriCubicInterpolator.lo: likely/TriCubicInterpolator.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TriCubicInterpolator.lo -MD -MP -MF $(DEPDIR)/TriCubicInterpolator.Tpo -c -o TriCubicInterpolator.lo `test -f 'likely/TriCubicInterpolator.cc' || echo '$(srcdir)/'`likely/TriCubicInterpolator.cc
@@ -1035,6 +1064,20 @@ FitParameterTest.obj: test/FitParameterTest.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FitParameterTest.obj `if test -f 'test/FitParameterTest.cc'; then $(CYGPATH_W) 'test/FitParameterTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/FitParameterTest.cc'; fi`
 
+ExactQuantileAccumulatorTest.o: test/ExactQuantileAccumulatorTest.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExactQuantileAccumulatorTest.o -MD -MP -MF $(DEPDIR)/ExactQuantileAccumulatorTest.Tpo -c -o ExactQuantileAccumulatorTest.o `test -f 'test/ExactQuantileAccumulatorTest.cc' || echo '$(srcdir)/'`test/ExactQuantileAccumulatorTest.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ExactQuantileAccumulatorTest.Tpo $(DEPDIR)/ExactQuantileAccumulatorTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/ExactQuantileAccumulatorTest.cc' object='ExactQuantileAccumulatorTest.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ExactQuantileAccumulatorTest.o `test -f 'test/ExactQuantileAccumulatorTest.cc' || echo '$(srcdir)/'`test/ExactQuantileAccumulatorTest.cc
+
+ExactQuantileAccumulatorTest.obj: test/ExactQuantileAccumulatorTest.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExactQuantileAccumulatorTest.obj -MD -MP -MF $(DEPDIR)/ExactQuantileAccumulatorTest.Tpo -c -o ExactQuantileAccumulatorTest.obj `if test -f 'test/ExactQuantileAccumulatorTest.cc'; then $(CYGPATH_W) 'test/ExactQuantileAccumulatorTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/ExactQuantileAccumulatorTest.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ExactQuantileAccumulatorTest.Tpo $(DEPDIR)/ExactQuantileAccumulatorTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/ExactQuantileAccumulatorTest.cc' object='ExactQuantileAccumulatorTest.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ExactQuantileAccumulatorTest.obj `if test -f 'test/ExactQuantileAccumulatorTest.cc'; then $(CYGPATH_W) 'test/ExactQuantileAccumulatorTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/ExactQuantileAccumulatorTest.cc'; fi`
+
 likelycov.o: src/likelycov.cc
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelycov.o -MD -MP -MF $(DEPDIR)/likelycov.Tpo -c -o likelycov.o `test -f 'src/likelycov.cc' || echo '$(srcdir)/'`src/likelycov.cc
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelycov.Tpo $(DEPDIR)/likelycov.Po
@@ -1118,6 +1161,20 @@ likelymc.obj: src/likelymc.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelymc.cc' object='likelymc.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelymc.obj `if test -f 'src/likelymc.cc'; then $(CYGPATH_W) 'src/likelymc.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelymc.cc'; fi`
+
+likelyquantile.o: src/likelyquantile.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelyquantile.o -MD -MP -MF $(DEPDIR)/likelyquantile.Tpo -c -o likelyquantile.o `test -f 'src/likelyquantile.cc' || echo '$(srcdir)/'`src/likelyquantile.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelyquantile.Tpo $(DEPDIR)/likelyquantile.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelyquantile.cc' object='likelyquantile.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelyquantile.o `test -f 'src/likelyquantile.cc' || echo '$(srcdir)/'`src/likelyquantile.cc
+
+likelyquantile.obj: src/likelyquantile.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelyquantile.obj -MD -MP -MF $(DEPDIR)/likelyquantile.Tpo -c -o likelyquantile.obj `if test -f 'src/likelyquantile.cc'; then $(CYGPATH_W) 'src/likelyquantile.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelyquantile.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelyquantile.Tpo $(DEPDIR)/likelyquantile.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelyquantile.cc' object='likelyquantile.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelyquantile.obj `if test -f 'src/likelyquantile.cc'; then $(CYGPATH_W) 'src/likelyquantile.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelyquantile.cc'; fi`
 
 likelyrand.o: src/likelyrand.cc
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelyrand.o -MD -MP -MF $(DEPDIR)/likelyrand.Tpo -c -o likelyrand.o `test -f 'src/likelyrand.cc' || echo '$(srcdir)/'`src/likelyrand.cc
