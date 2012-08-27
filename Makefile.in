@@ -130,7 +130,8 @@ am_likelycheck_OBJECTS = likelycheck.$(OBJEXT) \
 	CovarianceMatrixTest.$(OBJEXT) UniformBinningTest.$(OBJEXT) \
 	UniformSamplingTest.$(OBJEXT) NonUniformBinningTest.$(OBJEXT) \
 	NonUniformSamplingTest.$(OBJEXT) BinnedDataTest.$(OBJEXT) \
-	FitParameterTest.$(OBJEXT)
+	FitParameterTest.$(OBJEXT) \
+	ExactQuantileAccumulatorTest.$(OBJEXT)
 likelycheck_OBJECTS = $(am_likelycheck_OBJECTS)
 am_likelycov_OBJECTS = likelycov.$(OBJEXT)
 likelycov_OBJECTS = $(am_likelycov_OBJECTS)
@@ -439,7 +440,8 @@ likelycheck_SOURCES = test/likelycheck.cc \
 	test/NonUniformBinningTest.cc \
 	test/NonUniformSamplingTest.cc \
 	test/BinnedDataTest.cc \
-	test/FitParameterTest.cc
+	test/FitParameterTest.cc \
+	test/ExactQuantileAccumulatorTest.cc
 
 likelycheck_DEPENDENCIES = $(lib_LIBRARIES)
 likelycheck_LDADD = -lboost_unit_test_framework -L. -llikely
@@ -656,6 +658,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CovarianceMatrixTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EngineRegistry.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ExactQuantileAccumulator.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ExactQuantileAccumulatorTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitModel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitParameter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FitParameterStatistics.Plo@am__quote@
@@ -1060,6 +1063,20 @@ FitParameterTest.obj: test/FitParameterTest.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/FitParameterTest.cc' object='FitParameterTest.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o FitParameterTest.obj `if test -f 'test/FitParameterTest.cc'; then $(CYGPATH_W) 'test/FitParameterTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/FitParameterTest.cc'; fi`
+
+ExactQuantileAccumulatorTest.o: test/ExactQuantileAccumulatorTest.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExactQuantileAccumulatorTest.o -MD -MP -MF $(DEPDIR)/ExactQuantileAccumulatorTest.Tpo -c -o ExactQuantileAccumulatorTest.o `test -f 'test/ExactQuantileAccumulatorTest.cc' || echo '$(srcdir)/'`test/ExactQuantileAccumulatorTest.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ExactQuantileAccumulatorTest.Tpo $(DEPDIR)/ExactQuantileAccumulatorTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/ExactQuantileAccumulatorTest.cc' object='ExactQuantileAccumulatorTest.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ExactQuantileAccumulatorTest.o `test -f 'test/ExactQuantileAccumulatorTest.cc' || echo '$(srcdir)/'`test/ExactQuantileAccumulatorTest.cc
+
+ExactQuantileAccumulatorTest.obj: test/ExactQuantileAccumulatorTest.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExactQuantileAccumulatorTest.obj -MD -MP -MF $(DEPDIR)/ExactQuantileAccumulatorTest.Tpo -c -o ExactQuantileAccumulatorTest.obj `if test -f 'test/ExactQuantileAccumulatorTest.cc'; then $(CYGPATH_W) 'test/ExactQuantileAccumulatorTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/ExactQuantileAccumulatorTest.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ExactQuantileAccumulatorTest.Tpo $(DEPDIR)/ExactQuantileAccumulatorTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='test/ExactQuantileAccumulatorTest.cc' object='ExactQuantileAccumulatorTest.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ExactQuantileAccumulatorTest.obj `if test -f 'test/ExactQuantileAccumulatorTest.cc'; then $(CYGPATH_W) 'test/ExactQuantileAccumulatorTest.cc'; else $(CYGPATH_W) '$(srcdir)/test/ExactQuantileAccumulatorTest.cc'; fi`
 
 likelycov.o: src/likelycov.cc
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelycov.o -MD -MP -MF $(DEPDIR)/likelycov.Tpo -c -o likelycov.o `test -f 'src/likelycov.cc' || echo '$(srcdir)/'`src/likelycov.cc
