@@ -75,6 +75,7 @@ local::Interpolator::~Interpolator() {
 }
 
 double local::Interpolator::operator()(double x) const {
+#ifdef HAVE_LIBGSL
     // Declare our error-handling context.
     //!!GslErrorHandler eh("Interpolator::operator()");
     // Check for an out-of-range x value.
@@ -82,6 +83,19 @@ double local::Interpolator::operator()(double x) const {
     if(x >= _x.back()) return _y.back();
     return gsl_interp_eval(_pimpl->interpolator,
         &_x[0], &_y[0], x, _pimpl->accelerator);
+#else
+    throw RuntimeError("Interpolator: GSL required for all interpolation methods.");
+#endif
+}
+
+double local::Interpolator::getDerivative(double x) const {
+#ifdef HAVE_LIBGSL
+    if(x <= _x.front() || x >= _x.back()) return 0;
+    return gsl_interp_eval_deriv(_pimpl->interpolator,
+        &_x[0], &_y[0], x, _pimpl->accelerator);
+#else
+    throw RuntimeError("Interpolator: GSL required for all interpolation methods.");
+#endif
 }
 
 local::InterpolatorPtr local::createInterpolator(std::string const &filename,

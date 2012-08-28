@@ -25,6 +25,9 @@ namespace likely {
         // Returns the interpolated y value for the specified x value. Returns the
         // appropriate endpoint y value if x is outside the interpolation domain.
         double operator()(double x) const;
+        // Returns the derivative y'(x) for the specified x value or zero if x is outside
+        // the interpolation domain.
+        double getDerivative(double x) const;
 	private:
         int _nValues;
         CoordinateValues _x, _y;

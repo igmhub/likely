@@ -93,7 +93,9 @@ int main(int argc, char **argv) {
             // Print the results of each interpolator on a single line.
             BOOST_FOREACH(lk::InterpolatorPtr interpolator, interpolators) {
                 double y = (*interpolator)(x);
-                std::cout << ' ' << fmt % y;
+                std::cout << ' ' << (fmt % y);
+                double yp = interpolator->getDerivative(x);
+                std::cout << ' ' << (fmt % yp);
             }
             std::cout << std::endl;
         }
