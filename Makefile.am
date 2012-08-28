@@ -66,7 +66,7 @@ nobase_include_HEADERS = \
 	likely/WeightedAccumulator.h \
 	likely/WeightedCombiner.h \
 	likely/QuantileAccumulator.h \
-	likely/ExactQuantileAccumulator.cc \
+	likely/ExactQuantileAccumulator.h \
 	likely/TriCubicInterpolator.h \
 	likely/AbsBinning.h \
 	likely/BinningError.h \

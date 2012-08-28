@@ -194,8 +194,7 @@ am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/MarkovChainEngine.h likely/Interpolator.h \
 	likely/Integrator.h likely/Random.h likely/AbsAccumulator.h \
 	likely/WeightedAccumulator.h likely/WeightedCombiner.h \
-	likely/QuantileAccumulator.h \
-	likely/ExactQuantileAccumulator.cc \
+	likely/QuantileAccumulator.h likely/ExactQuantileAccumulator.h \
 	likely/TriCubicInterpolator.h likely/AbsBinning.h \
 	likely/BinningError.h likely/UniformBinning.h \
 	likely/NonUniformBinning.h likely/UniformSampling.h \
@@ -380,8 +379,7 @@ nobase_include_HEADERS = likely/likely.h likely/types.h \
 	likely/MarkovChainEngine.h likely/Interpolator.h \
 	likely/Integrator.h likely/Random.h likely/AbsAccumulator.h \
 	likely/WeightedAccumulator.h likely/WeightedCombiner.h \
-	likely/QuantileAccumulator.h \
-	likely/ExactQuantileAccumulator.cc \
+	likely/QuantileAccumulator.h likely/ExactQuantileAccumulator.h \
 	likely/TriCubicInterpolator.h likely/AbsBinning.h \
 	likely/BinningError.h likely/UniformBinning.h \
 	likely/NonUniformBinning.h likely/UniformSampling.h \
