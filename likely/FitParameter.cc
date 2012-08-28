@@ -140,22 +140,28 @@ namespace fitpar {
                 ( "error" >> name >> '=' >> double_ )   [boost::bind(&Grammar::setError,this,::_1)] |
                 ( "fix" >> name >> '=' >> double_ )     [boost::bind(&Grammar::fixat,this,::_1)] |
                 ( "fix" >> name )                       [boost::bind(&Grammar::fix,this)] |
-                ( "release" >> name )                   [boost::bind(&Grammar::release,this)];
-            
-            // Commands share a common name parser.
+                ( "release" >> name )                   [boost::bind(&Grammar::release,this)] |
+                ( "boxprior" >> name >> '@' >> range )  [boost::bind(&Grammar::boxPrior,this)] |
+                ( "gaussprior" >> name >> '@' >> range )[boost::bind(&Grammar::gaussPrior,this)] ;
+
+            // Commands share a common name and range parser.
             name = lit('[')[boost::bind(&Grammar::beginName,this)]
                 >> no_skip[+char_(FitParameter::getValidNameCharacters())[
                     boost::bind(&Grammar::addToName,this,::_1)]]
                 >> lit(']')[boost::bind(&Grammar::endName,this)];
+                
+            range = '(' >> double_[boost::bind(&Grammar::beginRange,this,::_1)] >> ','
+                >> double_[boost::bind(&Grammar::endRange,this,::_1)] >> ')';
             
         }
         
         // Any space_type in this template must match the grammar template above.
-        qi::rule<std::string::const_iterator, ascii::space_type> script, command, name;        
+        qi::rule<std::string::const_iterator, ascii::space_type> script, command, name, range;        
 
         FitParameters &params;
         std::string theName;
         std::vector<int> selected;
+        double _beginRange,_endRange;
         
         void beginName() {
             theName.clear();
@@ -198,6 +204,21 @@ namespace fitpar {
         }
         void release() {
             BOOST_FOREACH(int index, selected) params[index].release();
+        }
+        void beginRange(double value) {
+            _beginRange = value;
+        }
+        void endRange(double value) {
+            _endRange = value;
+            if(_endRange <= _beginRange) {
+                throw RuntimeError("FitParameter: expected range max > min.");
+            }
+        }
+        void boxPrior() {
+            std::cout << "box prior @ (" << _beginRange << ',' << _endRange << ")" << std::endl;
+        }
+        void gaussPrior() {
+            std::cout << "gauss prior @ (" << _beginRange << ',' << _endRange << ")" << std::endl;
         }
     };
 } // grammar

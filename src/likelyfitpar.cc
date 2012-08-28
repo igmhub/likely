@@ -47,6 +47,8 @@ int main(int argc, char *argv[]) {
 
     lk::modifyFitParameters(params,"error [(1-beta)*bias] = 0.5");
     lk::printFitParametersToStream(params,std::cout);
+    
+    lk::modifyFitParameters(params,"boxprior[param2] @ (-1,2.3)");
 
     try {
         lk::modifyFitParameters(params,"value [param3]=0;error [param3] = -123");
