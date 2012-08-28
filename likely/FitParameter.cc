@@ -50,6 +50,15 @@ void local::FitParameter::setError(double error) {
     _error = error;
 }
 
+void local::FitParameter::setPrior(double priorMin, double priorMax, PriorType priorType) {
+    if(priorMax <= priorMin) {
+        throw RuntimeError("FitParameter: expected prior max > min.");
+    }
+    _priorMin = priorMin;
+    _priorMax = priorMax;
+    _priorType = priorType;
+}
+
 void local::getFitParameterValues(FitParameters const &parameters, Parameters &values, bool onlyFloating) {
     values.resize(0);
     if(!onlyFloating) values.reserve(parameters.size());
@@ -210,9 +219,6 @@ namespace fitpar {
         }
         void endRange(double value) {
             _endRange = value;
-            if(_endRange <= _beginRange) {
-                throw RuntimeError("FitParameter: expected range max > min.");
-            }
         }
         void boxPrior() {
             std::cout << "box prior @ (" << _beginRange << ',' << _endRange << ")" << std::endl;
