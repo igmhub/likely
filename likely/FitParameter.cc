@@ -151,7 +151,8 @@ namespace fitpar {
                 ( "fix" >> name )                       [boost::bind(&Grammar::fix,this)] |
                 ( "release" >> name )                   [boost::bind(&Grammar::release,this)] |
                 ( "boxprior" >> name >> '@' >> range )  [boost::bind(&Grammar::boxPrior,this)] |
-                ( "gaussprior" >> name >> '@' >> range )[boost::bind(&Grammar::gaussPrior,this)] ;
+                ( "gaussprior" >> name >> '@' >> range )[boost::bind(&Grammar::gaussPrior,this)] |
+                ( "noprior" >> name )                   [boost::bind(&Grammar::noPrior,this)];
 
             // Commands share a common name and range parser.
             name = lit('[')[boost::bind(&Grammar::beginName,this)]
@@ -221,10 +222,13 @@ namespace fitpar {
             _endRange = value;
         }
         void boxPrior() {
-            std::cout << "box prior @ (" << _beginRange << ',' << _endRange << ")" << std::endl;
+            BOOST_FOREACH(int index, selected) params[index].setPrior(_beginRange,_endRange,FitParameter::BoxPrior);
         }
         void gaussPrior() {
-            std::cout << "gauss prior @ (" << _beginRange << ',' << _endRange << ")" << std::endl;
+            BOOST_FOREACH(int index, selected) params[index].setPrior(_beginRange,_endRange,FitParameter::GaussPrior);
+        }
+        void noPrior() {
+            BOOST_FOREACH(int index, selected) params[index].removePrior();
         }
     };
 } // grammar

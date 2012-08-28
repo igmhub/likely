@@ -38,7 +38,7 @@ namespace likely {
         // Returns true if this parameter is floating, in which case it will have an error > 0.
         bool isFloating() const;
         // Returns the type of prior imposed on this parameter.
-        enum PriorType { None, Box, Gaussian };
+        enum PriorType { NoPrior, BoxPrior, GaussPrior };
         PriorType getPriorType() const;
         // Returns limits of an imposed prior or zero if no prior is imposed.
         double getPriorMin() const;
@@ -64,9 +64,9 @@ namespace likely {
     inline void FitParameter::release() { if(_error < 0) _error = -_error; }
     inline bool FitParameter::isFloating() const { return (_error > 0); }
     inline FitParameter::PriorType FitParameter::getPriorType() const { return _priorType; }
-    inline double FitParameter::getPriorMin() const { return _priorType == None ? 0 : _priorMin; }
-    inline double FitParameter::getPriorMax() const { return _priorType == None ? 0 : _priorMax; }
-    inline void FitParameter::removePrior() { _priorType = None; }
+    inline double FitParameter::getPriorMin() const { return _priorType == NoPrior ? 0 : _priorMin; }
+    inline double FitParameter::getPriorMax() const { return _priorType == NoPrior ? 0 : _priorMax; }
+    inline void FitParameter::removePrior() { _priorType = NoPrior; }
     
     // Defines a vector of fit parameters.
     typedef std::vector<FitParameter> FitParameters;
