@@ -95,14 +95,14 @@ int local::countFitParameters(FitParameters const &parameters, bool onlyFloating
 
 void local::printFitParametersToStream(FitParameters const &parameters, std::ostream &out,
 std::string const &formatSpec) {
-    boost::format formatter(formatSpec), label("%20s = ");
+    boost::format formatter(formatSpec), label("%20s = "), rounded(" $ %16s $");
     std::vector<double> errors(1);
     for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
         double value = iter->getValue();
         out << (label % iter->getName()) << (formatter % value);
         if(iter->isFloating()) {
             errors[0] = iter->getError();
-            out << " +/- " << formatter % errors[0] << " $ " << roundValueWithError(value,errors,"\\pm") << " $";
+            out << " +/- " << formatter % errors[0] << rounded % roundValueWithError(value,errors,"\\pm");
             switch(iter->getPriorType()) {
             case FitParameter::BoxPrior:
                 out << " box prior @ (" << iter->getPriorMin() << ',' << iter->getPriorMax() << ')';
