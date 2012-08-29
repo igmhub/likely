@@ -120,8 +120,9 @@ namespace likely {
     void modifyFitParameters(FitParameters &parameters, std::string const &script);
 
     // A formatted string of a value and its error(s) is returned. The value and its 
-    // error(s) are rounded to a precision that matches that of the smallest error. 
-    // The precision of the smallest error is determined as follows: if the three highest 
+    // error(s) are rounded to a precision that matches that of the smallest error,
+    // following the recommendations of the Particle Data Group. Specifically, the 
+    // precision of the smallest error is determined as follows: if the three highest 
     // order digits of the error lie between 100 and 354, round to two signiﬁcant digits. 
     // If they lie between 355 and 949, round to one signiﬁcant digit. Finally, if they 
     // lie between 950 and 999, round up to 1000 and keep two signiﬁcant digits. If the 
