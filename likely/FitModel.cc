@@ -77,3 +77,32 @@ int local::FitModel::_getIndex(std::string const &name) const {
     }
     return where->second;
 }
+
+double local::FitModel::evaluatePriors() const {
+    double penalty(0);
+    for(int index = 0; index < _parameters.size(); ++index) {
+        FitParameter const &param(_parameters[index]);
+        if(!param.isFloating()) continue;
+        FitParameter::PriorType priorType = param.getPriorType();
+        if(priorType == FitParameter::NoPrior) continue;
+        double value = _parameterValue[index];
+        double priorMin = param.getPriorMin();
+        double priorMax = param.getPriorMax();
+        double range = priorMax - priorMin;
+        if(priorType == FitParameter::BoxPrior) {
+            if(value < priorMin) {
+                double diff((value - priorMin)/(1e-3*range));
+                penalty += diff*diff/2;
+            }
+            else if(value > priorMax) {
+                double diff((priorMax - value)/(1e-3*range));
+                penalty += diff*diff/2;
+            }
+        }
+        else if(priorType == FitParameter::GaussPrior) {
+            double diff((value - 0.5*(priorMin+priorMax))/(0.5*range));
+            penalty += diff*diff/2;
+        }
+    }
+    return penalty;
+}

@@ -35,7 +35,9 @@ namespace likely {
         // parameter values and errors for this and subsequent minimizations, or provide an optional
         // config script to make one-time changes that only apply to this minimization. Note that,
         // depending on how fptr is implemented, our current parameter values might change as a result
-        // of this operation, but our parameter configuration is guaranteed not to change.
+        // of this operation, but our parameter configuration is guaranteed not to change. If priors
+        // should be imposed, the fptr provided should arrange to call our evaluatePrior() method.
+        // Note that any modifications to priors in oneTimeConfig will have no effect on evaluatePrior().
         FunctionMinimumPtr findMinimum(FunctionPtr fptr, std::string const &method,
             std::string const &oneTimeConfig = "");
         // Returns the current value of the named parameter, or throws a RuntimeError for an
@@ -46,6 +48,10 @@ namespace likely {
         // Sets the current value of the named parameter, or throws a RuntimeError for an
         // invalid parameter name.
         void setParameterValue(std::string const &name, double value);
+        // Returns the -log(priors-likelihood) for the current parameter values and fit parameter
+        // configuration. Priors are not imposed on fixed parameters, even if they are defined.
+        // Use configureFitParameters() to add priors.
+        double evaluatePriors() const;
     protected:
         // Subclasses use this method to define their parameters. Parameters should generally
         // be specified with a reasonable error > 0 since the configureFitParameters() method
