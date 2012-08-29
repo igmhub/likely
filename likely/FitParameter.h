@@ -37,11 +37,24 @@ namespace likely {
         void release();
         // Returns true if this parameter is floating, in which case it will have an error > 0.
         bool isFloating() const;
+        // Returns the type of prior imposed on this parameter.
+        enum PriorType { NoPrior, BoxPrior, GaussPrior };
+        PriorType getPriorType() const;
+        // Returns limits of an imposed prior or zero if no prior is imposed.
+        double getPriorMin() const;
+        double getPriorMax() const;
+        // Sets (or resets) the prior on this parameter. For a Gaussian prior, the max/min values
+        // specify the +/- 1 sigma points. Throws a RuntimeError if max <= min.
+        void setPrior(double priorMin, double priorMax, PriorType type);
+        // Removes any prior on this parameter.
+        void removePrior();
         // Returns the set of valid characters in a FitParameter name.
         static std::string const &getValidNameCharacters();
 	private:
         std::string _name;
-        double _value, _error;
+        double _value, _error, _priorMin, _priorMax;
+        PriorType _priorType;
+        
 	}; // FitParameter
 
     inline std::string FitParameter::getName() const { return _name; }
@@ -51,6 +64,10 @@ namespace likely {
     inline void FitParameter::fix() { if(_error > 0) _error = -_error; }
     inline void FitParameter::release() { if(_error < 0) _error = -_error; }
     inline bool FitParameter::isFloating() const { return (_error > 0); }
+    inline FitParameter::PriorType FitParameter::getPriorType() const { return _priorType; }
+    inline double FitParameter::getPriorMin() const { return _priorType == NoPrior ? 0 : _priorMin; }
+    inline double FitParameter::getPriorMax() const { return _priorType == NoPrior ? 0 : _priorMax; }
+    inline void FitParameter::removePrior() { _priorType = NoPrior; }
     
     // Defines a vector of fit parameters.
     typedef std::vector<FitParameter> FitParameters;
@@ -90,9 +107,12 @@ namespace likely {
     //  fix [<name>] = <newvalue>
     //  fix [<name>]
     //  release [<hame>]
+    //  boxprior [<name>] @ ( <min> , <max> )
+    //  gaussprior [<name>] @ ( <min> , <max> )
+    //  noprior [<name>]
     //
     // Multiple commands separated by semicolons are executed in the order they appear.
-    // Command verbs (value,error,fix,release) are case sensitive. Arbitrary whitespace
+    // Command verbs (value,error,fix,...) are case sensitive. Arbitrary whitespace
     // is allowed between tokens, except within names delimited by [ ], where whitespace
     // is considered part of the name. If <name> ends with an asterisk, it is interpreted
     // as a wildcard that matches zero or more trailing characters, and must match at
@@ -100,8 +120,9 @@ namespace likely {
     void modifyFitParameters(FitParameters &parameters, std::string const &script);
 
     // A formatted string of a value and its error(s) is returned. The value and its 
-    // error(s) are rounded to a precision that matches that of the smallest error. 
-    // The precision of the smallest error is determined as follows: if the three highest 
+    // error(s) are rounded to a precision that matches that of the smallest error,
+    // following the recommendations of the Particle Data Group. Specifically, the 
+    // precision of the smallest error is determined as follows: if the three highest 
     // order digits of the error lie between 100 and 354, round to two signiﬁcant digits. 
     // If they lie between 355 and 949, round to one signiﬁcant digit. Finally, if they 
     // lie between 950 and 999, round up to 1000 and keep two signiﬁcant digits. If the 

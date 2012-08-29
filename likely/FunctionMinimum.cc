@@ -10,8 +10,6 @@
 #include <algorithm>
 #include <cmath>
 
-#include <cassert>
-
 namespace local = likely;
 
 local::FunctionMinimum::FunctionMinimum(double minValue, FitParameters const &parameters)
@@ -53,18 +51,18 @@ void local::FunctionMinimum::updateParameterValues(double minValue, Parameters c
     if(values.size() != _parameters.size()) {
         throw RuntimeError("FunctionMinimum::updateParameters: unexpected number of values.");
     }
-    FitParameters updated;
     int nextFloatIndex(0);
-    updated.reserve(_parameters.size());
     for(int k = 0; k < _parameters.size(); ++k) {
+        // Assign the new value to this parameter.
+        _parameters[k].setValue(values[k]);
+        // Assign an error from our covariance if we have one and if this is a floating parameter.
         double error(_parameters[k].getError());
         if(0 != error && hasCovariance()) {
             error = std::sqrt(_covar->getCovariance(nextFloatIndex,nextFloatIndex));
             nextFloatIndex++;
+            _parameters[k].setError(error);
         }
-        updated.push_back(FitParameter(_parameters[k].getName(),values[k],error));
     }
-    _parameters = updated;
     _minValue = minValue;
 }
 
@@ -88,7 +86,6 @@ Parameters const &allValues, Parameters &floatingValues) const {
 
 void local::FunctionMinimum::updateCovariance(CovarianceMatrixCPtr covariance) {
     if(covariance->getSize() != _nFloating) {
-        assert(0);
         throw RuntimeError("FunctionMinimum: covariance size != number of floating parameters.");
     }
     _covar = covariance;

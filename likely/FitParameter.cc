@@ -29,7 +29,7 @@ std::string const &local::FitParameter::getValidNameCharacters() {
 }
 
 local::FitParameter::FitParameter(std::string const &name, double value, double error)
-: _name(name)
+: _name(name), _priorType(NoPrior)
 {
     boost::cmatch what;
     boost::regex pattern(std::string("[") + getValidNameCharacters() + "]+");
@@ -48,6 +48,15 @@ void local::FitParameter::setError(double error) {
         throw RuntimeError("FitParameter::setError: error must be >= 0.");
     }
     _error = error;
+}
+
+void local::FitParameter::setPrior(double priorMin, double priorMax, PriorType priorType) {
+    if(priorMax <= priorMin) {
+        throw RuntimeError("FitParameter: expected prior max > min.");
+    }
+    _priorMin = priorMin;
+    _priorMax = priorMax;
+    _priorType = priorType;
 }
 
 void local::getFitParameterValues(FitParameters const &parameters, Parameters &values, bool onlyFloating) {
@@ -86,11 +95,22 @@ int local::countFitParameters(FitParameters const &parameters, bool onlyFloating
 
 void local::printFitParametersToStream(FitParameters const &parameters, std::ostream &out,
 std::string const &formatSpec) {
-    boost::format formatter(formatSpec), label("%20s = ");
+    boost::format formatter(formatSpec), label("%20s = "), rounded(" $ %16s $");
+    std::vector<double> errors(1);
     for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
-        out << (label % iter->getName()) << (formatter % iter->getValue());
+        double value = iter->getValue();
+        out << (label % iter->getName()) << (formatter % value);
         if(iter->isFloating()) {
-            out << " +/- " << formatter % iter->getError();
+            errors[0] = iter->getError();
+            out << " +/- " << formatter % errors[0] << rounded % roundValueWithError(value,errors,"\\pm");
+            switch(iter->getPriorType()) {
+            case FitParameter::BoxPrior:
+                out << " box prior @ (" << iter->getPriorMin() << ',' << iter->getPriorMax() << ')';
+                break;
+            case FitParameter::GaussPrior:
+                out << " gauss prior @ (" << iter->getPriorMin() << ',' << iter->getPriorMax() << ')';
+                break;
+            }
         }
         out << std::endl;
     }
@@ -140,22 +160,29 @@ namespace fitpar {
                 ( "error" >> name >> '=' >> double_ )   [boost::bind(&Grammar::setError,this,::_1)] |
                 ( "fix" >> name >> '=' >> double_ )     [boost::bind(&Grammar::fixat,this,::_1)] |
                 ( "fix" >> name )                       [boost::bind(&Grammar::fix,this)] |
-                ( "release" >> name )                   [boost::bind(&Grammar::release,this)];
-            
-            // Commands share a common name parser.
+                ( "release" >> name )                   [boost::bind(&Grammar::release,this)] |
+                ( "boxprior" >> name >> '@' >> range )  [boost::bind(&Grammar::boxPrior,this)] |
+                ( "gaussprior" >> name >> '@' >> range )[boost::bind(&Grammar::gaussPrior,this)] |
+                ( "noprior" >> name )                   [boost::bind(&Grammar::noPrior,this)];
+
+            // Commands share a common name and range parser.
             name = lit('[')[boost::bind(&Grammar::beginName,this)]
                 >> no_skip[+char_(FitParameter::getValidNameCharacters())[
                     boost::bind(&Grammar::addToName,this,::_1)]]
                 >> lit(']')[boost::bind(&Grammar::endName,this)];
+                
+            range = '(' >> double_[boost::bind(&Grammar::beginRange,this,::_1)] >> ','
+                >> double_[boost::bind(&Grammar::endRange,this,::_1)] >> ')';
             
         }
         
         // Any space_type in this template must match the grammar template above.
-        qi::rule<std::string::const_iterator, ascii::space_type> script, command, name;        
+        qi::rule<std::string::const_iterator, ascii::space_type> script, command, name, range;        
 
         FitParameters &params;
         std::string theName;
         std::vector<int> selected;
+        double _beginRange,_endRange;
         
         void beginName() {
             theName.clear();
@@ -198,6 +225,21 @@ namespace fitpar {
         }
         void release() {
             BOOST_FOREACH(int index, selected) params[index].release();
+        }
+        void beginRange(double value) {
+            _beginRange = value;
+        }
+        void endRange(double value) {
+            _endRange = value;
+        }
+        void boxPrior() {
+            BOOST_FOREACH(int index, selected) params[index].setPrior(_beginRange,_endRange,FitParameter::BoxPrior);
+        }
+        void gaussPrior() {
+            BOOST_FOREACH(int index, selected) params[index].setPrior(_beginRange,_endRange,FitParameter::GaussPrior);
+        }
+        void noPrior() {
+            BOOST_FOREACH(int index, selected) params[index].removePrior();
         }
     };
 } // grammar
