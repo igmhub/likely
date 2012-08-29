@@ -29,7 +29,7 @@ std::string const &local::FitParameter::getValidNameCharacters() {
 }
 
 local::FitParameter::FitParameter(std::string const &name, double value, double error)
-: _name(name)
+: _name(name), _priorType(NoPrior)
 {
     boost::cmatch what;
     boost::regex pattern(std::string("[") + getValidNameCharacters() + "]+");
