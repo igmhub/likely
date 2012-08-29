@@ -43,7 +43,8 @@ namespace likely {
         // Returns limits of an imposed prior or zero if no prior is imposed.
         double getPriorMin() const;
         double getPriorMax() const;
-        // Sets (or resets) the prior on this parameter.
+        // Sets (or resets) the prior on this parameter. For a Gaussian prior, the max/min values
+        // specify the +/- 1 sigma points. Throws a RuntimeError if max <= min.
         void setPrior(double priorMin, double priorMax, PriorType type);
         // Removes any prior on this parameter.
         void removePrior();
@@ -106,9 +107,12 @@ namespace likely {
     //  fix [<name>] = <newvalue>
     //  fix [<name>]
     //  release [<hame>]
+    //  boxprior [<name>] @ ( <min> , <max> )
+    //  gaussprior [<name>] @ ( <min> , <max> )
+    //  noprior [<name>]
     //
     // Multiple commands separated by semicolons are executed in the order they appear.
-    // Command verbs (value,error,fix,release) are case sensitive. Arbitrary whitespace
+    // Command verbs (value,error,fix,...) are case sensitive. Arbitrary whitespace
     // is allowed between tokens, except within names delimited by [ ], where whitespace
     // is considered part of the name. If <name> ends with an asterisk, it is interpreted
     // as a wildcard that matches zero or more trailing characters, and must match at
