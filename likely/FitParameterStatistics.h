@@ -15,6 +15,7 @@
 namespace likely {
     class WeightedAccumulator;
     class CovarianceAccumulator;
+    class ExactQuantileAccumulator;
     // Accumulates fit parameter value statistics.
 	class FitParameterStatistics {
 	public:
@@ -25,15 +26,15 @@ namespace likely {
         int getNFreeParameters() const;
         // Returns the number of times our statistics have been successfully updated.
         int getNUpdates() const;
-        // Updates our statistics using the specified fit minimum. No statistics are
-        // accumulated unless the function minimum has a status of OK.
-        void update(FunctionMinimumCPtr fmin);
+        // Updates our statistics using the specified parameter values and function value.
+        void update(Parameters pvalues, double fval);
         // Prints our statistics to the specified output stream.
         void printToStream(std::ostream &out, std::string const &formatSpec = "%12.6f") const;
 	private:
         int _nfree, _nupdates;
         Parameters _baseline;
         boost::scoped_array<WeightedAccumulator> _stats;
+        boost::scoped_array<ExactQuantileAccumulator> _quantiles;
         boost::scoped_ptr<CovarianceAccumulator> _accumulator;
         std::vector<std::string> _labels;
 	}; // FitParameterStatistics
