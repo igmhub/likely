@@ -31,6 +31,7 @@ liblikely_la_SOURCES = \
 	likely/WeightedCombiner.cc \
 	likely/QuantileAccumulator.cc \
 	likely/ExactQuantileAccumulator.cc \
+	likely/BiCubicInterpolator.cc \
 	likely/TriCubicInterpolator.cc \
 	likely/AbsBinning.cc \
 	likely/UniformBinning.cc \
@@ -67,6 +68,7 @@ nobase_include_HEADERS = \
 	likely/WeightedCombiner.h \
 	likely/QuantileAccumulator.h \
 	likely/ExactQuantileAccumulator.h \
+	likely/BiCubicInterpolator.h \
 	likely/TriCubicInterpolator.h \
 	likely/AbsBinning.h \
 	likely/BinningError.h \
