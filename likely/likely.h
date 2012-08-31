@@ -8,6 +8,7 @@
 #include "likely/Random.h"
 #include "likely/Integrator.h"
 #include "likely/Interpolator.h"
+#include "likely/BiCubicInterpolator.h"
 #include "likely/TriCubicInterpolator.h"
 
 #include "likely/AbsAccumulator.h"
