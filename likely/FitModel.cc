@@ -14,11 +14,13 @@ local::FitModel::FitModel(std::string const &name)
 
 local::FitModel::~FitModel() { }
 
-void local::FitModel::defineParameter(std::string const &name, double value, double error) {
-    _nameIndexMap.insert(NameIndexMap::value_type(name,_parameters.size()));
+int local::FitModel::defineParameter(std::string const &name, double value, double error) {
+    int newIndex = _parameters.size();
+    _nameIndexMap.insert(NameIndexMap::value_type(name,newIndex));
     _parameters.push_back(FitParameter(name,value,error));
     _parameterValue.push_back(value);
     _parameterValueChanged.push_back(true);
+    return newIndex;
 }
 
 int local::FitModel::getNParameters(bool onlyFloating) const {
