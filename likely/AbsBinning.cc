@@ -25,8 +25,8 @@ double local::AbsBinning::getBinWidth(int index) const {
 
 void local::AbsBinning::dump(std::ostream &os) const {
     int nbins(getNBins());
-    os << nbins;
-    for(int bin = 0; bin <= nbins; ++bin) os << ' ' << getBinLowEdge(bin);
+    os << nbins << ' ' << getBinLowEdge(0);
+    for(int bin = 0; bin < nbins; ++bin) os << ' ' << getBinHighEdge(bin);
     os << std::endl;
 }
 
