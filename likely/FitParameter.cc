@@ -246,6 +246,9 @@ namespace fitpar {
 } // likely
 
 void local::modifyFitParameters(FitParameters &parameters, std::string const &script) {
+    // This is a no-op if script is empty. Otherwise, any content must be a valid script. In particular,
+    // a script consisting only of white space will generate a syntax error.
+    if(0 == script.length()) return;
     FitParameters modified(parameters);
     fitpar::Grammar grammar(modified);
     std::string::const_iterator iter = script.begin();
