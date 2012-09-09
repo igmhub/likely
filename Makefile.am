@@ -6,7 +6,7 @@ AM_LDFLAGS = -lboost_regex
 # targets to build and install
 lib_LTLIBRARIES = liblikely.la
 bin_PROGRAMS = likelytest likelymc likelyinterp likelywsum likelyinteg likelyrand \
-	likelytricubic likelycov likelydata likelyfitpar resamplingtest likelyquantile
+	likelybicubic likelytricubic likelycov likelydata likelyfitpar resamplingtest likelyquantile
 
 # extra targets that should not be installed
 noinst_PROGRAMS = demo1 demo2
@@ -31,6 +31,7 @@ liblikely_la_SOURCES = \
 	likely/WeightedCombiner.cc \
 	likely/QuantileAccumulator.cc \
 	likely/ExactQuantileAccumulator.cc \
+	likely/BiCubicInterpolator.cc \
 	likely/TriCubicInterpolator.cc \
 	likely/AbsBinning.cc \
 	likely/UniformBinning.cc \
@@ -67,6 +68,7 @@ nobase_include_HEADERS = \
 	likely/WeightedCombiner.h \
 	likely/QuantileAccumulator.h \
 	likely/ExactQuantileAccumulator.h \
+	likely/BiCubicInterpolator.h \
 	likely/TriCubicInterpolator.h \
 	likely/AbsBinning.h \
 	likely/BinningError.h \
@@ -119,6 +121,10 @@ likelyinteg_LDADD = -L. -llikely
 likelyrand_SOURCES = src/likelyrand.cc
 likelyrand_DEPENDENCIES = $(lib_LIBRARIES)
 likelyrand_LDADD = -L. -llikely
+
+likelybicubic_SOURCES = src/likelybicubic.cc
+likelybicubic_DEPENDENCIES = $(lib_LIBRARIES)
+likelybicubic_LDADD = -lboost_program_options -L. -llikely
 
 likelytricubic_SOURCES = src/likelytricubic.cc
 likelytricubic_DEPENDENCIES = $(lib_LIBRARIES)

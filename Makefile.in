@@ -38,9 +38,10 @@ build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = likelytest$(EXEEXT) likelymc$(EXEEXT) \
 	likelyinterp$(EXEEXT) likelywsum$(EXEEXT) likelyinteg$(EXEEXT) \
-	likelyrand$(EXEEXT) likelytricubic$(EXEEXT) likelycov$(EXEEXT) \
-	likelydata$(EXEEXT) likelyfitpar$(EXEEXT) \
-	resamplingtest$(EXEEXT) likelyquantile$(EXEEXT)
+	likelyrand$(EXEEXT) likelybicubic$(EXEEXT) \
+	likelytricubic$(EXEEXT) likelycov$(EXEEXT) likelydata$(EXEEXT) \
+	likelyfitpar$(EXEEXT) resamplingtest$(EXEEXT) \
+	likelyquantile$(EXEEXT)
 noinst_PROGRAMS = demo1$(EXEEXT) demo2$(EXEEXT)
 check_PROGRAMS = likelycheck$(EXEEXT)
 
@@ -100,13 +101,14 @@ am__liblikely_la_SOURCES_DIST = likely/FitParameter.cc \
 	likely/AbsAccumulator.cc likely/WeightedAccumulator.cc \
 	likely/WeightedCombiner.cc likely/QuantileAccumulator.cc \
 	likely/ExactQuantileAccumulator.cc \
-	likely/TriCubicInterpolator.cc likely/AbsBinning.cc \
-	likely/UniformBinning.cc likely/NonUniformBinning.cc \
-	likely/UniformSampling.cc likely/NonUniformSampling.cc \
-	likely/CovarianceMatrix.cc likely/CovarianceAccumulator.cc \
-	likely/BinnedData.cc likely/BinnedDataResampler.cc \
-	likely/test/TestLikelihood.cc likely/GslEngine.cc \
-	likely/GslErrorHandler.cc likely/MinuitEngine.cc
+	likely/BiCubicInterpolator.cc likely/TriCubicInterpolator.cc \
+	likely/AbsBinning.cc likely/UniformBinning.cc \
+	likely/NonUniformBinning.cc likely/UniformSampling.cc \
+	likely/NonUniformSampling.cc likely/CovarianceMatrix.cc \
+	likely/CovarianceAccumulator.cc likely/BinnedData.cc \
+	likely/BinnedDataResampler.cc likely/test/TestLikelihood.cc \
+	likely/GslEngine.cc likely/GslErrorHandler.cc \
+	likely/MinuitEngine.cc
 @USE_GSL_TRUE@am__objects_1 = GslEngine.lo GslErrorHandler.lo
 @USE_MINUIT2_TRUE@am__objects_2 = MinuitEngine.lo
 am_liblikely_la_OBJECTS = FitParameter.lo FitModel.lo \
@@ -115,17 +117,19 @@ am_liblikely_la_OBJECTS = FitParameter.lo FitModel.lo \
 	Integrator.lo Random.lo AbsAccumulator.lo \
 	WeightedAccumulator.lo WeightedCombiner.lo \
 	QuantileAccumulator.lo ExactQuantileAccumulator.lo \
-	TriCubicInterpolator.lo AbsBinning.lo UniformBinning.lo \
-	NonUniformBinning.lo UniformSampling.lo NonUniformSampling.lo \
-	CovarianceMatrix.lo CovarianceAccumulator.lo BinnedData.lo \
-	BinnedDataResampler.lo TestLikelihood.lo $(am__objects_1) \
-	$(am__objects_2)
+	BiCubicInterpolator.lo TriCubicInterpolator.lo AbsBinning.lo \
+	UniformBinning.lo NonUniformBinning.lo UniformSampling.lo \
+	NonUniformSampling.lo CovarianceMatrix.lo \
+	CovarianceAccumulator.lo BinnedData.lo BinnedDataResampler.lo \
+	TestLikelihood.lo $(am__objects_1) $(am__objects_2)
 liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am_demo1_OBJECTS = demo1.$(OBJEXT)
 demo1_OBJECTS = $(am_demo1_OBJECTS)
 am_demo2_OBJECTS = demo2.$(OBJEXT)
 demo2_OBJECTS = $(am_demo2_OBJECTS)
+am_likelybicubic_OBJECTS = likelybicubic.$(OBJEXT)
+likelybicubic_OBJECTS = $(am_likelybicubic_OBJECTS)
 am_likelycheck_OBJECTS = likelycheck.$(OBJEXT) \
 	CovarianceMatrixTest.$(OBJEXT) UniformBinningTest.$(OBJEXT) \
 	UniformSamplingTest.$(OBJEXT) NonUniformBinningTest.$(OBJEXT) \
@@ -171,15 +175,16 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(liblikely_la_SOURCES) $(demo1_SOURCES) $(demo2_SOURCES) \
-	$(likelycheck_SOURCES) $(likelycov_SOURCES) \
-	$(likelydata_SOURCES) $(likelyfitpar_SOURCES) \
-	$(likelyinteg_SOURCES) $(likelyinterp_SOURCES) \
-	$(likelymc_SOURCES) $(likelyquantile_SOURCES) \
-	$(likelyrand_SOURCES) $(likelytest_SOURCES) \
-	$(likelytricubic_SOURCES) $(likelywsum_SOURCES) \
-	$(resamplingtest_SOURCES)
+	$(likelybicubic_SOURCES) $(likelycheck_SOURCES) \
+	$(likelycov_SOURCES) $(likelydata_SOURCES) \
+	$(likelyfitpar_SOURCES) $(likelyinteg_SOURCES) \
+	$(likelyinterp_SOURCES) $(likelymc_SOURCES) \
+	$(likelyquantile_SOURCES) $(likelyrand_SOURCES) \
+	$(likelytest_SOURCES) $(likelytricubic_SOURCES) \
+	$(likelywsum_SOURCES) $(resamplingtest_SOURCES)
 DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(demo1_SOURCES) \
-	$(demo2_SOURCES) $(likelycheck_SOURCES) $(likelycov_SOURCES) \
+	$(demo2_SOURCES) $(likelybicubic_SOURCES) \
+	$(likelycheck_SOURCES) $(likelycov_SOURCES) \
 	$(likelydata_SOURCES) $(likelyfitpar_SOURCES) \
 	$(likelyinteg_SOURCES) $(likelyinterp_SOURCES) \
 	$(likelymc_SOURCES) $(likelyquantile_SOURCES) \
@@ -195,14 +200,14 @@ am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/Integrator.h likely/Random.h likely/AbsAccumulator.h \
 	likely/WeightedAccumulator.h likely/WeightedCombiner.h \
 	likely/QuantileAccumulator.h likely/ExactQuantileAccumulator.h \
-	likely/TriCubicInterpolator.h likely/AbsBinning.h \
-	likely/BinningError.h likely/UniformBinning.h \
-	likely/NonUniformBinning.h likely/UniformSampling.h \
-	likely/NonUniformSampling.h likely/CovarianceMatrix.h \
-	likely/CovarianceAccumulator.h likely/BinnedData.h \
-	likely/BinnedDataResampler.h likely/test/TestLikelihood.h \
-	likely/GslEngine.h likely/GslErrorHandler.h \
-	likely/MinuitEngine.h
+	likely/BiCubicInterpolator.h likely/TriCubicInterpolator.h \
+	likely/AbsBinning.h likely/BinningError.h \
+	likely/UniformBinning.h likely/NonUniformBinning.h \
+	likely/UniformSampling.h likely/NonUniformSampling.h \
+	likely/CovarianceMatrix.h likely/CovarianceAccumulator.h \
+	likely/BinnedData.h likely/BinnedDataResampler.h \
+	likely/test/TestLikelihood.h likely/GslEngine.h \
+	likely/GslErrorHandler.h likely/MinuitEngine.h
 HEADERS = $(nobase_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -361,12 +366,13 @@ liblikely_la_SOURCES = likely/FitParameter.cc likely/FitModel.cc \
 	likely/WeightedAccumulator.cc likely/WeightedCombiner.cc \
 	likely/QuantileAccumulator.cc \
 	likely/ExactQuantileAccumulator.cc \
-	likely/TriCubicInterpolator.cc likely/AbsBinning.cc \
-	likely/UniformBinning.cc likely/NonUniformBinning.cc \
-	likely/UniformSampling.cc likely/NonUniformSampling.cc \
-	likely/CovarianceMatrix.cc likely/CovarianceAccumulator.cc \
-	likely/BinnedData.cc likely/BinnedDataResampler.cc \
-	likely/test/TestLikelihood.cc $(am__append_1) $(am__append_3)
+	likely/BiCubicInterpolator.cc likely/TriCubicInterpolator.cc \
+	likely/AbsBinning.cc likely/UniformBinning.cc \
+	likely/NonUniformBinning.cc likely/UniformSampling.cc \
+	likely/NonUniformSampling.cc likely/CovarianceMatrix.cc \
+	likely/CovarianceAccumulator.cc likely/BinnedData.cc \
+	likely/BinnedDataResampler.cc likely/test/TestLikelihood.cc \
+	$(am__append_1) $(am__append_3)
 
 # library headers to install (nobase prefix preserves directories under bosslya)
 # Anything that includes config.h should *not* be listed here.
@@ -380,13 +386,13 @@ nobase_include_HEADERS = likely/likely.h likely/types.h \
 	likely/Integrator.h likely/Random.h likely/AbsAccumulator.h \
 	likely/WeightedAccumulator.h likely/WeightedCombiner.h \
 	likely/QuantileAccumulator.h likely/ExactQuantileAccumulator.h \
-	likely/TriCubicInterpolator.h likely/AbsBinning.h \
-	likely/BinningError.h likely/UniformBinning.h \
-	likely/NonUniformBinning.h likely/UniformSampling.h \
-	likely/NonUniformSampling.h likely/CovarianceMatrix.h \
-	likely/CovarianceAccumulator.h likely/BinnedData.h \
-	likely/BinnedDataResampler.h likely/test/TestLikelihood.h \
-	$(am__append_2) $(am__append_4)
+	likely/BiCubicInterpolator.h likely/TriCubicInterpolator.h \
+	likely/AbsBinning.h likely/BinningError.h \
+	likely/UniformBinning.h likely/NonUniformBinning.h \
+	likely/UniformSampling.h likely/NonUniformSampling.h \
+	likely/CovarianceMatrix.h likely/CovarianceAccumulator.h \
+	likely/BinnedData.h likely/BinnedDataResampler.h \
+	likely/test/TestLikelihood.h $(am__append_2) $(am__append_4)
 
 # instructions for building each program
 likelytest_SOURCES = src/likelytest.cc
@@ -407,6 +413,9 @@ likelyinteg_LDADD = -L. -llikely
 likelyrand_SOURCES = src/likelyrand.cc
 likelyrand_DEPENDENCIES = $(lib_LIBRARIES)
 likelyrand_LDADD = -L. -llikely
+likelybicubic_SOURCES = src/likelybicubic.cc
+likelybicubic_DEPENDENCIES = $(lib_LIBRARIES)
+likelybicubic_LDADD = -lboost_program_options -L. -llikely
 likelytricubic_SOURCES = src/likelytricubic.cc
 likelytricubic_DEPENDENCIES = $(lib_LIBRARIES)
 likelytricubic_LDADD = -lboost_program_options -L. -llikely
@@ -599,6 +608,9 @@ demo1$(EXEEXT): $(demo1_OBJECTS) $(demo1_DEPENDENCIES)
 demo2$(EXEEXT): $(demo2_OBJECTS) $(demo2_DEPENDENCIES) 
 	@rm -f demo2$(EXEEXT)
 	$(CXXLINK) $(demo2_OBJECTS) $(demo2_LDADD) $(LIBS)
+likelybicubic$(EXEEXT): $(likelybicubic_OBJECTS) $(likelybicubic_DEPENDENCIES) 
+	@rm -f likelybicubic$(EXEEXT)
+	$(CXXLINK) $(likelybicubic_OBJECTS) $(likelybicubic_LDADD) $(LIBS)
 likelycheck$(EXEEXT): $(likelycheck_OBJECTS) $(likelycheck_DEPENDENCIES) 
 	@rm -f likelycheck$(EXEEXT)
 	$(CXXLINK) $(likelycheck_OBJECTS) $(likelycheck_LDADD) $(LIBS)
@@ -648,6 +660,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsAccumulator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsBinning.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AbsEngine.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BiCubicInterpolator.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BinnedData.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BinnedDataResampler.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BinnedDataTest.Po@am__quote@
@@ -684,6 +697,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/WeightedCombiner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/demo2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelybicubic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelycheck.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelycov.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/likelydata.Po@am__quote@
@@ -824,6 +838,13 @@ ExactQuantileAccumulator.lo: likely/ExactQuantileAccumulator.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ExactQuantileAccumulator.lo `test -f 'likely/ExactQuantileAccumulator.cc' || echo '$(srcdir)/'`likely/ExactQuantileAccumulator.cc
 
+BiCubicInterpolator.lo: likely/BiCubicInterpolator.cc
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT BiCubicInterpolator.lo -MD -MP -MF $(DEPDIR)/BiCubicInterpolator.Tpo -c -o BiCubicInterpolator.lo `test -f 'likely/BiCubicInterpolator.cc' || echo '$(srcdir)/'`likely/BiCubicInterpolator.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/BiCubicInterpolator.Tpo $(DEPDIR)/BiCubicInterpolator.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='likely/BiCubicInterpolator.cc' object='BiCubicInterpolator.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o BiCubicInterpolator.lo `test -f 'likely/BiCubicInterpolator.cc' || echo '$(srcdir)/'`likely/BiCubicInterpolator.cc
+
 TriCubicInterpolator.lo: likely/TriCubicInterpolator.cc
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TriCubicInterpolator.lo -MD -MP -MF $(DEPDIR)/TriCubicInterpolator.Tpo -c -o TriCubicInterpolator.lo `test -f 'likely/TriCubicInterpolator.cc' || echo '$(srcdir)/'`likely/TriCubicInterpolator.cc
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/TriCubicInterpolator.Tpo $(DEPDIR)/TriCubicInterpolator.Plo
@@ -949,6 +970,20 @@ demo2.obj: src/demo2.cc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/demo2.cc' object='demo2.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o demo2.obj `if test -f 'src/demo2.cc'; then $(CYGPATH_W) 'src/demo2.cc'; else $(CYGPATH_W) '$(srcdir)/src/demo2.cc'; fi`
+
+likelybicubic.o: src/likelybicubic.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelybicubic.o -MD -MP -MF $(DEPDIR)/likelybicubic.Tpo -c -o likelybicubic.o `test -f 'src/likelybicubic.cc' || echo '$(srcdir)/'`src/likelybicubic.cc
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelybicubic.Tpo $(DEPDIR)/likelybicubic.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelybicubic.cc' object='likelybicubic.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelybicubic.o `test -f 'src/likelybicubic.cc' || echo '$(srcdir)/'`src/likelybicubic.cc
+
+likelybicubic.obj: src/likelybicubic.cc
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelybicubic.obj -MD -MP -MF $(DEPDIR)/likelybicubic.Tpo -c -o likelybicubic.obj `if test -f 'src/likelybicubic.cc'; then $(CYGPATH_W) 'src/likelybicubic.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelybicubic.cc'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/likelybicubic.Tpo $(DEPDIR)/likelybicubic.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/likelybicubic.cc' object='likelybicubic.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o likelybicubic.obj `if test -f 'src/likelybicubic.cc'; then $(CYGPATH_W) 'src/likelybicubic.cc'; else $(CYGPATH_W) '$(srcdir)/src/likelybicubic.cc'; fi`
 
 likelycheck.o: test/likelycheck.cc
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT likelycheck.o -MD -MP -MF $(DEPDIR)/likelycheck.Tpo -c -o likelycheck.o `test -f 'test/likelycheck.cc' || echo '$(srcdir)/'`test/likelycheck.cc
