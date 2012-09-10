@@ -58,8 +58,11 @@ namespace likely {
         // provides a convenient way to fix a parameter before a fit. Throws a RuntimeError for an
         // invalid parameter name or error < 0. Immediately after a parameter has been defined,
         // getParameterValue() returns the value specified here, and isParameterValueChanged()
-        // returns true.
-        void defineParameter(std::string const &name, double value, double error = 0);
+        // returns true. This method returns the internal index associated with the newly
+        // defined parameter, which can be used with the get/setParameterValue methods below
+        // (but the named forms should be generally preferred for readability, except in
+        // performance critical code).
+        int defineParameter(std::string const &name, double value, double error = 0);
         // Gets/sets the current value of the named parameter, or throws a RuntimeError for an
         // invalid parameter name. Subclasses should generally prefer the public named versions
         // of these methods for more readable code, unless there is a specific

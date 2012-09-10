@@ -36,6 +36,16 @@ int main(int argc, char *argv[]) {
     params.push_back(lk::FitParameter("(1-beta)*bias",1.23));
     lk::printFitParametersToStream(params,std::cout);    
 
+    // This should be ok
+    lk::modifyFitParameters(params,"");
+    // This should fail since whitespace by itself is not a valid config script
+    try {
+        lk::modifyFitParameters(params," ");
+    }
+    catch(lk::RuntimeError const &e) {
+        std::cout << "Got expected error with config = \" \"" << std::endl;
+    }
+
     lk::modifyFitParameters(params," fix [param2] = -2; fix [param1]");
     lk::printFitParametersToStream(params,std::cout);    
 
