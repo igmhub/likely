@@ -113,23 +113,24 @@ int local::FunctionMinimum::findName(std::string const &name) const {
     return findFitParameterByName(_parameters,name);
 }
 
-void local::FunctionMinimum::setRandomParameters(const Parameters &fromParams, Parameters &toParams) const {
+double local::FunctionMinimum::setRandomParameters(Parameters const &fromParams,
+Parameters &toParams) const {
     if(!hasCovariance()) {
         throw RuntimeError(
             "FunctionMinimum::getRandomParameters: no covariance matrix available.");
     }
     // Generate random offsets for our floating parameters.
     std::vector<double> floating;
-    _covar->sample(floating);
+    double nlWeight = _covar->sample(floating);
     std::vector<double>::const_iterator nextOffset(floating.begin());
     // Prepare to fill the parameter values vector we are provided.
     toParams=fromParams;
-    int ci=0;
+    int index(0);
     for(FitParameters::const_iterator iter = _parameters.begin(); iter != _parameters.end(); ++iter) {
-      if(iter->isFloating()) toParams[ci] += *nextOffset++;
-      ci++;
+      if(iter->isFloating()) toParams[index] += *nextOffset++;
+      index++;
     }
-
+    return nlWeight;
 }
 
 void local::FunctionMinimum::printToStream(std::ostream &os, std::string const &formatSpec) const {
