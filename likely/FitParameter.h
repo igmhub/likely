@@ -43,16 +43,21 @@ namespace likely {
         // Returns limits of an imposed prior or zero if no prior is imposed.
         double getPriorMin() const;
         double getPriorMax() const;
+        // Returns the scale of an imposed prior or zero if no prior is imposed. The scale
+        // specifies the prior's sigma as a fraction of its (max-min).
+        double getPriorScale() const;
         // Sets (or resets) the prior on this parameter. For a Gaussian prior, the max/min values
-        // specify the +/- 1 sigma points. Throws a RuntimeError if max <= min.
-        void setPrior(double priorMin, double priorMax, PriorType type);
+        // specify the +/- 1 scale*sigma points. For a box prior, the likelihood is unmodified
+        // within (min,max) and then has a Gaussian rolloff with sigma = scale*(max-min) outside
+        // these bounds. Throws a RuntimeError if max <= min or scale <= 0.
+        void setPrior(double priorMin, double priorMax, double priorScale, PriorType type);
         // Removes any prior on this parameter.
         void removePrior();
         // Returns the set of valid characters in a FitParameter name.
         static std::string const &getValidNameCharacters();
 	private:
         std::string _name;
-        double _value, _error, _priorMin, _priorMax;
+        double _value, _error, _priorMin, _priorMax, _priorScale;
         PriorType _priorType;
         
 	}; // FitParameter
@@ -67,6 +72,7 @@ namespace likely {
     inline FitParameter::PriorType FitParameter::getPriorType() const { return _priorType; }
     inline double FitParameter::getPriorMin() const { return _priorType == NoPrior ? 0 : _priorMin; }
     inline double FitParameter::getPriorMax() const { return _priorType == NoPrior ? 0 : _priorMax; }
+    inline double FitParameter::getPriorScale() const { return _priorType == NoPrior ? 0 : _priorScale; }
     inline void FitParameter::removePrior() { _priorType = NoPrior; }
     
     // Defines a vector of fit parameters.
@@ -108,7 +114,9 @@ namespace likely {
     //  fix [<name>]
     //  release [<hame>]
     //  boxprior [<name>] @ ( <min> , <max> )
+    //  boxprior [<name>] @ ( <min> , <max> ; <scale> )
     //  gaussprior [<name>] @ ( <min> , <max> )
+    //  gaussprior [<name>] @ ( <min> , <max> ; <scale> )
     //  noprior [<name>]
     //
     // Multiple commands separated by semicolons are executed in the order they appear.

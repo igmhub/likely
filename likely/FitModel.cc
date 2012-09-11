@@ -90,19 +90,22 @@ double local::FitModel::evaluatePriors() const {
         double value = _parameterValue[index];
         double priorMin = param.getPriorMin();
         double priorMax = param.getPriorMax();
+        double priorScale = param.getPriorScale();
         double range = priorMax - priorMin;
         if(priorType == FitParameter::BoxPrior) {
+            double sigma(priorScale*range);
             if(value < priorMin) {
-                double diff((value - priorMin)/(1e-3*range));
+                double diff((value - priorMin)/sigma);
                 penalty += diff*diff/2;
             }
             else if(value > priorMax) {
-                double diff((priorMax - value)/(1e-3*range));
+                double diff((priorMax - value)/sigma);
                 penalty += diff*diff/2;
             }
         }
         else if(priorType == FitParameter::GaussPrior) {
-            double diff((value - 0.5*(priorMin+priorMax))/(0.5*range));
+            double sigma = 0.5*priorScale*range;
+            double diff((value - 0.5*(priorMin+priorMax))/sigma);
             penalty += diff*diff/2;
         }
     }

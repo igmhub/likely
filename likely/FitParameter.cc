@@ -50,12 +50,17 @@ void local::FitParameter::setError(double error) {
     _error = error;
 }
 
-void local::FitParameter::setPrior(double priorMin, double priorMax, PriorType priorType) {
+void local::FitParameter::setPrior(double priorMin, double priorMax, double priorScale,
+PriorType priorType) {
     if(priorMax <= priorMin) {
         throw RuntimeError("FitParameter: expected prior max > min.");
     }
+    if(priorScale <= 0) {
+        throw RuntimeError("FitParameter: expected prior scale > 0.");
+    }
     _priorMin = priorMin;
     _priorMax = priorMax;
+    _priorScale = priorScale;
     _priorType = priorType;
 }
 
@@ -105,11 +110,15 @@ std::string const &formatSpec) {
             out << " +/- " << formatter % errors[0] << rounded % roundValueWithError(value,errors,"\\pm");
             switch(iter->getPriorType()) {
             case FitParameter::BoxPrior:
-                out << " box prior @ (" << iter->getPriorMin() << ',' << iter->getPriorMax() << ')';
+                out << " box prior";
                 break;
             case FitParameter::GaussPrior:
-                out << " gauss prior @ (" << iter->getPriorMin() << ',' << iter->getPriorMax() << ')';
+                out << " gauss prior";
                 break;
+            }
+            if(iter->getPriorType() != FitParameter::NoPrior) {
+                out << " @ (" << iter->getPriorMin() << ',' << iter->getPriorMax()
+                    << ';' << iter->getPriorScale() << ')';
             }
         }
         out << std::endl;
@@ -172,7 +181,9 @@ namespace fitpar {
                 >> lit(']')[boost::bind(&Grammar::endName,this)];
                 
             range = '(' >> double_[boost::bind(&Grammar::beginRange,this,::_1)] >> ','
-                >> double_[boost::bind(&Grammar::endRange,this,::_1)] >> ')';
+                >> double_[boost::bind(&Grammar::endRange,this,::_1)]
+                >> -( ';' >> double_[boost::bind(&Grammar::setScale,this,::_1)] )
+                >> ')';
             
         }
         
@@ -182,7 +193,7 @@ namespace fitpar {
         FitParameters &params;
         std::string theName;
         std::vector<int> selected;
-        double _beginRange,_endRange;
+        double _beginRange,_endRange,_theScale;
         
         void beginName() {
             theName.clear();
@@ -228,15 +239,25 @@ namespace fitpar {
         }
         void beginRange(double value) {
             _beginRange = value;
+            _theScale = 0;
         }
         void endRange(double value) {
             _endRange = value;
         }
+        void setScale(double value) {
+            _theScale = value;
+        }
         void boxPrior() {
-            BOOST_FOREACH(int index, selected) params[index].setPrior(_beginRange,_endRange,FitParameter::BoxPrior);
+            double scale(_theScale > 0 ? _theScale : 1e-2);
+            BOOST_FOREACH(int index, selected) {
+                params[index].setPrior(_beginRange,_endRange,scale,FitParameter::BoxPrior);
+            }
         }
         void gaussPrior() {
-            BOOST_FOREACH(int index, selected) params[index].setPrior(_beginRange,_endRange,FitParameter::GaussPrior);
+            double scale(_theScale > 0 ? _theScale : 1);
+            BOOST_FOREACH(int index, selected) {
+                params[index].setPrior(_beginRange,_endRange,scale,FitParameter::GaussPrior);
+            }
         }
         void noPrior() {
             BOOST_FOREACH(int index, selected) params[index].removePrior();
