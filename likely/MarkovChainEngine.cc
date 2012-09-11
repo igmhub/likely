@@ -82,8 +82,6 @@ int maxTrials, Callback callback, int callbackInterval) const {
     while(remaining > 0 && (maxTrials == 0 || nTrials < maxTrials)) {
         nTrials++;
         // Take a trial step sampled from the estimated function minimum's covariance.
-        // The setRandomParameters method returns the value of -log(W(trial)) and 
-        // includes any fixed parameters in trial.
         fmin->setRandomParameters(current, trial);
         // Evaluate the true NLL at this trial point.
         double trialNLL((*_f)(trial));
@@ -93,16 +91,8 @@ int maxTrials, Callback callback, int callbackInterval) const {
             minParams = trial;
             minNLL = trialNLL;
         }
-        // Calculate log( L(trial)/L(current) W(current)/W(trial) )
-	// AS: This is wrong. You have a standard symmetric proposal matrix.
-	// You just need to a normal likelihood ratio. The fact that your proposal
-	// matrix is non uniform is irrelevant.
-	//        double logProbRatio(currentNLL-trialNLL-currentNLW+trialNLW);
-	// this is correct
-	
-	double logProbRatio(currentNLL-trialNLL);
-
-	// Do we accept this trial step?
+	    double logProbRatio(currentNLL-trialNLL);
+	    // Do we accept this trial step?
         bool accepted(false);
         if(logProbRatio >= 0 || _random->getUniform() < std::exp(logProbRatio)) {
             current = trial;
@@ -121,9 +111,6 @@ int maxTrials, Callback callback, int callbackInterval) const {
         for(int j = 0; j < _nFloating; ++j) residual[j] -= initialFloating[j];
         accumulator.accumulate(residual);
     }
-    // Is this the end of MCMC or is there more to come?
-    //
-    std::cout << "DBG: eof MCMC" <<std::endl;
    
     // Record the covariance of the samples we have generated. Do this before updating
     // the parameter values, so that the updated errors are available.
