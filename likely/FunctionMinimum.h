@@ -58,10 +58,10 @@ namespace likely {
         // originally have one. This method does not update the errors associated with our
         // parameters, but calling it before updateParameterValues() will have this effect.
         void updateCovariance(CovarianceMatrixCPtr covariance);
-        // Sets parameter values that are randomly sampled from this minimum and
-        // returns the -log(weight) associated with the chosen parameters. Parameters that
-        // are not floating will be included in the result, but not varied.
-        double setRandomParameters(Parameters &params) const;
+        // Fills toParams by adding a vector sampled from our covariance matrix to the
+        // input fromParams vector. Returns the -log(liklihood) associated with the random
+        // offset vector (see CovarianceMatrix::sample for details)
+        double setRandomParameters(const Parameters &fromParams, Parameters &toParams) const;
         // Sets the number of times the function and its gradient have been evaluated to
         // obtain this estimate of the minimum.
         void setCounts(long nEvalCount, long nGradCount);

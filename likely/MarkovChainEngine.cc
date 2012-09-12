@@ -55,17 +55,9 @@ local::MarkovChainEngine::~MarkovChainEngine() { }
 
 int local::MarkovChainEngine::generate(FunctionMinimumPtr fmin, int nAccepts,
 int maxTrials, Callback callback, int callbackInterval) const {
-    // We are using the standard Metropolis-Hastings algorithm here. The only subtlety is
-    // that we don't generate trials by taking a random step from our current location,
-    // so our proposal pdf Q(p',p) for moving from p (current) to p' (trial) is
-    // W(p') = exp(-delta.Cinv.delta/2) and the ratio Q(p,p')/Q(p',p) is not 1, as
-    // usually assumed, but W(current)/W(trial).
-
-    // Set our initial parameters to the estimated function minimum, where the
-    // NLW = -log(W(current)) is zero, by definition.
+    // Set our initial parameters to the estimated function minimum.
     Parameters current(fmin->getParameters());
     double currentNLL(fmin->getMinValue());
-    double currentNLW(0);
     
     // Our starting point is our current best guess at the minimum.
     Parameters minParams(current);
@@ -83,9 +75,7 @@ int maxTrials, Callback callback, int callbackInterval) const {
     while(remaining > 0 && (maxTrials == 0 || nTrials < maxTrials)) {
         nTrials++;
         // Take a trial step sampled from the estimated function minimum's covariance.
-        // The setRandomParameters method returns the value of -log(W(trial)) and 
-        // includes any fixed parameters in trial.
-        double trialNLW(fmin->setRandomParameters(trial));
+        fmin->setRandomParameters(current, trial);
         // Evaluate the true NLL at this trial point.
         double trialNLL((*_f)(trial));
         incrementEvalCount();
@@ -94,14 +84,12 @@ int maxTrials, Callback callback, int callbackInterval) const {
             minParams = trial;
             minNLL = trialNLL;
         }
-        // Calculate log( L(trial)/L(current) W(current)/W(trial) )
-        double logProbRatio(currentNLL-trialNLL-currentNLW+trialNLW);
-        // Do we accept this trial step?
+	    double logProbRatio(currentNLL-trialNLL);
+	    // Do we accept this trial step?
         bool accepted(false);
         if(logProbRatio >= 0 || _random->getUniform() < std::exp(logProbRatio)) {
             current = trial;
             currentNLL = trialNLL;
-            currentNLW = trialNLW;
             accepted = true;
             remaining--;
         }
@@ -116,6 +104,7 @@ int maxTrials, Callback callback, int callbackInterval) const {
         for(int j = 0; j < _nFloating; ++j) residual[j] -= initialFloating[j];
         accumulator.accumulate(residual);
     }
+   
     // Record the covariance of the samples we have generated. Do this before updating
     // the parameter values, so that the updated errors are available.
     try {

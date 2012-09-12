@@ -16,6 +16,7 @@ local::FunctionMinimum::FunctionMinimum(double minValue, FitParameters const &pa
 : _status(OK)
 {
     updateParameters(minValue, parameters);
+    setCounts(0,0);
 }
 
 local::FunctionMinimum::FunctionMinimum(double minValue, FitParameters const &parameters,
@@ -24,6 +25,7 @@ CovarianceMatrixCPtr covariance)
 {
     updateParameters(minValue, parameters);
     updateCovariance(covariance);
+    setCounts(0,0);
 }
 
 local::FunctionMinimum::~FunctionMinimum() { }
@@ -113,7 +115,8 @@ int local::FunctionMinimum::findName(std::string const &name) const {
     return findFitParameterByName(_parameters,name);
 }
 
-double local::FunctionMinimum::setRandomParameters(Parameters &params) const {
+double local::FunctionMinimum::setRandomParameters(Parameters const &fromParams,
+Parameters &toParams) const {
     if(!hasCovariance()) {
         throw RuntimeError(
             "FunctionMinimum::getRandomParameters: no covariance matrix available.");
@@ -123,12 +126,11 @@ double local::FunctionMinimum::setRandomParameters(Parameters &params) const {
     double nlWeight = _covar->sample(floating);
     std::vector<double>::const_iterator nextOffset(floating.begin());
     // Prepare to fill the parameter values vector we are provided.
-    params.resize(0);
-    params.reserve(_parameters.size());
+    toParams=fromParams;
+    int index(0);
     for(FitParameters::const_iterator iter = _parameters.begin(); iter != _parameters.end(); ++iter) {
-        double value(iter->getValue());
-        if(iter->isFloating()) value += *nextOffset++;
-        params.push_back(value);
+      if(iter->isFloating()) toParams[index] += *nextOffset++;
+      index++;
     }
     return nlWeight;
 }
