@@ -16,6 +16,7 @@ local::FunctionMinimum::FunctionMinimum(double minValue, FitParameters const &pa
 : _status(OK)
 {
     updateParameters(minValue, parameters);
+    setCounts(0,0);
 }
 
 local::FunctionMinimum::FunctionMinimum(double minValue, FitParameters const &parameters,
@@ -24,6 +25,7 @@ CovarianceMatrixCPtr covariance)
 {
     updateParameters(minValue, parameters);
     updateCovariance(covariance);
+    setCounts(0,0);
 }
 
 local::FunctionMinimum::~FunctionMinimum() { }
