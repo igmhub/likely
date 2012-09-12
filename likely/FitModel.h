@@ -52,6 +52,9 @@ namespace likely {
         // configuration. Priors are not imposed on fixed parameters, even if they are defined.
         // Use configureFitParameters() to add priors.
         double evaluatePriors() const;
+        // Returns a guess at the specified function's minimum based on our fit parameter
+        // configuration and assuming a diagonal covariance matrix.
+        FunctionMinimumPtr guessMinimum(FunctionPtr fptr);
     protected:
         // Subclasses use this method to define their parameters. Parameters should generally
         // be specified with a reasonable error > 0 since the configureFitParameters() method

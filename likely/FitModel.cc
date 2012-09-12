@@ -3,6 +3,8 @@
 #include "likely/FitModel.h"
 #include "likely/RuntimeError.h"
 #include "likely/AbsEngine.h"
+#include "likely/FunctionMinimum.h"
+#include "likely/CovarianceMatrix.h"
 
 #include <iostream>
 
@@ -62,6 +64,28 @@ std::string const &oneTimeConfig) {
         // Minimize using un-modified parameters.
         return local::findMinimum(fptr, _parameters, method);
     }
+}
+
+local::FunctionMinimumPtr local::FitModel::guessMinimum(FunctionPtr fptr) {
+    // Evaluate the function at our configured initial parameter values.
+    Parameters pvalues;
+    getFitParameterValues(_parameters,pvalues);
+    double minValue = (*fptr)(pvalues);
+    // Build a diagonal covariance matrix of our configured initial parameter errors.
+    bool onlyFloating(true);
+    int nFloating = countFitParameters(_parameters,onlyFloating);
+    CovarianceMatrixPtr covariance(new CovarianceMatrix(nFloating));
+    int index(0);
+    for(FitParameters::const_iterator iter = _parameters.begin(); iter != _parameters.end(); ++iter) {
+        if(iter->isFloating()) {
+            double error(iter->getError());
+            covariance->setCovariance(index,index,error*error);
+            index++;
+        }
+    }
+    // Return a FunctionMinimum pointer
+    FunctionMinimumPtr fmin(new FunctionMinimum(minValue,_parameters,covariance));
+    return fmin;
 }
 
 int local::FitModel::_checkIndex(int index) const {
