@@ -531,3 +531,22 @@ void local::BinnedData::printToStream(std::ostream &out, std::string format) con
         out << (indexFormat % index) << (valueFormat % getData(index)) << std::endl;
     }
 }
+
+local::BinnedDataPtr local::BinnedData::sample(RandomPtr random) const {
+    // Create a new dataset with the same binning.
+    bool binningOnly(true);
+    BinnedDataPtr sampled(this->clone(binningOnly));
+    // Fill the new dataset with noise sampled from our covariance.
+    _covariance->sample(sampled->_data,random);
+    // Copy our data vector book-keeping arrays to the sampled dataset.
+    sampled->_offset = _offset;
+    sampled->_index = _index;
+    // Add our (unweighted) data vector to the sampled noise.
+    _setWeighted(false);
+    for(int offset = 0; offset < _data.size(); ++offset) {
+        sampled->_data[offset] += _data[offset];
+    }
+    // Copy our covariance matrix to the sampled data.
+    sampled->setCovarianceMatrix(_covariance);
+    return sampled;
+}

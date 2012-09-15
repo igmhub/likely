@@ -248,6 +248,12 @@ namespace likely {
         // to specify if the memory usage of any covariance matrix should be included in the result.
         std::size_t getMemoryUsage(bool includeCovariance = true) const;
         
+        // Returns a shared pointer to a new BinnedData object whose data vector is a copy of our
+        // data vector with random noise added that has been sampled from our covariance matrix.
+        // The returned object shares a copy of our covariance matrix (but see cloneCovariance).
+        // Uses the random generator provided or else the default Random::instance().
+        BinnedDataPtr sample(RandomPtr random = RandomPtr()) const;
+        
         // Prints the (unweighted) data associated with this object to the specified output stream.
         // To print an associated covariance matrix, use getCovarianceMatrix()->printToStream(out,...).
         void printToStream(std::ostream &out, std::string format = std::string("%+10.3lg")) const;
