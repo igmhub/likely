@@ -135,5 +135,30 @@ int main(int argc, char **argv) {
         std::cout << "chi2 = " << chi2 << ", chi2d = " << chi2d << std::endl;
     }
     
+    // Test bootstrap estimated covariance.
+    {
+        // Create a prototype dataset.
+        int nbins(2);
+        lk::AbsBinningCPtr binning(new lk::UniformBinning(0.,1.,nbins));
+        lk::BinnedData prototype(binning);
+        prototype.setData(0,0);
+        prototype.setData(1,1);
+        // Define a covariance matrix.
+        lk::CovarianceMatrixPtr cov(new lk::CovarianceMatrix(nbins));
+        (*cov).setCovariance(0,0,1).setCovariance(0,1,-0.5).setCovariance(1,1,2);
+        cov->printToStream(std::cout);
+        prototype.setCovarianceMatrix(cov);
+        // Generate realizations of this covariance matrix
+        int nobs(1000);
+        lk::BinnedDataResampler resampler;
+        for(int obs = 0; obs < nobs; ++obs) {
+            resampler.addObservation(prototype.sample());
+        }
+        // Estimate the covariance of the observations.
+        lk::CovarianceMatrixPtr bsCov = resampler.estimateCombinedCovariance(1000000);
+        bsCov->applyScaleFactor(nobs);
+        bsCov->printToStream(std::cout);
+    }
+    
     return 0;
 }
