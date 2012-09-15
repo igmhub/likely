@@ -5,6 +5,7 @@
 #include "likely/BinnedData.h"
 #include "likely/Random.h"
 #include "likely/CovarianceMatrix.h"
+#include "likely/CovarianceAccumulator.h"
 
 #include "boost/math/special_functions/binomial.hpp"
 
@@ -135,4 +136,19 @@ local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCov
     // We can skip this relatively expensive operation if all counts are 0,1.
     if(duplicatesFound && fixCovariance) resample->transformCovariance(D);
     return resample;
+}
+
+local::CovarianceMatrixPtr
+local::BinnedDataResampler::estimateCombinedCovariance(int nSamples) const {
+    if(nSamples <= 0) {
+        throw RuntimeError("BinnedDataResampler::estimateCombinedCovariance: expected nSamples > 0.");
+    }
+    if(0 == getNObservations()) return CovarianceMatrixPtr();
+    CovarianceAccumulator accumulator(_observations[0]->getNBinsWithData());
+    bool fixCovariance(false);
+    for(int sample = 0; sample < nSamples; ++sample) {
+        BinnedDataPtr data = bootstrap(0,fixCovariance);
+        accumulator.accumulate(data);
+    }
+    return accumulator.getCovariance();
 }

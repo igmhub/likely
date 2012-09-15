@@ -65,6 +65,10 @@ namespace likely {
         // calculated with fixCovariance = false will be roughly twice as large as the correct values
         // obtained with fixCovariance = true.
         BinnedDataPtr bootstrap(int size = 0, bool fixCovariance = true) const;
+        // Returns a shared pointer to a new CovarianceMatrix that estimates the covariance of
+        // our combined observations using the specified number of bootstrap samples with a
+        // CovarianceAccumulator.
+        CovarianceMatrixPtr estimateCombinedCovariance(int nSamples) const;
 	private:
         mutable RandomPtr _random;
         std::vector<BinnedDataCPtr> _observations;
