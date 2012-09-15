@@ -56,8 +56,14 @@ namespace likely {
         // row != col will also set the symmetric element in the matrix. Diagonal elements
         // (row == col) must be positive. Be aware that going back and forth between Covariance
         // and InverseCovariance operations requires potentially expensive matrix operations.
-        void setCovariance(int row, int col, double value);
-        void setInverseCovariance(int row, int col, double value);
+        // Methods return a self reference and so can be chained, e.g.
+        //
+        //   cov.setCovariance(0,0,0.5).setCovariance(0,1,-0.5).setCovariance(0,2,0.3);
+        //
+        // Use (*cov).set... to chain calls on a (smart) pointer. You can safely ignore the
+        // return value if you are not using this functionality.
+        CovarianceMatrix &setCovariance(int row, int col, double value);
+        CovarianceMatrix &setInverseCovariance(int row, int col, double value);
 
         // Multiplies the specified vector by the (inverse) covariance or throws a RuntimeError.
         // The result is stored in the input vector, overwriting its original contents.

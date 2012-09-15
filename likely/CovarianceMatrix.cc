@@ -403,7 +403,7 @@ double local::CovarianceMatrix::getInverseCovariance(int row, int col) const {
     return _icov[index];
 }
 
-void local::CovarianceMatrix::setCovariance(int row, int col, double value) {
+local::CovarianceMatrix &local::CovarianceMatrix::setCovariance(int row, int col, double value) {
     if(row == col && value <= 0) {
         throw RuntimeError("CovarianceMatrix: diagonal elements must be > 0.");
     }
@@ -415,9 +415,11 @@ void local::CovarianceMatrix::setCovariance(int row, int col, double value) {
     _changesCov();
     // Finally, set the new value here.
     _cov[index] = value;
+    // Return a self reference to allow chaining.
+    return *this;
 }
 
-void local::CovarianceMatrix::setInverseCovariance(int row, int col, double value) {
+local::CovarianceMatrix &local::CovarianceMatrix::setInverseCovariance(int row, int col, double value) {
     if(row == col && value <= 0) {
         throw RuntimeError("CovarianceMatrix: diagonal elements must be > 0.");
     }
@@ -429,6 +431,8 @@ void local::CovarianceMatrix::setInverseCovariance(int row, int col, double valu
     _changesICov();
     // Finally, set the new value here.
     _icov[index] = value;        
+    // Return a self reference to allow chaining.
+    return *this;
 }
 
 void local::CovarianceMatrix::multiplyByCovariance(std::vector<double> &vector) const {
