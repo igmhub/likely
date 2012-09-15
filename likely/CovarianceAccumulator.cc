@@ -3,6 +3,7 @@
 #include "likely/CovarianceAccumulator.h"
 #include "likely/RuntimeError.h"
 #include "likely/CovarianceMatrix.h"
+#include "likely/BinnedData.h"
 
 #include "boost/accumulators/accumulators.hpp"
 #include "boost/accumulators/statistics/covariance.hpp"
@@ -47,6 +48,16 @@ void local::CovarianceAccumulator::accumulate(double const *vector) {
         double xi(vector[i]);
         for(int j = 0; j <= i; ++j) {
             _pimpl->accumulators[index++](xi, covariate1 = vector[j]);
+        }
+    }
+}
+
+void local::CovarianceAccumulator::accumulate(BinnedDataCPtr data) {
+    int index(0);
+    for(BinnedData::IndexIterator row = data->begin(); row != data->end(); ++row) {
+        double xi(data->getData(*row));
+        for(BinnedData::IndexIterator col = data->begin(); col <= row; ++col) {
+            _pimpl->accumulators[index++](xi, covariate1 = data->getData(*col));
         }
     }
 }

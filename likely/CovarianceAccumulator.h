@@ -19,6 +19,8 @@ namespace likely {
 		// Accumulate a single vector.
         void accumulate(std::vector<double> const &vector);
         void accumulate(double const *vector);
+        // Accumulate the unweighted data vector of a BinnedData object.
+        void accumulate(BinnedDataCPtr data);
         // Return the estimated covariance matrix of all vectors accumulated so far.
         CovarianceMatrixPtr getCovariance() const;
 	private:
