@@ -37,9 +37,9 @@ namespace likely {
         BinnedDataCPtr getObservation(int index) const;
         // Returns a shared pointer to a (modifiable) copy of the specified observation.
         BinnedDataPtr getObservationCopy(int index) const;
-        // Returns a shared pointer to a new BinnedData that represents all observations combined.
-        // Each call to this method builds a new combined dataset so save the result unless
-        // you actually want many independent copies.
+        // Returns a shared pointer to a new BinnedData that combines all observations added
+        // so far. Each call to this method builds a new combined dataset so save the result
+        // unless you actually want many independent copies.
         BinnedDataPtr combined() const;
         // Returns a shared pointer to a new BinnedData that represents a jackknife resampling
         // of our observations with the specified number of observations dropped. The specific
@@ -57,13 +57,14 @@ namespace likely {
         // calls, so jackknifing can easily be parallelized in various ways.
         BinnedDataPtr jackknife(int ndrop, unsigned long seqno) const;
         // Returns a shared pointer to a new BinnedData that represents a bootstrap resampling
-        // of our observations of the specified size. The fixCovariance option requests that
-        // the final covariance matrix be corrected for double counting of identical observations.
-        // However, this is a relatively slow operation for large datasets, involving a triple
-        // matrix product, so you might want to use fixCovariance = false if you don't need
-        // an accurate covariance matrix. Chi-square values calculated with fixCovariance = false
-        // will be roughly twice as large as the correct values obtained with fixCovariance = true.
-        BinnedDataPtr bootstrap(int size, bool fixCovariance = true) const;
+        // of our observations of the specified size, which defaults to the number of observations
+        // when zero. The fixCovariance option requests that the final covariance matrix be corrected
+        // for double counting of identical observations. However, this is a relatively slow operation
+        // for large datasets, involving a triple matrix product, so you might want to use
+        // fixCovariance = false if you don't need an accurate covariance matrix. Chi-square values
+        // calculated with fixCovariance = false will be roughly twice as large as the correct values
+        // obtained with fixCovariance = true.
+        BinnedDataPtr bootstrap(int size = 0, bool fixCovariance = true) const;
 	private:
         mutable RandomPtr _random;
         std::vector<BinnedDataCPtr> _observations;

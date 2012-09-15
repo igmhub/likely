@@ -103,9 +103,10 @@ local::BinnedDataPtr local::BinnedDataResampler::jackknife(int ndrop, unsigned l
 }
 
 local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCovariance) const {
-    if(size <= 0) {
+    if(size < 0) {
         throw RuntimeError("BinnedDataResampler::bootstrap: invalid size.");
     }
+    if(0 == size) size = getNObservations();
     if(0 == getNObservations()) return BinnedDataPtr();
     // Do we need to (re)initialize our counts vector?
     if(_counts.size() != _observations.size()) {
