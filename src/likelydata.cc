@@ -151,11 +151,16 @@ int main(int argc, char **argv) {
         // Generate realizations of this covariance matrix
         int nobs(1000);
         lk::BinnedDataResampler resampler;
+        lk::CovarianceAccumulator accumulator(nbins);
         for(int obs = 0; obs < nobs; ++obs) {
-            resampler.addObservation(prototype.sample());
+            lk::BinnedDataCPtr data = prototype.sample();
+            resampler.addObservation(data);
+            accumulator.accumulate(data);
         }
-        // Estimate the covariance of the observations.
-        lk::CovarianceMatrixPtr bsCov = resampler.estimateCombinedCovariance(1000000);
+        // Calculate the covariance of the samples actually generated.
+        accumulator.getCovariance()->printToStream(std::cout);
+        // Estimate the covariance of the observations with bootstrap.
+        lk::CovarianceMatrixPtr bsCov = resampler.estimateCombinedCovariance(10000);
         bsCov->applyScaleFactor(nobs);
         bsCov->printToStream(std::cout);
     }

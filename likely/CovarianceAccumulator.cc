@@ -6,14 +6,15 @@
 #include "likely/BinnedData.h"
 
 #include "boost/accumulators/accumulators.hpp"
-#include "boost/accumulators/statistics/covariance.hpp"
+#include "boost/accumulators/statistics/weighted_covariance.hpp"
 #include "boost/accumulators/statistics/stats.hpp"
+#include "boost/accumulators/statistics/count.hpp"
 #include "boost/accumulators/statistics/variates/covariate.hpp"
 
 using namespace boost::accumulators;
 
 typedef accumulator_set<double, stats<
-    tag::covariance<double, tag::covariate1> > > Accumulator;
+    tag::weighted_covariance<double, tag::covariate1> >, double > Accumulator;
 typedef std::vector<Accumulator> Accumulators;
 
 namespace local = likely;
@@ -35,40 +36,49 @@ local::CovarianceAccumulator::CovarianceAccumulator(int size)
 
 local::CovarianceAccumulator::~CovarianceAccumulator() { }
 
-void local::CovarianceAccumulator::accumulate(std::vector<double> const &vector) {
+void local::CovarianceAccumulator::accumulate(std::vector<double> const &vector, double wgt) {
     if(vector.size() != _size) {
         throw RuntimeError("CovarianceAccumulator::accumulate: invalid vector size.");
     }
-    accumulate(&vector[0]);
+    accumulate(&vector[0],wgt);
 }
 
-void local::CovarianceAccumulator::accumulate(double const *vector) {
+void local::CovarianceAccumulator::accumulate(double const *vector, double wgt) {
     int index(0);
     for(int i = 0; i < _size; ++i) {
         double xi(vector[i]);
         for(int j = 0; j <= i; ++j) {
-            _pimpl->accumulators[index++](xi, covariate1 = vector[j]);
+            _pimpl->accumulators[index++](xi, weight = wgt, covariate1 = vector[j]);
         }
     }
 }
 
-void local::CovarianceAccumulator::accumulate(BinnedDataCPtr data) {
+void local::CovarianceAccumulator::accumulate(BinnedDataCPtr data, double wgt) {
+    if(data->getNBinsWithData() != _size) {
+        throw RuntimeError("CovarianceAccumulator::accumulate: invalid data size.");
+    }
     int index(0);
+    bool weighted(false);
     for(BinnedData::IndexIterator row = data->begin(); row != data->end(); ++row) {
-        double xi(data->getData(*row));
+        double xi(data->getData(*row,weighted));
         for(BinnedData::IndexIterator col = data->begin(); col <= row; ++col) {
-            _pimpl->accumulators[index++](xi, covariate1 = data->getData(*col));
+            _pimpl->accumulators[index++](xi, weight = 1, covariate1 = data->getData(*col,weighted));
         }
     }
+}
+
+int local::CovarianceAccumulator::count() const {
+    return boost::accumulators::count(_pimpl->accumulators[0]);
 }
 
 local::CovarianceMatrixPtr local::CovarianceAccumulator::getCovariance() const {
-    CovarianceMatrixPtr ptr(new CovarianceMatrix(_size));
+    CovarianceMatrixPtr cov(new CovarianceMatrix(_size));
     int index(0);
     for(int col = 0; col < _size; ++col) {
         for(int row = 0; row <= col; ++row) {
-            ptr->setCovariance(row,col,covariance(_pimpl->accumulators[index++]));
+            double value(weighted_covariance(_pimpl->accumulators[index++]));
+            cov->setCovariance(row,col,value);
         }
     }
-    return ptr;
+    return cov;
 }

@@ -16,11 +16,13 @@ namespace likely {
 	    // Create a new accumulator for vectors of the specified size.
 		explicit CovarianceAccumulator(int size);
 		virtual ~CovarianceAccumulator();
-		// Accumulate a single vector.
-        void accumulate(std::vector<double> const &vector);
-        void accumulate(double const *vector);
-        // Accumulate the unweighted data vector of a BinnedData object.
-        void accumulate(BinnedDataCPtr data);
+		// Accumulate a single vector using the specified weight.
+        void accumulate(std::vector<double> const &vector, double wgt = 1);
+        void accumulate(double const *vector, double wgt = 1);
+        // Accumulate the data vector of a BinnedData object.
+        void accumulate(BinnedDataCPtr data, double wgt = 1);
+        // Returns the number of vectors accumulated so far.
+        int count() const;
         // Return the estimated covariance matrix of all vectors accumulated so far.
         CovarianceMatrixPtr getCovariance() const;
 	private:
