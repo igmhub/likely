@@ -128,7 +128,7 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
             _weight = 0;
         }
         // Our zero data vector should be interpreted as Cinv.data for the
-        // purposes of adding to the other dataset, below. We don't call _setWeighted here
+        // purposes of adding to the other dataset, below. We don't call setWeighted here
         // because we don't actually want to transform the existing _data.
         _weighted = true;
     }
@@ -143,8 +143,8 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
         }
     }
     // Add the weighted _data vectors, element by element, and save the result in our _data.
-    _setWeighted(true);
-    other._setWeighted(true);
+    setWeighted(true);
+    other.setWeighted(true);
     for(int offset = 0; offset < _data.size(); ++offset) {
         _data[offset] += weight*other._data[offset];
     }
@@ -158,7 +158,7 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
     return *this;
 }
 
-void local::BinnedData::_setWeighted(bool weighted) const {
+void local::BinnedData::setWeighted(bool weighted) const {
     // Are we already in the desired state?
     if(weighted == _weighted) return;
     if(weighted) {
@@ -303,12 +303,12 @@ double local::BinnedData::getData(int index, bool weighted) const {
     if(!hasData(index)) {
         throw RuntimeError("BinnedData::getData: bin is empty.");
     }
-    _setWeighted(weighted);
+    setWeighted(weighted);
     return _data[_offset[index]];
 }
 
 void local::BinnedData::setData(int index, double value, bool weighted) {
-    _setWeighted(weighted);
+    setWeighted(weighted);
     if(hasData(index)) {
         _data[_offset[index]] = value;
     }
@@ -329,7 +329,7 @@ void local::BinnedData::addData(int index, double offset, bool weighted) {
     if(!hasData(index)) {
         throw RuntimeError("BinnedData::addData: bin is empty.");        
     }
-    _setWeighted(weighted);
+    setWeighted(weighted);
     _data[_offset[index]] += offset;
 }
 
@@ -367,7 +367,7 @@ void local::BinnedData::setCovariance(int index1, int index2, double value) {
     if(!isCovarianceModifiable()) {
         throw RuntimeError("BinnedData::setCovariance: cannot modify shared covariance.");
     }
-    // Note that we do not call _setWeighted here, so we are changing the meaning
+    // Note that we do not call setWeighted here, so we are changing the meaning
     // of _data in a way that depends on the current value of _weighted.
     _covariance->setCovariance(_offset[index1],_offset[index2],value);
 }
@@ -386,7 +386,7 @@ void local::BinnedData::setInverseCovariance(int index1, int index2, double valu
     if(!isCovarianceModifiable()) {
         throw RuntimeError("BinnedData::setInverseCovariance: cannot modify shared covariance.");
     }
-    // Note that we do not call _setWeighted here, so we are changing the meaning
+    // Note that we do not call setWeighted here, so we are changing the meaning
     // of _data in a way that depends on the current value of _weighted.
     _covariance->setInverseCovariance(_offset[index1],_offset[index2],value);
 }
@@ -396,7 +396,7 @@ void local::BinnedData::transformCovariance(CovarianceMatrixPtr D) {
         throw RuntimeError("BinnedData::transformCovariance: no covariance to transform.");
     }
     // Make sure that our _data vector is independent of our _covariance before it changes.
-    _setWeighted(false);
+    setWeighted(false);
     // Replace D with C.Dinv.C where C is our original covariance matrix.
     D->replaceWithTripleProduct(*_covariance);
     // Swap C with D
@@ -414,7 +414,7 @@ void local::BinnedData::setCovarianceMatrix(CovarianceMatrixPtr covariance) {
 }
 
 bool local::BinnedData::compress(bool weighted) const {
-    _setWeighted(weighted);
+    setWeighted(weighted);
     return _covariance.get() ? _covariance->compress() : false;
 }
 
@@ -452,7 +452,7 @@ void local::BinnedData::prune(std::set<int> const &keep) {
     // Shift our (unweighted) data vector elements down to compress out any elements
     // we are not keeping. We are using the fact that std::set guarantees that iteration
     // follows sort order, from smallest to largest key value.
-    _setWeighted(false);
+    setWeighted(false);
     int newOffset(0);
     BOOST_FOREACH(int oldOffset, offsets) {
         // oldOffset >= newOffset so we will never clobber an element that we still need
@@ -542,7 +542,7 @@ local::BinnedDataPtr local::BinnedData::sample(RandomPtr random) const {
     sampled->_offset = _offset;
     sampled->_index = _index;
     // Add our (unweighted) data vector to the sampled noise.
-    _setWeighted(false);
+    setWeighted(false);
     for(int offset = 0; offset < _data.size(); ++offset) {
         sampled->_data[offset] += _data[offset];
     }

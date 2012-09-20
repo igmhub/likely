@@ -144,6 +144,9 @@ namespace likely {
         // stored as Cinv.data rather than data. Changes to our internal representation are
         // triggered automatically, so this method simply allows these changes to be tracked.
         bool isDataWeighted() const;
+        // Forces our internal representation to be weighted or unweighted. Other methods call
+        // this method automatically, and you should not normally need to call it yourself.
+        void setWeighted(bool weighted) const;
 
         // Returns true if covariance data is available.
         bool hasCovariance() const;
@@ -178,7 +181,7 @@ namespace likely {
         // with these methods does not directly change the contents of our data vector, but
         // it does change the meaning of weighted data. For example, if isDataWeighted() is true,
         // then setCovariance() changes the subsequent result of getData(...,weighted=false) but
-        // not of getData(...,weighted=true).
+        // not of getData(...,weighted=true). Use the setWeighted() method for more control of this.
         void setCovariance(int index1, int index2, double value);
         void setInverseCovariance(int index1, int index2, double value);
         // Returns a const shared pointer to our covariance matrix, if any.
@@ -273,9 +276,6 @@ namespace likely {
         mutable bool _weighted;
         // Have we been finalized?
         bool _finalized;
-        // Changes whether our _data vector is weighted by _Cinv by multiplying
-        // by Cinv or C, as needed.
-        void _setWeighted(bool weighted) const;
         // Initializes a new object.
         void _initialize();
         // Throws a RuntimeError unless the specified global index is valid.
