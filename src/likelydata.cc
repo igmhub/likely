@@ -1,5 +1,5 @@
 // Created 24-Apr-2012 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
-// Demonstates the CovarianceMatrix class.
+// Demonstrates and tests the BinnedData class.
 
 #include "likely/likely.h"
 
