@@ -67,7 +67,8 @@ namespace likely {
         BinnedDataPtr bootstrap(int size = 0, bool fixCovariance = true) const;
         // Returns a shared pointer to a new CovarianceMatrix that estimates the covariance of
         // our combined observations using the specified number of bootstrap samples with a
-        // CovarianceAccumulator.
+        // CovarianceAccumulator. Throws a RuntimeError if the estimated covariance is not positive
+        // definite, which can usually be fixed with more samples.
         CovarianceMatrixPtr estimateCombinedCovariance(int nSamples, int messageInterval = 0) const;
 	private:
         mutable RandomPtr _random;
