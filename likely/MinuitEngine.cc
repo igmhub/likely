@@ -8,6 +8,9 @@
 
 #include "Minuit2/VariableMetricMinimizer.h"
 #include "Minuit2/SimplexMinimizer.h"
+#include "Minuit2/FumiliMinimizer.h"
+#include "Minuit2/CombinedMinimizer.h"
+
 #include "Minuit2/MnUserParameterState.h"
 #include "Minuit2/MnUserParameters.h"
 #include "Minuit2/MnUserTransformation.h"
@@ -43,6 +46,16 @@ FitParameters const &parameters, std::string const &algorithm)
     if(algorithm == "simplex") {
         minimumFinder = boost::bind(
             &MinuitEngine::minimize<mn::SimplexMinimizer>,this,_1,_2,_3,normal);
+        useGradient = false;
+    } 
+    else if(algorithm == "fumili") {
+        minimumFinder = boost::bind(
+            &MinuitEngine::minimize<mn::FumiliMinimizer>,this,_1,_2,_3,normal);
+        useGradient = false;
+    }
+    else if(algorithm == "combined") {
+        minimumFinder = boost::bind(
+            &MinuitEngine::minimize<mn::CombinedMinimizer>,this,_1,_2,_3,normal);
         useGradient = false;
     }
     else if(algorithm == "vmetric") {
