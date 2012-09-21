@@ -68,7 +68,7 @@ namespace likely {
         // Returns a shared pointer to a new CovarianceMatrix that estimates the covariance of
         // our combined observations using the specified number of bootstrap samples with a
         // CovarianceAccumulator.
-        CovarianceMatrixPtr estimateCombinedCovariance(int nSamples) const;
+        CovarianceMatrixPtr estimateCombinedCovariance(int nSamples, int messageInterval = 0) const;
 	private:
         mutable RandomPtr _random;
         std::vector<BinnedDataCPtr> _observations;
