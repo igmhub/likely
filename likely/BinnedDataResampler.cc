@@ -150,5 +150,10 @@ local::BinnedDataResampler::estimateCombinedCovariance(int nSamples) const {
         BinnedDataPtr data = bootstrap(0,fixCovariance);
         accumulator.accumulate(data);
     }
-    return accumulator.getCovariance();
+    try {
+        return accumulator.getCovariance();
+    }
+    catch(RuntimeError const &e) {
+        throw RuntimeError("BinnedDataResampler::estimateCombinedCovariance: failed - try more samples?");
+    }
 }
