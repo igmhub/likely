@@ -104,7 +104,8 @@ local::BinnedDataPtr local::BinnedDataResampler::jackknife(int ndrop, unsigned l
     return resample;
 }
 
-local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCovariance) const {
+local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCovariance,
+bool scalarWeights) const {
     if(size < 0) {
         throw RuntimeError("BinnedDataResampler::bootstrap: invalid size.");
     }
@@ -119,7 +120,7 @@ local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCov
     // Create an empty dataset with the right axis binning.
     BinnedDataPtr resample(_observations[0]->clone(true));
     // We cannot fix a non-existent covariance.
-    if(!_observations[0]->hasCovariance()) fixCovariance = false;
+    if(!_observations[0]->hasCovariance() || scalarWeights) fixCovariance = false;
     // Initialize matrix needed to fix final covariance.
     likely::CovarianceMatrixPtr D;
     int nbins = _observations[0]->getNBinsWithData();
@@ -131,7 +132,16 @@ local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCov
         if(0 == count) continue;
         if(count > 1) duplicatesFound = true;
         BinnedDataCPtr observation = _observations[obsIndex];
-        resample->add(*observation,count);
+        if(scalarWeights) {
+            double weight = count*std::exp(-observation->getCovarianceMatrix()->getLogDeterminant()/nbins);
+            observation->setWeighted(false);
+            BinnedDataPtr copy(observation->clone());
+            copy->dropCovariance();
+            resample->add(*copy,weight);
+        }
+        else {
+            resample->add(*observation,count);
+        }
         if(fixCovariance) D->addInverse(*(observation->getCovarianceMatrix()),count*count);
     }
     // We can skip this relatively expensive operation if all counts are 0,1.
@@ -140,7 +150,8 @@ local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCov
 }
 
 local::CovarianceMatrixPtr
-local::BinnedDataResampler::estimateCombinedCovariance(int nSamples, int messageInterval) const {
+local::BinnedDataResampler::estimateCombinedCovariance(int nSamples, int messageInterval,
+bool scalarWeights) const {
     if(nSamples <= 0) {
         throw RuntimeError("BinnedDataResampler::estimateCombinedCovariance: expected nSamples > 0.");
     }
@@ -151,7 +162,7 @@ local::BinnedDataResampler::estimateCombinedCovariance(int nSamples, int message
         if(messageInterval > 0 && sample > 0 && sample % messageInterval == 0) {
             std::cout << "generated " << sample << " bootstrap samples." << std::endl;
         }
-        BinnedDataPtr data = bootstrap(0,fixCovariance);
+        BinnedDataPtr data = bootstrap(0,fixCovariance,scalarWeights);
         accumulator.accumulate(data);
     }
     try {

@@ -93,12 +93,13 @@ int main(int argc, char **argv) {
         c3.setCovarianceMatrix(C);
 
         lk::BinnedData d123(bins), c123(bins);
-        d123 += d1;
-        c123 += c1;
+        double wgt(1.5);
+        d123.add(d1,2*wgt);
+        c123.add(c1,2*wgt);
         d123.printToStream(std::cout);
         c123.printToStream(std::cout);
-        d123 += d2;
-        c123 += c2;
+        d123.add(d2,wgt);
+        c123.add(c2,wgt);
         d123.printToStream(std::cout);
         c123.printToStream(std::cout);
     }
@@ -136,7 +137,7 @@ int main(int argc, char **argv) {
     }
     
     // Test bootstrap estimated covariance for identically distributed observations.
-    {
+    if(false){
         std::cout << "Bootstrap covariance test 1:" << std::endl;
         // Create a prototype dataset.
         int nbins(2);
@@ -180,15 +181,19 @@ int main(int argc, char **argv) {
         // Define covariance matrices for each subsample.
         lk::CovarianceMatrixPtr cov1(new lk::CovarianceMatrix(nbins)),cov2(new lk::CovarianceMatrix(nbins));
         (*cov1).setCovariance(0,0,1).setCovariance(0,1,-0.9).setCovariance(1,1,2);
-        (*cov2).setCovariance(0,0,2).setCovariance(0,1,+0.1).setCovariance(1,1,1);
+        (*cov2).setCovariance(0,0,1).setCovariance(0,1,-0.9).setCovariance(1,1,2);
+        cov2->applyScaleFactor(3);
+        //(*cov2).setCovariance(0,0,2).setCovariance(0,1,+0.1).setCovariance(1,1,1);
         std::cout << "-- ensemble sample covariances:" << std::endl;
         cov1->printToStream(std::cout);
         cov2->printToStream(std::cout);
         prototype1.setCovarianceMatrix(cov1);
         prototype2.setCovarianceMatrix(cov2);
+        std::cout << "weights: " << std::exp(-cov1->getLogDeterminant()/nbins) << ','
+            << std::exp(-cov2->getLogDeterminant()/nbins) << std::endl;
         // Define the estimated covariance matrices we will use below, which are obtained by
         // scaling the true covariances.
-        double scale(5);
+        double scale(1);
         lk::CovarianceMatrixPtr cov1e(new lk::CovarianceMatrix(*cov1)), cov2e(new lk::CovarianceMatrix(*cov2));
         cov1e->applyScaleFactor(scale);
         cov2e->applyScaleFactor(scale);
@@ -218,9 +223,9 @@ int main(int argc, char **argv) {
         cov12.addInverse(*cov2,n2);
         cov12.printToStream(std::cout);
         // Estimate the covariance of the observations with bootstrap.
-        std::cout << "-- bootstrap covariance estimate:" << std::endl;
-        lk::CovarianceMatrixPtr bsCov = resampler.estimateCombinedCovariance(10000);
-        bsCov->printToStream(std::cout);
+        std::cout << "-- bootstrap covariance estimates (Cinv,scalar):" << std::endl;
+        resampler.estimateCombinedCovariance(10000,0,false)->printToStream(std::cout);
+        resampler.estimateCombinedCovariance(10000,0,true)->printToStream(std::cout);
     }
     
     return 0;

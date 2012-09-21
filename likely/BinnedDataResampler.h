@@ -63,13 +63,19 @@ namespace likely {
         // for large datasets, involving a triple matrix product, so you might want to use
         // fixCovariance = false if you don't need an accurate covariance matrix. Chi-square values
         // calculated with fixCovariance = false will be roughly twice as large as the correct values
-        // obtained with fixCovariance = true.
-        BinnedDataPtr bootstrap(int size = 0, bool fixCovariance = true) const;
+        // obtained with fixCovariance = true. With scalarWeights = true, observations are combined
+        // using scalar weights det(Cinv)^(1/n) instead of matrix weights Cinv. This method is faster
+        // but only valid when all observations are identically distributed up to a scale factor, i.e.
+        // each observation's true covariance is proportional to some global covariance. The data
+        // returned with this method will have no covariance matrix associated with it.
+        BinnedDataPtr bootstrap(int size = 0, bool fixCovariance = true, bool scalarWeights = false) const;
         // Returns a shared pointer to a new CovarianceMatrix that estimates the covariance of
         // our combined observations using the specified number of bootstrap samples with a
         // CovarianceAccumulator. Throws a RuntimeError if the estimated covariance is not positive
-        // definite, which can usually be fixed with more samples.
-        CovarianceMatrixPtr estimateCombinedCovariance(int nSamples, int messageInterval = 0) const;
+        // definite, which can usually be fixed with more samples. See the description of the bootstrap()
+        // method for details on the scalarWeights option.
+        CovarianceMatrixPtr estimateCombinedCovariance(int nSamples, int messageInterval = 0,
+            bool scalarWeights = false) const;
 	private:
         mutable RandomPtr _random;
         std::vector<BinnedDataCPtr> _observations;
