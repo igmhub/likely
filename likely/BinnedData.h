@@ -49,6 +49,16 @@ namespace likely {
 		//
 		// This means that X::X(std::vector<AbsBinningCPtr> axes) and X::X(X const &other)
 		// must also be valid (but the default copy ctor is usually ok).
+		// 
+		// Subclass users can use boost::dynamic_pointer_cast<...> to initialize smart pointers
+		// to subclasses, e.g.
+		//
+	    //   typedef boost::shared_ptr<const X> XCPtr;
+	    //   typedef boost::shared_ptr<X> XPtr;
+		//   XCPtr x1 = ...;
+		//   XPtr x2(boost::dynamic_pointer_cast<X>(likely::BinnedDataPtr(x1->clone())));
+		//   XCPtr x3(boost::dynamic_pointer_cast<const X>(likely::BinnedDataCPtr(x1->clone())));
+		//
         virtual BinnedData *clone(bool binningOnly = false) const;
 		
 		// Assignment operator supports the same shallow copy semantics.
