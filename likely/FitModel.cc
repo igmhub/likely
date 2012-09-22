@@ -66,7 +66,7 @@ std::string const &oneTimeConfig) {
     }
 }
 
-local::FunctionMinimumPtr local::FitModel::guessMinimum(FunctionPtr fptr) {
+local::FunctionMinimumPtr local::FitModel::guessMinimum(FunctionPtr fptr) const {
     // Evaluate the function at our configured initial parameter values.
     Parameters pvalues;
     getFitParameterValues(_parameters,pvalues);
