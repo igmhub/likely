@@ -173,6 +173,7 @@ namespace likely {
         // modify its covariance matrix, with a corresponding increase in memory usage.
         void cloneCovariance();
         // Drops any covariance matrix and assigns the specified scalar weight.
+        // Calls setWeighted(false).
         void dropCovariance(double weight = 1);
         // Returns the (inverse) covariance matrix element for the specified pair of global
         // indices, or throws a RuntimeError if either of the corresponding bins has no data,
@@ -197,14 +198,15 @@ namespace likely {
         // Returns a const shared pointer to our covariance matrix, if any.
         CovarianceMatrixCPtr getCovarianceMatrix() const;
         // Replaces our covariance matrix, if any, with the specified matrix or throws a
-        // RuntimeError.
+        // RuntimeError. Think about whether you want to call setWeighted() first.
         void setCovarianceMatrix(CovarianceMatrixPtr covariance);
         // Replaces our covariance matrix, if any, with the covariance of the specified
         // congruent binned data. After this operation, isCovarianceModifiable will be false
-        // for both binned data objects.
+        // for both binned data objects. Think about whether you want to call setWeighted() first.
         void shareCovarianceMatrix(BinnedData const &other);
         // Transforms our covariance matrix C by replacing it with C.Dinv.C. On return, D
-        // contains our original covariance matrix.
+        // contains our original covariance matrix. Think about whether you want to call
+        // setWeighted() first.
         void transformCovariance(CovarianceMatrixPtr D);
 
         // Calculates the chi-square = (data-pred).Cinv.(data-pred) for the specified

@@ -102,6 +102,7 @@ void local::BinnedData::dropCovariance(double weight) {
     if(hasCovariance() && isFinalized()) {
         throw RuntimeError("BinnedData::dropCovariance: object is finalized.");
     }
+    setWeighted(false);
     _covariance.reset();
     _weight = weight;
 }
