@@ -123,8 +123,12 @@ namespace likely {
         // if possible. Returns immediately if we are already compressed. Any compression
         // is lossless. The next call to any method except getSize(), compress(), or isCompressed().
         // will automatically trigger a decompression. However, a compressed matrix can be
-        // added to another matrix (via addInverse) without being uncompressed. Return value
-        // indicates if any compression was actually performed.
+        // added to another matrix (via addInverse) without being uncompressed. Also, we may
+        // already have a cached log(determinant) value as a side effect of previous operations,
+        // which can be retrieved by getLogDeterminant() without uncompression. If determinant
+        // caching is an important optimization for your application, be sure to call
+        // getLogDeterminant() before calling compress(). Return value indicates if any
+        // compression was actually performed.
         bool compress() const;
         // Returns true if this covariance matrix is currently compressed.
         bool isCompressed() const;

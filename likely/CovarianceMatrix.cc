@@ -731,6 +731,7 @@ int local::CovarianceMatrix::getNElements() const {
 double local::CovarianceMatrix::getLogDeterminant() const {
     // Only do the minimum work necessary...
     if(0 == _logDeterminant) {
+        _uncompress();
         // If we don't have a cached value then we have at most one of _icov or _cov,
         // but not both. Do a Cholesky decomposition of whatever we have.
         assert(_cholesky.empty());
