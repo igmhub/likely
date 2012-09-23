@@ -15,7 +15,7 @@
 namespace local = likely;
 
 local::BinnedDataResampler::BinnedDataResampler(bool useScalarWeights, RandomPtr random)
-: _useScalarWeights(useScalarWeights), _random(random), _combinedWeight(0)
+: _useScalarWeights(useScalarWeights), _random(random), _combinedScalarWeight(0)
 {
     if(!_random) _random = Random::instance();
 }
@@ -23,47 +23,37 @@ local::BinnedDataResampler::BinnedDataResampler(bool useScalarWeights, RandomPtr
 local::BinnedDataResampler::~BinnedDataResampler() { }
 
 void local::BinnedDataResampler::addObservation(BinnedDataCPtr observation) {
-    BinnedDataCPtr keeper = observation;
-    if(_useScalarWeights) {
-        // Keep a copy of the observation with its covariance replaced by a scalar weight
-        // equal to |Cinv|^(1/n) where n is the covariance matrix size.
-        BinnedDataPtr copy(observation->clone());
-        double weight = std::exp(-copy->getCovarianceMatrix()->getLogDeterminant()/copy->getNBinsWithData());
-        copy->dropCovariance(weight);
-        _combinedWeight += weight;
-        keeper = copy;
-    }
+    // Check that this new observation is congruent with what we have so far.
     if(getNObservations() > 0) {
-        if(!_observations[0]->isCongruent(*keeper)) {
+        if(!_combined->isCongruent(*observation)) {
             throw RuntimeError("BinnedDataResampler::addObservation: new observation is incongruent.");
-        }
-        if(_useScalarWeights) {
-            _combinedCovariance->addInverse(*observation->getCovarianceMatrix());
         }
     }
     else {
-        if(_useScalarWeights) {
-            _combinedCovariance.reset(new CovarianceMatrix(*observation->getCovarianceMatrix()));
-        }
+        bool binningOnly(true);
+        _combined.reset(observation->clone(binningOnly));
     }
-    _observations.push_back(keeper);
+    // Add this observation to our combined dataset.
+    *_combined += *observation;
+    // Make a copy of this observation that we will keep.
+    BinnedDataPtr copy(observation->clone());
+    if(_useScalarWeights) {
+        // Replace Cinv with the scalar weight |Cinv|^(1/n)
+        double weight = std::exp(-copy->getCovarianceMatrix()->getLogDeterminant()/copy->getNBinsWithData());
+        copy->dropCovariance(weight);
+        _combinedScalarWeight += weight;
+    }
+    else {
+        // Make a copy of the covariance matrix so changes to the input observation's
+        // covariance will not affect us.
+        copy->cloneCovariance();
+    }
+    // Remember this (copied) observation
+    _observations.push_back(copy);
 }
 
 local::BinnedDataPtr local::BinnedDataResampler::combined() const {
-    // The reason we don't build and cache the combined dataset in addObservation is
-    // that we have no way to guarantee that the individual observations won't be
-    // changed after they are added. Instead, we build the combination each time we
-    // are called and leave it up to the user to cache the result when they know that
-    // nothing has changed.
-    BinnedDataPtr all;
-    int size(_observations.size());
-    // Return an unassigned shared pointer if we don't have any observations yet.
-    if(0 == size) return all;
-    // Create an empty dataset with the right axis binning.
-    all.reset(_observations[0]->clone(true));
-    for(int obsIndex = 0; obsIndex < size; ++obsIndex) {
-        *all += *_observations[obsIndex];
-    }
+    BinnedDataPtr all(_combined->clone());
     return all;
 }
 

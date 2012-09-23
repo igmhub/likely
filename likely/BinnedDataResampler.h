@@ -27,7 +27,7 @@ namespace likely {
 	    // Random::instance().
 		BinnedDataResampler(bool useScalarWeights = false, RandomPtr random = RandomPtr());
 		virtual ~BinnedDataResampler();
-		// Adds a new observation for resampling. Throws a RuntimeError if this observation
+		// Adds a copy of the specified observation. Throws a RuntimeError if this observation
 		// is not congruent with existing observations. You are allowed to add the same
 		// observation several times, but you normally don't want to do this. Calls to
 		// this method can be interspersed with calls to resampling methods below.
@@ -82,8 +82,8 @@ namespace likely {
         bool _useScalarWeights;
         mutable RandomPtr _random;
         std::vector<BinnedDataCPtr> _observations;
-        double _combinedWeight;
-        CovarianceMatrixPtr _combinedCovariance;
+        double _combinedScalarWeight;
+        BinnedDataPtr _combined;
         mutable std::vector<int> _subset, _counts;
 	}; // BinnedDataResampler
 	
