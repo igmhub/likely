@@ -39,7 +39,7 @@ void local::BinnedDataResampler::addObservation(BinnedDataCPtr observation) {
     BinnedDataPtr copy(observation->clone());
     if(_useScalarWeights) {
         // Replace Cinv with the scalar weight |Cinv|^(1/n)
-        double weight = std::exp(-copy->getCovarianceMatrix()->getLogDeterminant()/copy->getNBinsWithData());
+        double weight = copy->getScalarWeight();
         copy->dropCovariance(weight);
         _combinedScalarWeight += weight;
     }
@@ -81,6 +81,15 @@ bool local::getSubset(int n, unsigned long seqno, std::vector<int> &subset) {
         seqno -= last;
     }
     return true;
+}
+
+void local::BinnedDataResampler::_addCovariance(BinnedDataPtr sample) const {
+    if(!_useScalarWeights) return;
+    sample->setWeighted(false);
+    double weight = sample->getScalarWeight();
+    CovarianceMatrixPtr cov(new CovarianceMatrix(*_combined->getCovarianceMatrix()));
+    cov->applyScaleFactor(weight/_combinedScalarWeight);
+    sample->setCovarianceMatrix(cov);
 }
 
 local::BinnedDataCPtr local::BinnedDataResampler::getObservation(int index) const {

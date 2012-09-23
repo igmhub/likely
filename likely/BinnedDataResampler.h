@@ -79,6 +79,10 @@ namespace likely {
         CovarianceMatrixPtr estimateCombinedCovariance(int nSamples, int messageInterval = 0,
             bool scalarWeights = false) const;
 	private:
+	    // Adds a covariance matrix to a resampling built with scalar weights. The matrix will be
+	    // a copy of our combined covariance scaled by the ratio of sample's scalar weight and
+	    // our _combinedScalarWeight.
+        void _addCovariance(BinnedDataPtr sample) const;
         bool _useScalarWeights;
         mutable RandomPtr _random;
         std::vector<BinnedDataCPtr> _observations;
