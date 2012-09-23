@@ -414,6 +414,19 @@ void local::BinnedData::setCovarianceMatrix(CovarianceMatrixPtr covariance) {
     _covariance = covariance;
 }
 
+void local::BinnedData::shareCovarianceMatrix(BinnedData const &other) {
+    if(isFinalized()) {
+        throw RuntimeError("BinnedData::shareCovarianceMatrix: object is finalized.");
+    }
+    // Create a temporary (and empty) covariance matrix of the right size, if necessary,
+    // so this will not prevent us being congruent with the other binned data.
+    if(!hasCovariance()) _covariance = CovarianceMatrixPtr(new CovarianceMatrix(getNBinsWithData()));
+    if(!isCongruent(other)) {
+        throw RuntimeError("BinnedData::shareCovarianceMatrix: datasets are not congruent.");
+    }
+    _covariance = other._covariance;
+}
+
 bool local::BinnedData::compress(bool weighted) const {
     setWeighted(weighted);
     return _covariance.get() ? _covariance->compress() : false;

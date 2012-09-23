@@ -199,6 +199,10 @@ namespace likely {
         // Replaces our covariance matrix, if any, with the specified matrix or throws a
         // RuntimeError.
         void setCovarianceMatrix(CovarianceMatrixPtr covariance);
+        // Replaces our covariance matrix, if any, with the covariance of the specified
+        // congruent binned data. After this operation, isCovarianceModifiable will be false
+        // for both binned data objects.
+        void shareCovarianceMatrix(BinnedData const &other);
         // Transforms our covariance matrix C by replacing it with C.Dinv.C. On return, D
         // contains our original covariance matrix.
         void transformCovariance(CovarianceMatrixPtr D);
