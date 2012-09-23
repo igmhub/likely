@@ -14,8 +14,8 @@
 
 namespace local = likely;
 
-local::BinnedDataResampler::BinnedDataResampler(RandomPtr random)
-: _random(random)
+local::BinnedDataResampler::BinnedDataResampler(bool useScalarWeights, RandomPtr random)
+: _useScalarWeights(useScalarWeights), _random(random), _combinedWeight(0)
 {
     if(!_random) _random = Random::instance();
 }
@@ -23,16 +23,38 @@ local::BinnedDataResampler::BinnedDataResampler(RandomPtr random)
 local::BinnedDataResampler::~BinnedDataResampler() { }
 
 void local::BinnedDataResampler::addObservation(BinnedDataCPtr observation) {
-    if(std::find(_observations.begin(), _observations.end(), observation) != _observations.end()) {
-        throw RuntimeError("BinnedDataResampler::addObservation: cannot add duplicate.");
+    BinnedDataCPtr keeper = observation;
+    if(_useScalarWeights) {
+        // Keep a copy of the observation with its covariance replaced by a scalar weight
+        // equal to |Cinv|^(1/n) where n is the covariance matrix size.
+        BinnedDataPtr copy(observation->clone());
+        double weight = std::exp(-copy->getCovarianceMatrix()->getLogDeterminant()/copy->getNBinsWithData());
+        copy->dropCovariance(weight);
+        _combinedWeight += weight;
+        keeper = copy;
     }
-    if(getNObservations() > 0 && !_observations[0]->isCongruent(*observation)) {
-        throw RuntimeError("BinnedDataResampler::addObservation: new observation is incongruent.");
+    if(getNObservations() > 0) {
+        if(!_observations[0]->isCongruent(*keeper)) {
+            throw RuntimeError("BinnedDataResampler::addObservation: new observation is incongruent.");
+        }
+        if(_useScalarWeights) {
+            _combinedCovariance->addInverse(*observation->getCovarianceMatrix());
+        }
     }
-    _observations.push_back(observation);
+    else {
+        if(_useScalarWeights) {
+            _combinedCovariance.reset(new CovarianceMatrix(*observation->getCovarianceMatrix()));
+        }
+    }
+    _observations.push_back(keeper);
 }
 
 local::BinnedDataPtr local::BinnedDataResampler::combined() const {
+    // The reason we don't build and cache the combined dataset in addObservation is
+    // that we have no way to guarantee that the individual observations won't be
+    // changed after they are added. Instead, we build the combination each time we
+    // are called and leave it up to the user to cache the result when they know that
+    // nothing has changed.
     BinnedDataPtr all;
     int size(_observations.size());
     // Return an unassigned shared pointer if we don't have any observations yet.

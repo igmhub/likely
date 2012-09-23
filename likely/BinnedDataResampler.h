@@ -25,10 +25,11 @@ namespace likely {
 	public:
 	    // Creates a new resampler using the random generator provided, or else the default
 	    // Random::instance().
-		BinnedDataResampler(RandomPtr random = RandomPtr());
+		BinnedDataResampler(bool useScalarWeights = false, RandomPtr random = RandomPtr());
 		virtual ~BinnedDataResampler();
 		// Adds a new observation for resampling. Throws a RuntimeError if this observation
-		// has already been added or is not congruent with existing observations. Calls to
+		// is not congruent with existing observations. You are allowed to add the same
+		// observation several times, but you normally don't want to do this. Calls to
 		// this method can be interspersed with calls to resampling methods below.
         void addObservation(BinnedDataCPtr observation);
         // Returns the number of observations available for resampling.
@@ -39,7 +40,8 @@ namespace likely {
         BinnedDataPtr getObservationCopy(int index) const;
         // Returns a shared pointer to a new BinnedData that combines all observations added
         // so far. Each call to this method builds a new combined dataset so save the result
-        // unless you actually want many independent copies.
+        // if you don't want independent copies (and you know that the observations have not
+        // changed since the last combination).
         BinnedDataPtr combined() const;
         // Returns a shared pointer to a new BinnedData that represents a jackknife resampling
         // of our observations with the specified number of observations dropped. The specific
@@ -77,8 +79,11 @@ namespace likely {
         CovarianceMatrixPtr estimateCombinedCovariance(int nSamples, int messageInterval = 0,
             bool scalarWeights = false) const;
 	private:
+        bool _useScalarWeights;
         mutable RandomPtr _random;
         std::vector<BinnedDataCPtr> _observations;
+        double _combinedWeight;
+        CovarianceMatrixPtr _combinedCovariance;
         mutable std::vector<int> _subset, _counts;
 	}; // BinnedDataResampler
 	
