@@ -215,6 +215,10 @@ namespace likely {
         // used here is an optimization, not a mistake.) If no covariance is available,
         // then Cinv=identity is assumed.
         double chiSquare(std::vector<double> pred) const;
+        // Returns this dataset's scalar weight. If we have a covariance matrix, this is defined
+        // as det(C)^(-1/n) where n = getNBinsWithData(). Otherwise, it will be a scalar value
+        // playing the role of Cinv that is maintained internally and which defaults to one.
+        double getScalarWeight() const;
         // Calculates the "decorrelated" weights for the specified prediction vector and
         // saves the results in the vector provided. Decorrelated weights are defined as:
         //

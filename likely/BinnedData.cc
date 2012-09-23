@@ -565,3 +565,7 @@ local::BinnedDataPtr local::BinnedData::sample(RandomPtr random) const {
     sampled->setCovarianceMatrix(_covariance);
     return sampled;
 }
+
+double local::BinnedData::getScalarWeight() const {
+    return hasCovariance() ? std::exp(-_covariance->getLogDeterminant()/getNBinsWithData()) : _weight;
+}
