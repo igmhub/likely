@@ -98,12 +98,12 @@ void local::BinnedData::cloneCovariance() {
     }
 }
 
-void local::BinnedData::dropCovariance() {
+void local::BinnedData::dropCovariance(double weight) {
     if(hasCovariance() && isFinalized()) {
         throw RuntimeError("BinnedData::dropCovariance: object is finalized.");
     }
     _covariance.reset();
-    _weight = 1;
+    _weight = weight;
 }
 
 local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight) {
