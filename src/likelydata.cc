@@ -164,8 +164,14 @@ int main(int argc, char **argv) {
             accumulator.accumulate(data);
         }
         std::cout << "-- bootstrap test:" << std::endl;
-        resamplerMatrix.bootstrap()->printToStream(std::cout);
-        resamplerScalar.bootstrap()->printToStream(std::cout);
+        lk::BinnedDataCPtr bs;
+        bool fixCovariance(false);
+        bs = resamplerMatrix.bootstrap(0,fixCovariance);
+        bs->printToStream(std::cout);
+        bs->getCovarianceMatrix()->printToStream(std::cout);
+        bs = resamplerScalar.bootstrap(0,fixCovariance);
+        bs->printToStream(std::cout);
+        bs->getCovarianceMatrix()->printToStream(std::cout);
         // Dump the combined data.
         std::cout << "-- combined data:" << std::endl;
         lk::BinnedDataCPtr combined;
@@ -240,8 +246,14 @@ int main(int argc, char **argv) {
             resamplerScalar.addObservation(data2);
         }
         std::cout << "-- bootstrap test:" << std::endl;
-        resamplerMatrix.bootstrap()->printToStream(std::cout);
-        resamplerScalar.bootstrap()->printToStream(std::cout);
+        lk::BinnedDataCPtr bs;
+        bool fixCovariance(false);
+        bs = resamplerMatrix.bootstrap(0,fixCovariance);
+        bs->printToStream(std::cout);
+        bs->getCovarianceMatrix()->printToStream(std::cout);
+        bs = resamplerScalar.bootstrap(0,fixCovariance);
+        bs->printToStream(std::cout);
+        bs->getCovarianceMatrix()->printToStream(std::cout);
         std::cout << "-- combined data:" << std::endl;
         resamplerMatrix.combined()->printToStream(std::cout);
         resamplerScalar.combined()->printToStream(std::cout);

@@ -37,7 +37,7 @@ namespace likely {
         // Returns a shared pointer to the specified (readonly) observation.
         BinnedDataCPtr getObservation(int index) const;
         // Returns a shared pointer to a (modifiable) copy of the specified observation.
-        BinnedDataPtr getObservationCopy(int index) const;
+        BinnedDataPtr getObservationCopy(int index, bool addCovariance = true) const;
         // Returns a shared pointer to a new BinnedData that combines all observations added
         // so far. Each call to this method builds a new combined dataset so save the result
         // if you don't want independent copies (and you know that the observations have not
@@ -57,7 +57,7 @@ namespace likely {
         // Note that the number of jackknife samples generated this way gets large quickly
         // as ndrop increases. There is no requirement that seqno increase by one for successive
         // calls, so jackknifing can easily be parallelized in various ways.
-        BinnedDataPtr jackknife(int ndrop, unsigned long seqno) const;
+        BinnedDataPtr jackknife(int ndrop, unsigned long seqno, bool addCovariance = true) const;
         // Returns a shared pointer to a new BinnedData that represents a bootstrap resampling
         // of our observations of the specified size, which defaults to the number of observations
         // when zero. The fixCovariance option requests that the final covariance matrix be corrected
@@ -66,7 +66,7 @@ namespace likely {
         // fixCovariance = false if you don't need an accurate covariance matrix. Chi-square values
         // calculated with fixCovariance = false will be roughly twice as large as the correct values
         // obtained with fixCovariance = true.
-        BinnedDataPtr bootstrap(int size = 0, bool fixCovariance = true) const;
+        BinnedDataPtr bootstrap(int size = 0, bool fixCovariance = true, bool addCovariance = true) const;
         // Returns a shared pointer to a new CovarianceMatrix that estimates the covariance of
         // our combined observations using the specified number of bootstrap samples with a
         // CovarianceAccumulator. Throws a RuntimeError if the estimated covariance is not positive
@@ -74,8 +74,8 @@ namespace likely {
         CovarianceMatrixPtr estimateCombinedCovariance(int nSamples, int messageInterval = 0) const;
 	private:
 	    // Adds a covariance matrix to a resampling built with scalar weights. The matrix will be
-	    // a copy of our combined covariance scaled by the ratio of sample's scalar weight and
-	    // our _combinedScalarWeight.
+	    // a copy of our combined covariance scaled by the ratio of our _combinedScalarWeight to
+	    // the sample's scalar weight.
         void _addCovariance(BinnedDataPtr sample) const;
         bool _useScalarWeights;
         mutable RandomPtr _random;

@@ -89,7 +89,7 @@ void local::BinnedDataResampler::_addCovariance(BinnedDataPtr sample) const {
     sample->setWeighted(false);
     double weight = sample->getScalarWeight();
     CovarianceMatrixPtr cov(new CovarianceMatrix(*_combined->getCovarianceMatrix()));
-    cov->applyScaleFactor(weight/_combinedScalarWeight);
+    cov->applyScaleFactor(_combinedScalarWeight/weight);
     sample->setCovarianceMatrix(cov);
 }
 
@@ -100,15 +100,17 @@ local::BinnedDataCPtr local::BinnedDataResampler::getObservation(int index) cons
     return _observations[index];
 }
 
-local::BinnedDataPtr local::BinnedDataResampler::getObservationCopy(int index) const {
+local::BinnedDataPtr local::BinnedDataResampler::getObservationCopy(int index, bool addCovariance) const {
     if(index < 0 || index >= getNObservations()) {
         throw RuntimeError("BinnedDataResampler::getObservation: index of our range.");
     }
     BinnedDataPtr copy(_observations[index]->clone());
+    if(addCovariance) _addCovariance(copy);
     return copy;
 }
 
-local::BinnedDataPtr local::BinnedDataResampler::jackknife(int ndrop, unsigned long seqno) const {
+local::BinnedDataPtr local::BinnedDataResampler::jackknife(int ndrop, unsigned long seqno,
+bool addCovariance) const {
     int nobs(_observations.size());
     if(ndrop < 0 || ndrop >= nobs) {
         throw RuntimeError("BinnedDataResampler::jackknife: invalid ndrop.");
@@ -123,10 +125,12 @@ local::BinnedDataPtr local::BinnedDataResampler::jackknife(int ndrop, unsigned l
     for(int obsIndex = 0; obsIndex < nkeep; ++obsIndex) {
         *resample += *_observations[_subset[obsIndex]];
     }
+    if(addCovariance) _addCovariance(resample);
     return resample;
 }
 
-local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCovariance) const {
+local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCovariance,
+bool addCovariance) const {
     if(size < 0) {
         throw RuntimeError("BinnedDataResampler::bootstrap: invalid size.");
     }
@@ -158,6 +162,7 @@ local::BinnedDataPtr local::BinnedDataResampler::bootstrap(int size, bool fixCov
     }
     // We can skip this relatively expensive operation if all counts are 0,1.
     if(duplicatesFound && fixCovariance) resample->transformCovariance(D);
+    if(addCovariance) _addCovariance(resample);
     return resample;
 }
 
@@ -168,12 +173,12 @@ local::BinnedDataResampler::estimateCombinedCovariance(int nSamples, int message
     }
     if(0 == getNObservations()) return CovarianceMatrixPtr();
     CovarianceAccumulator accumulator(_observations[0]->getNBinsWithData());
-    bool fixCovariance(false);
+    bool fixCovariance(false),addCovariance(false);
     for(int sample = 0; sample < nSamples; ++sample) {
         if(messageInterval > 0 && sample > 0 && sample % messageInterval == 0) {
             std::cout << "generated " << sample << " bootstrap samples." << std::endl;
         }
-        BinnedDataPtr data = bootstrap(0,fixCovariance);
+        BinnedDataPtr data = bootstrap(0,fixCovariance,addCovariance);
         accumulator.accumulate(data);
     }
     try {
