@@ -42,7 +42,10 @@ namespace likely {
         int getSize() const;
         // Returns the number of non-zero covariance matrix elements stored in this object.
         int getNElements() const;
-        // Returns the (natural) log of the determinant of this covariance matrix.
+        // Returns the (natural) log of the determinant of this covariance matrix. The value is
+        // cached so repeated calls to this method are inexpensive. A cached value is available
+        // after compression, so call this method before compress() if you will need it. Otherwise,
+        // this method will trigger a decompression in order to calculate its result.
         double getLogDeterminant() const;
         
         // Returns the specified (inverse) covariance matrix element or throws a RuntimeError.
@@ -168,6 +171,10 @@ namespace likely {
 
         // TODO: is a cached value of _ncov = (_size*(_size+1))/2 really necessary?
         int _size, _ncov;
+        // Remembers the value of our log(determinant), or is zero if no valid cached value
+        // is available. Value is calculated, if necessary, when getLogDeterminant() is called
+        // and is reset when _changesCov or _changesICov are called.
+        mutable double _logDeterminant;
         // Track our compression state. This is not the same as !_diag.empty() since we
         // cache previous compression data until a change to _cov or _icov invalidates it.
         mutable bool _compressed;
@@ -195,8 +202,10 @@ namespace likely {
     // Performs a Cholesky decomposition in place of a symmetric positive definite matrix
     // or throws a RuntimeError if the matrix is not positive definite. The input matrix
     // is assumed to be in the BLAS packed format implied by packedMatrixIndex(row,col).
-    // The matrix size will be calculated unless a positive value is provided.
-    static void choleskyDecompose(std::vector<double> &matrix, int size = 0);
+    // The matrix size will be calculated unless a positive value is provided. Returns
+    // the log(determinant) of the input matrix, calculated as the product of the diagonal
+    // elements of the Cholesky decomposition.
+    static double choleskyDecompose(std::vector<double> &matrix, int size = 0);
     // Inverts a symmetric positive definite matrix in place, or throws a RuntimeError.
     // The input matrix should already be Cholesky decomposed and in the BLAS packed format
     // implied by packedMatrixIndex(row,col), e.g. by first calling _choleskyDecompose(matrix).

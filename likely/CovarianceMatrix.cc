@@ -32,7 +32,7 @@ extern "C" {
 namespace local = likely;
 
 local::CovarianceMatrix::CovarianceMatrix(int size)
-: _size(size), _compressed(false)
+: _size(size), _compressed(false), _logDeterminant(0)
 {
     if(size <= 0) {
         throw RuntimeError("CovarianceMatrix: expected size > 0.");
@@ -43,7 +43,7 @@ local::CovarianceMatrix::CovarianceMatrix(int size)
 }
 
 local::CovarianceMatrix::CovarianceMatrix(std::vector<double> packed)
-: _ncov(packed.size()), _compressed(false)
+: _ncov(packed.size()), _compressed(false), _logDeterminant(0)
 {
     if(_ncov == 0) {
         throw RuntimeError("CovarianceMatrix: expected packed size > 0.");
@@ -71,6 +71,7 @@ void local::swap(CovarianceMatrix& a, CovarianceMatrix& b) {
     using std::swap;
     swap(a._size,b._size);
     swap(a._ncov,b._ncov);
+    swap(a._logDeterminant,b._logDeterminant);
     swap(a._compressed,b._compressed);
     swap(a._cov,b._cov);
     swap(a._icov,b._icov);
@@ -165,7 +166,7 @@ int local::symmetricMatrixSize(int nelem) {
     return size;
 }
 
-void local::choleskyDecompose(std::vector<double> &matrix, int size) {
+double local::choleskyDecompose(std::vector<double> &matrix, int size) {
     static char uplo('U');
     static int info(0);
     if(0 == size) size = symmetricMatrixSize(matrix.size());
@@ -174,6 +175,12 @@ void local::choleskyDecompose(std::vector<double> &matrix, int size) {
         info = 0;
         throw RuntimeError("choleskyDecomposition: matrix is not positive definite.");
     }
+    // Calculate and the product of diagonal Cholesky matrix elements squared.
+    double logdet(0);
+    for(int index = 0; index < size; ++index) {
+        logdet += 2*std::log(matrix[symmetricMatrixIndex(index,index,size)]);
+    }
+    return logdet;
 }
 
 void local::invertCholesky(std::vector<double> &matrix, int size) {
@@ -240,6 +247,8 @@ void local::CovarianceMatrix::prune(std::set<int> const &keep) {
 
 void local::CovarianceMatrix::_changesCov() {
     _uncompress();
+    // Any cached determinant is now invalid.
+    _logDeterminant = 0;
     // Any cached compressed matrix data is now invalid so delete it.
     if(!_diag.empty()) {
         // TODO: use resize(0) instead?
@@ -257,7 +266,7 @@ void local::CovarianceMatrix::_changesCov() {
         else {
             // Try to invert the existing inverse covariance in place. This will throw a
             // RuntimeError in case the existing inverse covariance is only partially filled in.
-            choleskyDecompose(_icov,_size);
+            _logDeterminant = -choleskyDecompose(_icov,_size);
             invertCholesky(_icov,_size);
             // Remove the existing inverse covariance (by swapping with _cov), since it will
             // become invalid after we update the the covariance.
@@ -279,6 +288,8 @@ void local::CovarianceMatrix::_changesCov() {
 
 void local::CovarianceMatrix::_changesICov() {
     _uncompress();
+    // Any cached determinant is now invalid.
+    _logDeterminant = 0;
     // Any cached compressed matrix data is now invalid so delete it.
     if(!_diag.empty()) {
         // TODO: use resize(0) instead?
@@ -297,7 +308,8 @@ void local::CovarianceMatrix::_changesICov() {
             // Try to invert the existing covariance in place. This will throw a
             // RuntimeError in case the existing covariance is only partially filled in.
             if(_cholesky.empty()) {
-                choleskyDecompose(_cov,_size);
+                _logDeterminant = +choleskyDecompose(_cov,_size);
+                // No need to save this Cholesky decomposition since it will be invalid soon.
                 invertCholesky(_cov,_size);
                 // Remove the existing covariance (by swapping with _icov), since it will
                 // become invalid after we update the the covariance.
@@ -336,7 +348,7 @@ bool local::CovarianceMatrix::_readsCov() const {
             // Try to invert the existing inverse covariance into _cov. This will throw a
             // RuntimeError in case the existing inverse covariance is only partially filled in.
             _cov = _icov;
-            choleskyDecompose(_cov,_size);
+            _logDeterminant = -choleskyDecompose(_cov,_size);
             // (we don't bother keeping the Cholesky decomposition of the inverse covariance)
             invertCholesky(_cov,_size);
         }
@@ -358,7 +370,7 @@ bool local::CovarianceMatrix::_readsICov() const {
             if(_cholesky.empty()) {
                 // Calculate and save the covariance Cholesky decomposition.
                 _icov = _cov;
-                choleskyDecompose(_icov,_size);
+                _logDeterminant = +choleskyDecompose(_icov,_size);
                 _cholesky = _icov;
             }
             else {
@@ -379,7 +391,7 @@ void local::CovarianceMatrix::_readsCholesky() const {
                 "CovarianceMatrix: invalid Cholesky decomposition (no elements set yet).");
         }
         _cholesky = _cov;
-        choleskyDecompose(_cholesky,_size);
+        _logDeterminant = +choleskyDecompose(_cholesky,_size);
     }    
 }
 
@@ -717,15 +729,30 @@ int local::CovarianceMatrix::getNElements() const {
 }
 
 double local::CovarianceMatrix::getLogDeterminant() const {
-    // Calculate our Cholesky decomposition now, if necessary.
-    _readsCholesky();
-    // Our determinant is the product of diagonal Cholesky matrix elements squared.
-    double logdet(0);
-    for(int index = 0; index < _size; ++index) {
-        double diag(_cholesky[symmetricMatrixIndex(index,index,_size)]);
-        logdet += 2*std::log(diag);
+    // Only do the minimum work necessary...
+    if(0 == _logDeterminant) {
+        // If we don't have a cached value then we have at most one of _icov or _cov,
+        // but not both. Do a Cholesky decomposition of whatever we have.
+        assert(_cholesky.empty());
+        assert(_cov.empty() || _icov.empty());
+        if(!_cov.empty()) {
+            // Calculate and save the covariance Cholesky decomposition now.
+            _cholesky = _cov;
+            _logDeterminant = +choleskyDecompose(_cholesky,_size);
+        }
+        else if(!_icov.empty()) {
+            // Calculate the inverse covariance Cholesky decomposition now.
+            _cholesky = _icov;
+            _logDeterminant = -choleskyDecompose(_cholesky,_size);
+            // Don't keep this decomposition, since this was the inverse.
+            std::vector<double>().swap(_cholesky);
+        }
+        else {
+            throw RuntimeError("CovarianceMatrix::getLogDeterminant: no elements have been set.");
+        }
     }
-    return logdet;
+    assert(_logDeterminant != 0);
+    return _logDeterminant;
 }
 
 void local::CovarianceMatrix::applyScaleFactor(double scaleFactor) {
