@@ -88,9 +88,9 @@ size_t local::CovarianceMatrix::getMemoryUsage() const {
 }
 
 std::string local::CovarianceMatrix::getMemoryState() const {
-    return boost::str(boost::format("[%c%c%c%c%c%c] %d") %
-        _tag('M',_cov) % _tag('I',_icov) % _tag('C',_cholesky) % _tag('D',_diag) %
-        _tag('Z',_offdiagIndex) % _tag('V',_offdiagValue) % getMemoryUsage());
+    return boost::str(boost::format("[%c%c%c%c%c%c%c] %d") %
+        _tag('M',_cov) % _tag('I',_icov) % _tag('C',_cholesky) % (_logDeterminant == 0 ? '-':'L') %
+        _tag('D',_diag) % _tag('Z',_offdiagIndex) % _tag('V',_offdiagValue) % getMemoryUsage());
 }
 
 char local::CovarianceMatrix::_tag(char symbol, std::vector<double> const &vector) const {

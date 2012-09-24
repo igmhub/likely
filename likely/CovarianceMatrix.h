@@ -141,19 +141,21 @@ namespace likely {
         // where each letter indicates the memory allocation state of an internal
         // vector and nnnnnn is the total number of bytes used by this object, as reported
         // by getMemoryUsage(). The letter codes are: M = _cov, I = _icov, C = _cholesky,
-        // D = _diag, Z = _offdiagIndex, V = _offdiagValue. A "-" indidcates that the vector
-        // is not allocated. A "." below is a wildcard.
+        // L = log(det), D = _diag, Z = _offdiagIndex, V = _offdiagValue. A "-" indidcates
+        // that the vector is not allocated. A "." below is a wildcard. Lower case indicates
+        // that the vector has spaced reserved but is empty.
         //
-        // [---...] : newly created object with no elements set
-        // [M--...] : most recent change was to covariance matrix
-        // [-I-...] : most recent change was to inverse covariance matrix
-        // [MI-...] : synchronized covariance and inverse covariance both in memory
-        // [--C...] : ** this should never happen **
-        // [M-C...] : Cholesky decomposition and covariance in memory
-        // [-IC...] : Cholesky decomposition and inverse covariance in memory
-        // [MIC...] : Cholesky decomposition, covariance and inverse covariance in memory
-        // [...D--] : Matrix is diagonal and compressed
-        // [...DZV] : Matrix is non-diagonal and compressed
+        // [----...] : newly created object with no elements set
+        // [M---...] : most recent change was to covariance matrix
+        // [-I--...] : most recent change was to inverse covariance matrix
+        // [MI-L...] : synchronized covariance and inverse covariance both in memory
+        // [--C....] : ** this should never happen **
+        // [M-CL...] : Cholesky decomposition and covariance in memory
+        // [-ICL...] : Cholesky decomposition and inverse covariance in memory
+        // [MICL...] : Cholesky decomposition, covariance and inverse covariance in memory
+        // [....D--] : Matrix is diagonal and compressed
+        // [...-DZV] : Matrix is non-diagonal and compressed without cached log(det)
+        // [...LDZV] : Matrix is non-diagonal and compressed with cached log(det)
         std::string getMemoryState() const;
         
     private:
