@@ -187,22 +187,24 @@ void local::BinnedData::setWeighted(bool weighted) const {
     _weighted = weighted;
 }
 
-bool local::BinnedData::isCongruent(BinnedData const& other, bool onlyBinning) const {
+bool local::BinnedData::isCongruent(BinnedData const& other, bool onlyBinning, bool ignoreCovariance) const {
     // Must have same number of axes.
     int nAxes(getNAxes());
     if(other.getNAxes() != nAxes) return false;
-    // Binning must be represented by the same (not equivalent) object along each axis.
+    // [1] Binning must be represented by the same (not equivalent) object along each axis.
     for(int axis = 0; axis < nAxes; ++axis) {
         if(other._axisBinning[axis] != _axisBinning[axis]) return false;
     }
     if(!onlyBinning) {
-        // Both must have or not have an associated covariance matrix.
-        if(other.hasCovariance() && !hasCovariance()) return false;
-        if(!other.hasCovariance() && hasCovariance()) return false;
-        // List (not set) of bins with data must be the same.
+        // [2] List (not set, i.e., order matters) of bins with data must be the same.
         if(other.getNBinsWithData() != getNBinsWithData()) return false;
         for(int offset = 0; offset < _index.size(); ++offset) {
             if(other._index[offset] != _index[offset]) return false;
+        }
+        if(!ignoreCovariance) {
+            // [3] Both must have or not have an associated covariance matrix.
+            if(other.hasCovariance() && !hasCovariance()) return false;
+            if(!other.hasCovariance() && hasCovariance()) return false;
         }
     }
     return true;
@@ -419,10 +421,11 @@ void local::BinnedData::shareCovarianceMatrix(BinnedData const &other) {
     if(isFinalized()) {
         throw RuntimeError("BinnedData::shareCovarianceMatrix: object is finalized.");
     }
-    // Create a temporary (and empty) covariance matrix of the right size, if necessary,
-    // so this will not prevent us being congruent with the other binned data.
-    if(!hasCovariance()) _covariance = CovarianceMatrixPtr(new CovarianceMatrix(getNBinsWithData()));
-    if(!isCongruent(other)) {
+    if(!other.hasCovariance()) {
+        throw RuntimeError("BinnedData::shareCovarianceMatrix: no other covariance to share.");
+    }
+    // Ignore covariance when we test for congruence.
+    if(!isCongruent(other,false,true)) {
         throw RuntimeError("BinnedData::shareCovarianceMatrix: datasets are not congruent.");
     }
     _covariance = other._covariance;
