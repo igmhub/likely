@@ -569,3 +569,16 @@ local::BinnedDataPtr local::BinnedData::sample(RandomPtr random) const {
 double local::BinnedData::getScalarWeight() const {
     return hasCovariance() ? std::exp(-_covariance->getLogDeterminant()/getNBinsWithData()) : _weight;
 }
+
+std::string local::BinnedData::getMemoryState() const {
+    std::string state = boost::str(boost::format("%6d %s ")
+        % getMemoryUsage(false) % (_weighted ? "CinvD" : "    D"));
+    if(hasCovariance()) {
+        state += boost::str(boost::format("refcount %2d ") % _covariance.use_count());
+        state += _covariance->getMemoryState();
+    }
+    else {
+        state += "no covariance";
+    }
+    return state;
+}

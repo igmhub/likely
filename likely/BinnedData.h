@@ -280,6 +280,9 @@ namespace likely {
         // Prints the (unweighted) data associated with this object to the specified output stream.
         // To print an associated covariance matrix, use getCovarianceMatrix()->printToStream(out,...).
         void printToStream(std::ostream &out, std::string format = std::string("%+10.3lg")) const;
+        
+        // Returns a string that displays the memory state of this object.
+        std::string getMemoryState() const;
 
 	private:
         int _nbins;
