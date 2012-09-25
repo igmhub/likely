@@ -54,7 +54,7 @@ namespace likely {
         double evaluatePriors() const;
         // Returns a guess at the specified function's minimum based on our fit parameter
         // configuration and assuming a diagonal covariance matrix.
-        FunctionMinimumPtr guessMinimum(FunctionPtr fptr);
+        FunctionMinimumPtr guessMinimum(FunctionPtr fptr) const;
     protected:
         // Subclasses use this method to define their parameters. Parameters should generally
         // be specified with a reasonable error > 0 since the configureFitParameters() method

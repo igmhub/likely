@@ -25,21 +25,35 @@ namespace likely {
 	public:
 	    // Creates a new resampler using the random generator provided, or else the default
 	    // Random::instance().
-		BinnedDataResampler(RandomPtr random = RandomPtr());
+		BinnedDataResampler(bool useScalarWeights = false, RandomPtr random = RandomPtr());
 		virtual ~BinnedDataResampler();
-		// Adds a new observation for resampling. Throws a RuntimeError if this observation
-		// has already been added or is not congruent with existing observations. Calls to
-		// this method can be interspersed with calls to resampling methods below.
-        void addObservation(BinnedDataCPtr observation);
+        bool usesScalarWeights() const;
+		// Adds a copy of the specified observation. Throws a RuntimeError if this observation
+		// is not congruent with existing observations. You are allowed to add the same
+		// observation several times, but you normally don't want to do this. Calls to
+		// this method can be interspersed with calls to resampling methods below. Since
+		// observations are copied when you add them, subsequent changes to the observation
+		// will have not effect on the resampler. Also, there is no need to compress observations
+		// before adding them (adding compressed observations can be slower, but will not uncompress
+		// the input observation). Returns the index of the added observation. Passing the index
+		// of a previously added observation as reuseCovIndex will result in the two observations
+		// sharing the same covariance matrix object (and the input observation does not need to
+		// have any covariance matrix as long as it is unweighted). If useScalarWeights is false,
+		// the re-using covariances should give identical results but using less memory. However,
+		// if useScalarWeights is true, then results are only identical in the limit that all
+		// covariances are proportional (since we assume that the re-used covariance is proportional
+		// to the combined covariances seen so far).
+        int addObservation(BinnedDataCPtr observation, int reuseCovIndex = -1);
         // Returns the number of observations available for resampling.
         int getNObservations() const;
         // Returns a shared pointer to the specified (readonly) observation.
         BinnedDataCPtr getObservation(int index) const;
         // Returns a shared pointer to a (modifiable) copy of the specified observation.
-        BinnedDataPtr getObservationCopy(int index) const;
-        // Returns a shared pointer to a new BinnedData that represents all observations combined.
-        // Each call to this method builds a new combined dataset so save the result unless
-        // you actually want many independent copies.
+        BinnedDataPtr getObservationCopy(int index, bool addCovariance = true) const;
+        // Returns a shared pointer to a new BinnedData that combines all observations added
+        // so far. Each call to this method builds a new combined dataset so save the result
+        // if you don't want independent copies (and you know that the observations have not
+        // changed since the last combination).
         BinnedDataPtr combined() const;
         // Returns a shared pointer to a new BinnedData that represents a jackknife resampling
         // of our observations with the specified number of observations dropped. The specific
@@ -55,21 +69,35 @@ namespace likely {
         // Note that the number of jackknife samples generated this way gets large quickly
         // as ndrop increases. There is no requirement that seqno increase by one for successive
         // calls, so jackknifing can easily be parallelized in various ways.
-        BinnedDataPtr jackknife(int ndrop, unsigned long seqno) const;
+        BinnedDataPtr jackknife(int ndrop, unsigned long seqno, bool addCovariance = true) const;
         // Returns a shared pointer to a new BinnedData that represents a bootstrap resampling
-        // of our observations of the specified size. The fixCovariance option requests that
-        // the final covariance matrix be corrected for double counting of identical observations.
-        // However, this is a relatively slow operation for large datasets, involving a triple
-        // matrix product, so you might want to use fixCovariance = false if you don't need
-        // an accurate covariance matrix. Chi-square values calculated with fixCovariance = false
-        // will be roughly twice as large as the correct values obtained with fixCovariance = true.
-        BinnedDataPtr bootstrap(int size, bool fixCovariance = true) const;
+        // of our observations of the specified size, which defaults to the number of observations
+        // when zero. The fixCovariance option requests that the final covariance matrix be corrected
+        // for double counting of identical observations. However, this is a relatively slow operation
+        // for large datasets, involving a triple matrix product, so you might want to use
+        // fixCovariance = false if you don't need an accurate covariance matrix. Chi-square values
+        // calculated with fixCovariance = false will be roughly twice as large as the correct values
+        // obtained with fixCovariance = true.
+        BinnedDataPtr bootstrap(int size = 0, bool fixCovariance = true, bool addCovariance = true) const;
+        // Returns a shared pointer to a new CovarianceMatrix that estimates the covariance of
+        // our combined observations using the specified number of bootstrap samples with a
+        // CovarianceAccumulator. Throws a RuntimeError if the estimated covariance is not positive
+        // definite, which can usually be fixed with more samples.
+        CovarianceMatrixPtr estimateCombinedCovariance(int nSamples, int messageInterval = 0) const;
 	private:
+	    // Adds a covariance matrix to a resampling built with scalar weights. The matrix will be
+	    // a copy of our combined covariance scaled by the ratio of our _combinedScalarWeight to
+	    // the sample's scalar weight.
+        void _addCovariance(BinnedDataPtr sample) const;
+        bool _useScalarWeights;
         mutable RandomPtr _random;
         std::vector<BinnedDataCPtr> _observations;
+        double _combinedScalarWeight;
+        BinnedDataPtr _combined;
         mutable std::vector<int> _subset, _counts;
 	}; // BinnedDataResampler
 	
+    inline bool BinnedDataResampler::usesScalarWeights() const { return _useScalarWeights; }
     inline int BinnedDataResampler::getNObservations() const { return _observations.size(); }
     
     // Fills the integer vector provided with a subset of [0,1,...,n-1] of length m=subset.size().

@@ -49,6 +49,16 @@ namespace likely {
 		//
 		// This means that X::X(std::vector<AbsBinningCPtr> axes) and X::X(X const &other)
 		// must also be valid (but the default copy ctor is usually ok).
+		// 
+		// Subclass users can use boost::dynamic_pointer_cast<...> to initialize smart pointers
+		// to subclasses, e.g.
+		//
+	    //   typedef boost::shared_ptr<const X> XCPtr;
+	    //   typedef boost::shared_ptr<X> XPtr;
+		//   XCPtr x1 = ...;
+		//   XPtr x2(boost::dynamic_pointer_cast<X>(likely::BinnedDataPtr(x1->clone())));
+		//   XCPtr x3(boost::dynamic_pointer_cast<const X>(likely::BinnedDataCPtr(x1->clone())));
+		//
         virtual BinnedData *clone(bool binningOnly = false) const;
 		
 		// Assignment operator supports the same shallow copy semantics.
@@ -63,11 +73,20 @@ namespace likely {
         // covariance matrix. For some common cases of correctly weighted combinations,
         // use a BinnedDataResampler.
         virtual BinnedData& add(BinnedData const &other, double weight = 1);
-        // Tests if another binned dataset is congruent with ours. Congruence requires
-        // identical binning specifications along each axis and (unless onlyBinning = true)
-        // that the same bins be occupied and that both datasets either have or do not
-        // have covariance matrices.
-        virtual bool isCongruent(BinnedData const &other, bool onlyBinning = false) const;
+        // Tests if another binned dataset is "congruent" with ours. Congruence requires:
+        // [1] identical binning specifications along each axis
+        // [2] that the same bins be occupied in the same order
+        // [3] that both datasets either have or do not have covariance matrices
+        // Use the optional booleans to determine which conditions are checked:
+        //
+        //   onlyBinning   ignoreCovariance  conditions
+        //   -------------------------------------------
+        //     true         true/false       1
+        //     false         true            1 + 2
+        //     false         false           1 + 2 + 3
+        //
+        virtual bool isCongruent(BinnedData const &other, bool onlyBinning = false,
+            bool ignoreCovariance = false) const;
 		
 		// Returns the number of axes used to bin this data.
         int getNAxes() const;
@@ -144,6 +163,9 @@ namespace likely {
         // stored as Cinv.data rather than data. Changes to our internal representation are
         // triggered automatically, so this method simply allows these changes to be tracked.
         bool isDataWeighted() const;
+        // Forces our internal representation to be weighted or unweighted. Other methods call
+        // this method automatically, and you should not normally need to call it yourself.
+        void setWeighted(bool weighted) const;
 
         // Returns true if covariance data is available.
         bool hasCovariance() const;
@@ -159,8 +181,9 @@ namespace likely {
         // method allows an object created via the copy constructor or assignment operator to
         // modify its covariance matrix, with a corresponding increase in memory usage.
         void cloneCovariance();
-        // Drops any covariance matrix.
-        void dropCovariance();
+        // Drops any covariance matrix and assigns the specified scalar weight.
+        // Calls setWeighted(false).
+        void dropCovariance(double weight = 1);
         // Returns the (inverse) covariance matrix element for the specified pair of global
         // indices, or throws a RuntimeError if either of the corresponding bins has no data,
         // or if no covariance has been specified for this data. Be aware that going back and
@@ -178,16 +201,21 @@ namespace likely {
         // with these methods does not directly change the contents of our data vector, but
         // it does change the meaning of weighted data. For example, if isDataWeighted() is true,
         // then setCovariance() changes the subsequent result of getData(...,weighted=false) but
-        // not of getData(...,weighted=true).
+        // not of getData(...,weighted=true). Use the setWeighted() method for more control of this.
         void setCovariance(int index1, int index2, double value);
         void setInverseCovariance(int index1, int index2, double value);
         // Returns a const shared pointer to our covariance matrix, if any.
         CovarianceMatrixCPtr getCovarianceMatrix() const;
         // Replaces our covariance matrix, if any, with the specified matrix or throws a
-        // RuntimeError.
+        // RuntimeError. Think about whether you want to call setWeighted() first.
         void setCovarianceMatrix(CovarianceMatrixPtr covariance);
+        // Replaces our covariance matrix, if any, with the covariance of the specified
+        // congruent binned data. After this operation, isCovarianceModifiable will be false
+        // for both binned data objects. Think about whether you want to call setWeighted() first.
+        void shareCovarianceMatrix(BinnedData const &other);
         // Transforms our covariance matrix C by replacing it with C.Dinv.C. On return, D
-        // contains our original covariance matrix.
+        // contains our original covariance matrix. Think about whether you want to call
+        // setWeighted() first.
         void transformCovariance(CovarianceMatrixPtr D);
 
         // Calculates the chi-square = (data-pred).Cinv.(data-pred) for the specified
@@ -196,6 +224,10 @@ namespace likely {
         // used here is an optimization, not a mistake.) If no covariance is available,
         // then Cinv=identity is assumed.
         double chiSquare(std::vector<double> pred) const;
+        // Returns this dataset's scalar weight. If we have a covariance matrix, this is defined
+        // as det(C)^(-1/n) where n = getNBinsWithData(). Otherwise, it will be a scalar value
+        // playing the role of Cinv that is maintained internally and which defaults to one.
+        double getScalarWeight() const;
         // Calculates the "decorrelated" weights for the specified prediction vector and
         // saves the results in the vector provided. Decorrelated weights are defined as:
         //
@@ -248,9 +280,18 @@ namespace likely {
         // to specify if the memory usage of any covariance matrix should be included in the result.
         std::size_t getMemoryUsage(bool includeCovariance = true) const;
         
+        // Returns a shared pointer to a new BinnedData object whose data vector is a copy of our
+        // data vector with random noise added that has been sampled from our covariance matrix.
+        // The returned object shares a copy of our covariance matrix (but see cloneCovariance).
+        // Uses the random generator provided or else the default Random::instance().
+        BinnedDataPtr sample(RandomPtr random = RandomPtr()) const;
+        
         // Prints the (unweighted) data associated with this object to the specified output stream.
         // To print an associated covariance matrix, use getCovarianceMatrix()->printToStream(out,...).
         void printToStream(std::ostream &out, std::string format = std::string("%+10.3lg")) const;
+        
+        // Returns a string that displays the memory state of this object.
+        std::string getMemoryState() const;
 
 	private:
         int _nbins;
@@ -267,9 +308,6 @@ namespace likely {
         mutable bool _weighted;
         // Have we been finalized?
         bool _finalized;
-        // Changes whether our _data vector is weighted by _Cinv by multiplying
-        // by Cinv or C, as needed.
-        void _setWeighted(bool weighted) const;
         // Initializes a new object.
         void _initialize();
         // Throws a RuntimeError unless the specified global index is valid.

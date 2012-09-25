@@ -1,5 +1,5 @@
 // Created 18-Apr-2012 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
-// Demonstates the CovarianceMatrix class.
+// Demonstrates and tests the CovarianceMatrix class.
 
 #include "likely/likely.h"
 
@@ -29,11 +29,17 @@ int main(int argc, char **argv) {
     cov.setCovariance(0,1,0.1);
     cov.setCovariance(1,2,-0.2);
     std::cout << cov.getMemoryState() << std::endl;
+    std::cout << "log(det) = " << cov.getLogDeterminant() << std::endl;
+    std::cout << cov.getMemoryState() << std::endl;
     cov.sample(1);
+    std::cout << cov.getMemoryState() << std::endl;
+    std::cout << "log(det) = " << cov.getLogDeterminant() << std::endl;
     std::cout << cov.getMemoryState() << std::endl;
     
     lk::CovarianceMatrix empty(size);
     cov.addInverse(empty,2);
+    std::cout << cov.getMemoryState() << std::endl;
+    std::cout << "log(det) = " << cov.getLogDeterminant() << std::endl;
     std::cout << cov.getMemoryState() << std::endl;
     
     cov.setInverseCovariance(2,2,0.3);

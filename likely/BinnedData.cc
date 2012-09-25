@@ -98,11 +98,11 @@ void local::BinnedData::cloneCovariance() {
     }
 }
 
-void local::BinnedData::dropCovariance() {
-    if(hasCovariance() && isFinalized()) {
-        throw RuntimeError("BinnedData::dropCovariance: object is finalized.");
-    }
+void local::BinnedData::dropCovariance(double weight) {
+    if(isFinalized()) throw RuntimeError("BinnedData::dropCovariance: object is finalized.");
+    setWeighted(false);
     _covariance.reset();
+    _weight = weight;
 }
 
 local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight) {
@@ -128,7 +128,7 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
             _weight = 0;
         }
         // Our zero data vector should be interpreted as Cinv.data for the
-        // purposes of adding to the other dataset, below. We don't call _setWeighted here
+        // purposes of adding to the other dataset, below. We don't call setWeighted here
         // because we don't actually want to transform the existing _data.
         _weighted = true;
     }
@@ -143,8 +143,8 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
         }
     }
     // Add the weighted _data vectors, element by element, and save the result in our _data.
-    _setWeighted(true);
-    other._setWeighted(true);
+    setWeighted(true);
+    other.setWeighted(true);
     for(int offset = 0; offset < _data.size(); ++offset) {
         _data[offset] += weight*other._data[offset];
     }
@@ -158,7 +158,8 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
     return *this;
 }
 
-void local::BinnedData::_setWeighted(bool weighted) const {
+void local::BinnedData::setWeighted(bool weighted) const {
+    //!!if(_weighted != weighted) std::cout << "setWeighted " << _weighted << " -> " << weighted << std::endl;
     // Are we already in the desired state?
     if(weighted == _weighted) return;
     if(weighted) {
@@ -185,22 +186,24 @@ void local::BinnedData::_setWeighted(bool weighted) const {
     _weighted = weighted;
 }
 
-bool local::BinnedData::isCongruent(BinnedData const& other, bool onlyBinning) const {
+bool local::BinnedData::isCongruent(BinnedData const& other, bool onlyBinning, bool ignoreCovariance) const {
     // Must have same number of axes.
     int nAxes(getNAxes());
     if(other.getNAxes() != nAxes) return false;
-    // Binning must be represented by the same (not equivalent) object along each axis.
+    // [1] Binning must be represented by the same (not equivalent) object along each axis.
     for(int axis = 0; axis < nAxes; ++axis) {
         if(other._axisBinning[axis] != _axisBinning[axis]) return false;
     }
     if(!onlyBinning) {
-        // Both must have or not have an associated covariance matrix.
-        if(other.hasCovariance() && !hasCovariance()) return false;
-        if(!other.hasCovariance() && hasCovariance()) return false;
-        // List (not set) of bins with data must be the same.
+        // [2] List (not set, i.e., order matters) of bins with data must be the same.
         if(other.getNBinsWithData() != getNBinsWithData()) return false;
         for(int offset = 0; offset < _index.size(); ++offset) {
             if(other._index[offset] != _index[offset]) return false;
+        }
+        if(!ignoreCovariance) {
+            // [3] Both must have or not have an associated covariance matrix.
+            if(other.hasCovariance() && !hasCovariance()) return false;
+            if(!other.hasCovariance() && hasCovariance()) return false;
         }
     }
     return true;
@@ -303,12 +306,12 @@ double local::BinnedData::getData(int index, bool weighted) const {
     if(!hasData(index)) {
         throw RuntimeError("BinnedData::getData: bin is empty.");
     }
-    _setWeighted(weighted);
+    setWeighted(weighted);
     return _data[_offset[index]];
 }
 
 void local::BinnedData::setData(int index, double value, bool weighted) {
-    _setWeighted(weighted);
+    setWeighted(weighted);
     if(hasData(index)) {
         _data[_offset[index]] = value;
     }
@@ -329,7 +332,7 @@ void local::BinnedData::addData(int index, double offset, bool weighted) {
     if(!hasData(index)) {
         throw RuntimeError("BinnedData::addData: bin is empty.");        
     }
-    _setWeighted(weighted);
+    setWeighted(weighted);
     _data[_offset[index]] += offset;
 }
 
@@ -367,7 +370,7 @@ void local::BinnedData::setCovariance(int index1, int index2, double value) {
     if(!isCovarianceModifiable()) {
         throw RuntimeError("BinnedData::setCovariance: cannot modify shared covariance.");
     }
-    // Note that we do not call _setWeighted here, so we are changing the meaning
+    // Note that we do not call setWeighted here, so we are changing the meaning
     // of _data in a way that depends on the current value of _weighted.
     _covariance->setCovariance(_offset[index1],_offset[index2],value);
 }
@@ -386,7 +389,7 @@ void local::BinnedData::setInverseCovariance(int index1, int index2, double valu
     if(!isCovarianceModifiable()) {
         throw RuntimeError("BinnedData::setInverseCovariance: cannot modify shared covariance.");
     }
-    // Note that we do not call _setWeighted here, so we are changing the meaning
+    // Note that we do not call setWeighted here, so we are changing the meaning
     // of _data in a way that depends on the current value of _weighted.
     _covariance->setInverseCovariance(_offset[index1],_offset[index2],value);
 }
@@ -396,7 +399,7 @@ void local::BinnedData::transformCovariance(CovarianceMatrixPtr D) {
         throw RuntimeError("BinnedData::transformCovariance: no covariance to transform.");
     }
     // Make sure that our _data vector is independent of our _covariance before it changes.
-    _setWeighted(false);
+    setWeighted(false);
     // Replace D with C.Dinv.C where C is our original covariance matrix.
     D->replaceWithTripleProduct(*_covariance);
     // Swap C with D
@@ -413,8 +416,22 @@ void local::BinnedData::setCovarianceMatrix(CovarianceMatrixPtr covariance) {
     _covariance = covariance;
 }
 
+void local::BinnedData::shareCovarianceMatrix(BinnedData const &other) {
+    if(isFinalized()) {
+        throw RuntimeError("BinnedData::shareCovarianceMatrix: object is finalized.");
+    }
+    if(!other.hasCovariance()) {
+        throw RuntimeError("BinnedData::shareCovarianceMatrix: no other covariance to share.");
+    }
+    // Ignore covariance when we test for congruence.
+    if(!isCongruent(other,false,true)) {
+        throw RuntimeError("BinnedData::shareCovarianceMatrix: datasets are not congruent.");
+    }
+    _covariance = other._covariance;
+}
+
 bool local::BinnedData::compress(bool weighted) const {
-    _setWeighted(weighted);
+    setWeighted(weighted);
     return _covariance.get() ? _covariance->compress() : false;
 }
 
@@ -452,7 +469,7 @@ void local::BinnedData::prune(std::set<int> const &keep) {
     // Shift our (unweighted) data vector elements down to compress out any elements
     // we are not keeping. We are using the fact that std::set guarantees that iteration
     // follows sort order, from smallest to largest key value.
-    _setWeighted(false);
+    setWeighted(false);
     int newOffset(0);
     BOOST_FOREACH(int oldOffset, offsets) {
         // oldOffset >= newOffset so we will never clobber an element that we still need
@@ -530,4 +547,40 @@ void local::BinnedData::printToStream(std::ostream &out, std::string format) con
         int index(*iter);
         out << (indexFormat % index) << (valueFormat % getData(index)) << std::endl;
     }
+}
+
+local::BinnedDataPtr local::BinnedData::sample(RandomPtr random) const {
+    // Create a new dataset with the same binning.
+    bool binningOnly(true);
+    BinnedDataPtr sampled(this->clone(binningOnly));
+    // Fill the new dataset with noise sampled from our covariance.
+    _covariance->sample(sampled->_data,random);
+    // Copy our data vector book-keeping arrays to the sampled dataset.
+    sampled->_offset = _offset;
+    sampled->_index = _index;
+    // Add our (unweighted) data vector to the sampled noise.
+    setWeighted(false);
+    for(int offset = 0; offset < _data.size(); ++offset) {
+        sampled->_data[offset] += _data[offset];
+    }
+    // Copy our covariance matrix to the sampled data.
+    sampled->setCovarianceMatrix(_covariance);
+    return sampled;
+}
+
+double local::BinnedData::getScalarWeight() const {
+    return hasCovariance() ? std::exp(-_covariance->getLogDeterminant()/getNBinsWithData()) : _weight;
+}
+
+std::string local::BinnedData::getMemoryState() const {
+    std::string state = boost::str(boost::format("%6d %s ")
+        % getMemoryUsage(false) % (_weighted ? "CinvD" : "    D"));
+    if(hasCovariance()) {
+        state += boost::str(boost::format("refcount %2d ") % _covariance.use_count());
+        state += _covariance->getMemoryState();
+    }
+    else {
+        state += "no covariance";
+    }
+    return state;
 }
