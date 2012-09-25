@@ -760,11 +760,22 @@ void local::CovarianceMatrix::applyScaleFactor(double scaleFactor) {
     if(scaleFactor <= 0) {
         throw RuntimeError("CovarianceMatrix::applyScaleFactor: expected scaleFactor > 0.");
     }
-    if(!_readsCov()) {
-        throw RuntimeError("CovarianceMatrix::applyScaleFactor: no elements have been set.");
+    // We could actually do this on a compressed object - maybe later...
+    _uncompress();
+    // Transform whatever vectors we have using the appropriate scale.
+    if(!_cov.empty()) {
+        double scale(scaleFactor);
+        for(int index = 0; index < _ncov; ++index) _cov[index] *= scale;
     }
-    _changesCov();
-    for(int index = 0; index < _ncov; ++index) _cov[index] *= scaleFactor;
+    if(!_icov.empty()) {
+        double scale(1/scaleFactor);
+        for(int index = 0; index < _ncov; ++index) _icov[index] *= scale;
+    }
+    if(!_cholesky.empty()) {
+        double scale(std::sqrt(scaleFactor));
+        for(int index = 0; index < _ncov; ++index) _cholesky[index] *= scale;
+    }
+    if(_logDeterminant != 0) _logDeterminant += _size*std::log(scaleFactor);
 }
 
 local::CovarianceMatrixPtr local::createDiagonalCovariance(int size, double diagonalValue) {
