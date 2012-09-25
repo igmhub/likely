@@ -22,10 +22,12 @@ local::BinnedDataResampler::BinnedDataResampler(bool useScalarWeights, RandomPtr
 
 local::BinnedDataResampler::~BinnedDataResampler() { }
 
-void local::BinnedDataResampler::addObservation(BinnedDataCPtr observation) {
-    // Check that this new observation is congruent with what we have so far.
+int local::BinnedDataResampler::addObservation(BinnedDataCPtr observation, int reuseCovIndex) {
+    std::cout << "  add-in: " << observation->getMemoryState() << std::endl;
+    // Check that this new observation is congruent with what we have so far. Ignore covariance
+    // in the congruence test if we will be reusing a previous covariance matrix.
     if(getNObservations() > 0) {
-        if(!_combined->isCongruent(*observation)) {
+        if(!_combined->isCongruent(*observation,false,reuseCovIndex >= 0)) {
             throw RuntimeError("BinnedDataResampler::addObservation: new observation is incongruent.");
         }
     }
@@ -33,24 +35,63 @@ void local::BinnedDataResampler::addObservation(BinnedDataCPtr observation) {
         bool binningOnly(true);
         _combined.reset(observation->clone(binningOnly));
     }
-    // Add this observation to our combined dataset.
-    *_combined += *observation;
+    int newIndex = _observations.size();
     // Make a copy of this observation that we will keep.
     BinnedDataPtr copy(observation->clone());
-    if(_useScalarWeights) {
-        // Replace Cinv with the scalar weight |Cinv|^(1/n)
-        double weight = copy->getScalarWeight();
-        copy->dropCovariance(weight);
-        _combinedScalarWeight += weight;
+    // Reuse the covariance of a previously added dataset?
+    if(reuseCovIndex >= 0) {
+        if(reuseCovIndex >= newIndex) {
+            throw RuntimeError("BinnedDataResampler::addObservation: invalid reuseCovIndex.");
+        }
+        BinnedDataCPtr reuseData = _observations[reuseCovIndex];
+        // This operation will need an input covariance if the dataset was previously weighted.
+        copy->setWeighted(false);
+        if(_useScalarWeights) {
+            // We already dropped the previously added dataset's covariance, so we need to
+            // temporarily reconstruct something here that we can add to our combined dataset.
+            double weight = reuseData->getScalarWeight();
+            CovarianceMatrixPtr reconstructed(new CovarianceMatrix(*_combined->getCovarianceMatrix()));
+            reconstructed->applyScaleFactor(_combinedScalarWeight/weight);
+            copy->setCovarianceMatrix(reconstructed);
+        }
+        else {
+            if(!reuseData->hasCovariance()) {
+                throw RuntimeError("BinnedDataResampler::addObservation: no covariance to reuse.");
+            }
+            // Reuse the previously added dataset's covariance matrix.
+            copy->shareCovarianceMatrix(*reuseData);
+        }
     }
     else {
         // Make a copy of the covariance matrix so changes to the input observation's
         // covariance will not affect us (this is harmless if the copy doesn't actually
-        // have any covariance)
+        // have any covariance) and so that the operations below do not alter the input
+        // observation at all.
         copy->cloneCovariance();
+        std::cout << "add-tmp1: " << copy->getMemoryState() << std::endl;
+        // Add this copy to our combined dataset.
+        *_combined += *copy;
+        std::cout << "add-tmp2: " << copy->getMemoryState() << std::endl;
     }
+    std::cout << "add-tmp1: " << copy->getMemoryState() << std::endl;
+    // Add this copy to our combined dataset.
+    *_combined += *copy;
+    std::cout << "add-tmp2: " << copy->getMemoryState() << std::endl;
+    std::cout << "add-comb: " << _combined->getMemoryState() << std::endl;
+    if(_useScalarWeights) {
+        // Replace Cinv with the scalar weight |Cinv|^(1/n)
+        double weight = copy->getScalarWeight();
+        std::cout << "add-tmp3: " << copy->getMemoryState() << std::endl;
+        copy->dropCovariance(weight);
+        _combinedScalarWeight += weight;
+    }
+    // Compress the copy before we save it (none of our resampling methods should uncompress it)
+    copy->compress();
     // Remember this (copied) observation
+    std::cout << " add-out: " << observation->getMemoryState() << std::endl;
+    std::cout << "add-copy: " << copy->getMemoryState() << std::endl;
     _observations.push_back(copy);
+    return newIndex;
 }
 
 local::BinnedDataPtr local::BinnedDataResampler::combined() const {

@@ -30,8 +30,19 @@ namespace likely {
 		// Adds a copy of the specified observation. Throws a RuntimeError if this observation
 		// is not congruent with existing observations. You are allowed to add the same
 		// observation several times, but you normally don't want to do this. Calls to
-		// this method can be interspersed with calls to resampling methods below.
-        void addObservation(BinnedDataCPtr observation);
+		// this method can be interspersed with calls to resampling methods below. Since
+		// observations are copied when you add them, subsequent changes to the observation
+		// will have not effect on the resampler. Also, there is no need to compress observations
+		// before adding them (adding compressed observations can be slower, but will not uncompress
+		// the input observation). Returns the index of the added observation. Passing the index
+		// of a previously added observation as reuseCovIndex will result in the two observations
+		// sharing the same covariance matrix object (and the input observation does not need to
+		// have any covariance matrix as long as it is unweighted). If useScalarWeights is false,
+		// the re-using covariances should give identical results but using less memory. However,
+		// if useScalarWeights is true, then results are only identical in the limit that all
+		// covariances are proportional (since we assume that the re-used covariance is proportional
+		// to the combined covariances seen so far).
+        int addObservation(BinnedDataCPtr observation, int reuseCovIndex = -1);
         // Returns the number of observations available for resampling.
         int getNObservations() const;
         // Returns a shared pointer to the specified (readonly) observation.
