@@ -47,6 +47,10 @@ namespace likely {
         // after compression, so call this method before compress() if you will need it. Otherwise,
         // this method will trigger a decompression in order to calculate its result.
         double getLogDeterminant() const;
+        // Returns true if we are positive definite, which is not automatically true while a
+        // matrix is being built or modified element by element. This test is relatively expensive
+        // but its result is cached.
+        bool isPositiveDefinite() const;
         
         // Returns the specified (inverse) covariance matrix element or throws a RuntimeError.
         // (row,col) and (col,row) give the same result by construction. Be aware that

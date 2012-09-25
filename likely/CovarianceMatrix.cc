@@ -728,6 +728,20 @@ int local::CovarianceMatrix::getNElements() const {
     return nelem;
 }
 
+bool local::CovarianceMatrix::isPositiveDefinite() const {
+    // Positive definiteness is equivalent to having a valid Cholesky decomposition for
+    // either C or Cinv. Our implementation of getLogDeterminant() already keeps track
+    // of whether we have a valid decomposition and efficiently triggers a new decomposition
+    // when necessary, so use that.
+    try {
+        getLogDeterminant();
+        return true;
+    }
+    catch(RuntimeError const &e) {
+        return false;
+    }
+}
+
 double local::CovarianceMatrix::getLogDeterminant() const {
     // Only do the minimum work necessary...
     if(0 == _logDeterminant) {
