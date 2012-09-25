@@ -159,6 +159,7 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
 }
 
 void local::BinnedData::setWeighted(bool weighted) const {
+    //!!if(_weighted != weighted) std::cout << "setWeighted " << _weighted << " -> " << weighted << std::endl;
     // Are we already in the desired state?
     if(weighted == _weighted) return;
     if(weighted) {

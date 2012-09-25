@@ -23,7 +23,7 @@ local::BinnedDataResampler::BinnedDataResampler(bool useScalarWeights, RandomPtr
 local::BinnedDataResampler::~BinnedDataResampler() { }
 
 int local::BinnedDataResampler::addObservation(BinnedDataCPtr observation, int reuseCovIndex) {
-    std::cout << "  add-in: " << observation->getMemoryState() << std::endl;
+    //!!std::cout << "  add-in: " << observation->getMemoryState() << std::endl;
     // Check that this new observation is congruent with what we have so far. Ignore covariance
     // in the congruence test if we will be reusing a previous covariance matrix.
     if(getNObservations() > 0) {
@@ -69,23 +69,23 @@ int local::BinnedDataResampler::addObservation(BinnedDataCPtr observation, int r
         // observation at all.
         copy->cloneCovariance();
     }
-    std::cout << "add-tmp1: " << copy->getMemoryState() << std::endl;
+    //!!std::cout << "add-tmp1: " << copy->getMemoryState() << std::endl;
     // Add this copy to our combined dataset.
     *_combined += *copy;
-    std::cout << "add-tmp2: " << copy->getMemoryState() << std::endl;
-    std::cout << "add-comb: " << _combined->getMemoryState() << std::endl;
+    //!!std::cout << "add-tmp2: " << copy->getMemoryState() << std::endl;
+    //!!std::cout << "add-comb: " << _combined->getMemoryState() << std::endl;
     if(_useScalarWeights) {
         // Replace Cinv with the scalar weight |Cinv|^(1/n)
         double weight = copy->getScalarWeight();
-        std::cout << "add-tmp3: " << copy->getMemoryState() << std::endl;
+        //!!std::cout << "add-tmp3: " << copy->getMemoryState() << std::endl;
         copy->dropCovariance(weight);
         _combinedScalarWeight += weight;
     }
     // Compress the copy before we save it (none of our resampling methods should uncompress it)
     copy->compress();
     // Remember this (copied) observation
-    std::cout << " add-out: " << observation->getMemoryState() << std::endl;
-    std::cout << "add-copy: " << copy->getMemoryState() << std::endl;
+    //!!std::cout << " add-out: " << observation->getMemoryState() << std::endl;
+    //!!std::cout << "add-copy: " << copy->getMemoryState() << std::endl;
     _observations.push_back(copy);
     return newIndex;
 }
