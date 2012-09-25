@@ -187,10 +187,10 @@ int main(int argc, char **argv) {
         // Estimate the covariance of the observations with bootstrap.
         std::cout << "-- bootstrap covariance estimates:" << std::endl;
         lk::CovarianceMatrixPtr bsCov;
-        bsCov = resamplerMatrix.estimateCombinedCovariance(10000);
+        bsCov = resamplerMatrix.estimateCombinedCovariance(10000)->getCovariance();
         bsCov->applyScaleFactor(nobs);
         bsCov->printToStream(std::cout);
-        bsCov = resamplerScalar.estimateCombinedCovariance(10000);
+        bsCov = resamplerScalar.estimateCombinedCovariance(10000)->getCovariance();
         bsCov->applyScaleFactor(nobs);
         bsCov->printToStream(std::cout);
     }
@@ -265,8 +265,8 @@ int main(int argc, char **argv) {
         cov12.printToStream(std::cout);
         // Estimate the covariance of the observations with bootstrap.
         std::cout << "-- bootstrap covariance estimates:" << std::endl;
-        resamplerMatrix.estimateCombinedCovariance(10000)->printToStream(std::cout);
-        resamplerScalar.estimateCombinedCovariance(10000)->printToStream(std::cout);
+        resamplerMatrix.estimateCombinedCovariance(10000)->getCovariance()->printToStream(std::cout);
+        resamplerScalar.estimateCombinedCovariance(10000)->getCovariance()->printToStream(std::cout);
     }
     
     return 0;

@@ -203,25 +203,20 @@ bool addCovariance) const {
     return resample;
 }
 
-local::CovarianceMatrixPtr
+local::CovarianceAccumulatorPtr
 local::BinnedDataResampler::estimateCombinedCovariance(int nSamples, int messageInterval) const {
     if(nSamples <= 0) {
         throw RuntimeError("BinnedDataResampler::estimateCombinedCovariance: expected nSamples > 0.");
     }
-    if(0 == getNObservations()) return CovarianceMatrixPtr();
-    CovarianceAccumulator accumulator(_observations[0]->getNBinsWithData());
+    if(0 == getNObservations()) return CovarianceAccumulatorPtr();
+    CovarianceAccumulatorPtr accumulator(new CovarianceAccumulator(_observations[0]->getNBinsWithData()));
     bool fixCovariance(false),addCovariance(false);
     for(int sample = 0; sample < nSamples; ++sample) {
         if(messageInterval > 0 && sample > 0 && sample % messageInterval == 0) {
             std::cout << "generated " << sample << " bootstrap samples." << std::endl;
         }
         BinnedDataPtr data = bootstrap(0,fixCovariance,addCovariance);
-        accumulator.accumulate(data);
+        accumulator->accumulate(data);
     }
-    try {
-        return accumulator.getCovariance();
-    }
-    catch(RuntimeError const &e) {
-        throw RuntimeError("BinnedDataResampler::estimateCombinedCovariance: failed - try more samples?");
-    }
+    return accumulator;
 }

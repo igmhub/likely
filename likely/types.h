@@ -29,6 +29,11 @@ namespace likely {
     typedef boost::shared_ptr<CovarianceMatrix> CovarianceMatrixPtr;
     typedef boost::shared_ptr<const CovarianceMatrix> CovarianceMatrixCPtr;
     
+    // Declares a smart pointer to a (const) covariance matrix accumulator.
+    class CovarianceAccumulator;
+    typedef boost::shared_ptr<CovarianceAccumulator> CovarianceAccumulatorPtr;
+    typedef boost::shared_ptr<const CovarianceAccumulator> CovarianceAccumulatorCPtr;
+    
     // Declares a smart pointer to a (const) BinnedData object.
     class BinnedData;
     typedef boost::shared_ptr<BinnedData> BinnedDataPtr;

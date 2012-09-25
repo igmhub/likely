@@ -79,11 +79,9 @@ namespace likely {
         // calculated with fixCovariance = false will be roughly twice as large as the correct values
         // obtained with fixCovariance = true.
         BinnedDataPtr bootstrap(int size = 0, bool fixCovariance = true, bool addCovariance = true) const;
-        // Returns a shared pointer to a new CovarianceMatrix that estimates the covariance of
-        // our combined observations using the specified number of bootstrap samples with a
-        // CovarianceAccumulator. Throws a RuntimeError if the estimated covariance is not positive
-        // definite, which can usually be fixed with more samples.
-        CovarianceMatrixPtr estimateCombinedCovariance(int nSamples, int messageInterval = 0) const;
+        // Returns a CovarianceAccumulator estimate of the covariance of our combined
+        // observations using the specified number of bootstrap samples.
+        CovarianceAccumulatorPtr estimateCombinedCovariance(int nSamples, int messageInterval = 0) const;
 	private:
 	    // Adds a covariance matrix to a resampling built with scalar weights. The matrix will be
 	    // a copy of our combined covariance scaled by the ratio of our _combinedScalarWeight to
