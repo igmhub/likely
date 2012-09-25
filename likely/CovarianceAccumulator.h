@@ -8,6 +8,7 @@
 #include "boost/smart_ptr.hpp"
 
 #include <vector>
+#include <iosfwd>
 
 namespace likely {
     // Accumulates statistics to estimate the covariance of a dataset.
@@ -24,7 +25,11 @@ namespace likely {
         // Returns the number of vectors accumulated so far.
         int count() const;
         // Return the estimated covariance matrix of all vectors accumulated so far.
+        // The result may not be positive definite (and this is not checked here)
+        // but this can usually be fixed by accumulating more samples.
         CovarianceMatrixPtr getCovariance() const;
+        // Dumps our internal state to the specified output stream.
+        void dump(std::ostream &os) const;
 	private:
         int _size;
         class Implementation;

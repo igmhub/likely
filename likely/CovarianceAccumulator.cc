@@ -11,6 +11,8 @@
 #include "boost/accumulators/statistics/count.hpp"
 #include "boost/accumulators/statistics/variates/covariate.hpp"
 
+#include <iostream>
+
 using namespace boost::accumulators;
 
 typedef accumulator_set<double, stats<
@@ -81,4 +83,8 @@ local::CovarianceMatrixPtr local::CovarianceAccumulator::getCovariance() const {
         }
     }
     return cov;
+}
+
+void local::CovarianceAccumulator::dump(std::ostream &out) const {
+    out << "boo!" << std::endl;
 }
