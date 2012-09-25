@@ -17,6 +17,11 @@ double elapsed(struct rusage const &before, struct rusage const &after) {
     return elapsed(before.ru_utime,after.ru_utime) + elapsed(before.ru_stime,after.ru_stime);
 }
 
+bool accumulationMessage(lk::CovarianceAccumulatorCPtr accumulator) {
+    std::cout << "accumulated " << accumulator->count() << " samples." << std::endl;
+    return true;
+}
+
 int main(int argc, char **argv) {
     std::vector<double> bins(4);
     bins[0] = 0; bins[1] = 0.25; bins[2] = 0.35; bins[3] = 1;
@@ -265,8 +270,12 @@ int main(int argc, char **argv) {
         cov12.printToStream(std::cout);
         // Estimate the covariance of the observations with bootstrap.
         std::cout << "-- bootstrap covariance estimates:" << std::endl;
-        resamplerMatrix.estimateCombinedCovariance(10000)->getCovariance()->printToStream(std::cout);
-        resamplerScalar.estimateCombinedCovariance(10000)->getCovariance()->printToStream(std::cout);
+        lk::BinnedDataResampler::AccumulationCallback callback(accumulationMessage);
+        lk::CovarianceMatrixPtr bsCov;
+        bsCov = resamplerMatrix.estimateCombinedCovariance(10000,callback,5000)->getCovariance();
+        bsCov->printToStream(std::cout);
+        bsCov = resamplerScalar.estimateCombinedCovariance(10000,callback,5000)->getCovariance();
+        bsCov->printToStream(std::cout);
     }
     
     return 0;

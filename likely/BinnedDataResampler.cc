@@ -10,7 +10,6 @@
 #include "boost/math/special_functions/binomial.hpp"
 
 #include <algorithm>
-#include <iostream>
 
 namespace local = likely;
 
@@ -204,7 +203,8 @@ bool addCovariance) const {
 }
 
 local::CovarianceAccumulatorPtr
-local::BinnedDataResampler::estimateCombinedCovariance(int nSamples, int messageInterval) const {
+local::BinnedDataResampler::estimateCombinedCovariance(int nSamples,
+AccumulationCallback callback, int interval) const {
     if(nSamples <= 0) {
         throw RuntimeError("BinnedDataResampler::estimateCombinedCovariance: expected nSamples > 0.");
     }
@@ -212,11 +212,11 @@ local::BinnedDataResampler::estimateCombinedCovariance(int nSamples, int message
     CovarianceAccumulatorPtr accumulator(new CovarianceAccumulator(_observations[0]->getNBinsWithData()));
     bool fixCovariance(false),addCovariance(false);
     for(int sample = 0; sample < nSamples; ++sample) {
-        if(messageInterval > 0 && sample > 0 && sample % messageInterval == 0) {
-            std::cout << "generated " << sample << " bootstrap samples." << std::endl;
-        }
         BinnedDataPtr data = bootstrap(0,fixCovariance,addCovariance);
         accumulator->accumulate(data);
+        if(interval > 0 && (sample+1) % interval == 0) {
+            if(!callback(accumulator)) break;
+        }
     }
     return accumulator;
 }

@@ -5,6 +5,8 @@
 
 #include "likely/types.h"
 
+#include "boost/function.hpp"
+
 #include <vector>
 
 namespace likely {
@@ -80,8 +82,12 @@ namespace likely {
         // obtained with fixCovariance = true.
         BinnedDataPtr bootstrap(int size = 0, bool fixCovariance = true, bool addCovariance = true) const;
         // Returns a CovarianceAccumulator estimate of the covariance of our combined
-        // observations using the specified number of bootstrap samples.
-        CovarianceAccumulatorPtr estimateCombinedCovariance(int nSamples, int messageInterval = 0) const;
+        // observations using the specified number of bootstrap samples. Calls the callback function,
+        // if one is provided, at the specified interval or never if the interval is <= 0. The bootstrap
+        // loop returns early if the callback returns false.
+        typedef boost::function<bool (CovarianceAccumulatorCPtr)> AccumulationCallback;
+        CovarianceAccumulatorPtr estimateCombinedCovariance(int nSamples,
+            AccumulationCallback callback = AccumulationCallback(), int interval = 0) const;
 	private:
 	    // Adds a covariance matrix to a resampling built with scalar weights. The matrix will be
 	    // a copy of our combined covariance scaled by the ratio of our _combinedScalarWeight to
