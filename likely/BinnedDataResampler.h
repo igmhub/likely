@@ -27,6 +27,7 @@ namespace likely {
 	    // Random::instance().
 		BinnedDataResampler(bool useScalarWeights = false, RandomPtr random = RandomPtr());
 		virtual ~BinnedDataResampler();
+        bool usesScalarWeights() const;
 		// Adds a copy of the specified observation. Throws a RuntimeError if this observation
 		// is not congruent with existing observations. You are allowed to add the same
 		// observation several times, but you normally don't want to do this. Calls to
@@ -96,6 +97,7 @@ namespace likely {
         mutable std::vector<int> _subset, _counts;
 	}; // BinnedDataResampler
 	
+    inline bool BinnedDataResampler::usesScalarWeights() const { return _useScalarWeights; }
     inline int BinnedDataResampler::getNObservations() const { return _observations.size(); }
     
     // Fills the integer vector provided with a subset of [0,1,...,n-1] of length m=subset.size().
