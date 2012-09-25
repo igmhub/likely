@@ -68,10 +68,6 @@ int local::BinnedDataResampler::addObservation(BinnedDataCPtr observation, int r
         // have any covariance) and so that the operations below do not alter the input
         // observation at all.
         copy->cloneCovariance();
-        std::cout << "add-tmp1: " << copy->getMemoryState() << std::endl;
-        // Add this copy to our combined dataset.
-        *_combined += *copy;
-        std::cout << "add-tmp2: " << copy->getMemoryState() << std::endl;
     }
     std::cout << "add-tmp1: " << copy->getMemoryState() << std::endl;
     // Add this copy to our combined dataset.
