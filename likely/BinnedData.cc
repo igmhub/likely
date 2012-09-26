@@ -164,24 +164,35 @@ void local::BinnedData::setWeighted(bool weighted) const {
     //!!if(_weighted != weighted) std::cout << "setWeighted " << _weighted << " -> " << weighted << std::endl;
     // Are we already in the desired state?
     if(weighted == _weighted) return;
-    if(weighted) {
-        if(hasCovariance() && getNBinsWithData() > 0) {
-            // Change data to Cinv.data
-            _covariance->multiplyByInverseCovariance(_data);
-        }
-        else if(_weight != 1) {
-            // Scale data by _weight, which plays the role of Cinv.
-            for(int offset = 0; offset < _data.size(); ++offset) _data[offset] *= _weight;
-        }
+    // Do we have a cached result we can use?
+    if(_dataCache.size() > 0) {
+        // Enable argument-dependent lookup (ADL)
+        using std::swap;
+        swap(_data,_dataCache);
     }
     else {
-        if(hasCovariance() && getNBinsWithData() > 0) {
-            // Change Cinv.data to data = C.Cinv.data
-            _covariance->multiplyByCovariance(_data);
+        // Cache the original data vector for adding/removing weights.
+        _dataCache = _data;
+        // Do the appropriate transformation of our data vector.
+        if(weighted) {
+            if(hasCovariance() && getNBinsWithData() > 0) {
+                // Change data to Cinv.data
+                _covariance->multiplyByInverseCovariance(_data);
+            }
+            else if(_weight != 1) {
+                // Scale data by _weight, which plays the role of Cinv.
+                for(int offset = 0; offset < _data.size(); ++offset) _data[offset] *= _weight;
+            }
         }
-        else if(_weight != 1) {
-            // Scale data by 1/_weight, which plays the role of C.
-            for(int offset = 0; offset < _data.size(); ++offset) _data[offset] /= _weight;
+        else {
+            if(hasCovariance() && getNBinsWithData() > 0) {
+                // Change Cinv.data to data = C.Cinv.data
+                _covariance->multiplyByCovariance(_data);
+            }
+            else if(_weight != 1) {
+                // Scale data by 1/_weight, which plays the role of C.
+                for(int offset = 0; offset < _data.size(); ++offset) _data[offset] /= _weight;
+            }
         }
     }
     // Record our new state.
