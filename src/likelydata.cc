@@ -271,8 +271,11 @@ int main(int argc, char **argv) {
         // Estimate the covariance of the observations with bootstrap.
         std::cout << "-- bootstrap covariance estimates:" << std::endl;
         lk::BinnedDataResampler::AccumulationCallback callback(accumulationMessage);
+        lk::CovarianceAccumulatorPtr accum;
         lk::CovarianceMatrixPtr bsCov;
-        bsCov = resamplerMatrix.estimateCombinedCovariance(10000,callback,5000)->getCovariance();
+        accum = resamplerMatrix.estimateCombinedCovariance(10000,callback,5000);
+        accum->dump(std::cout);
+        bsCov = accum->getCovariance();
         bsCov->printToStream(std::cout);
         bsCov = resamplerScalar.estimateCombinedCovariance(10000,callback,5000)->getCovariance();
         bsCov->printToStream(std::cout);
