@@ -300,6 +300,10 @@ namespace likely {
         std::vector<int> _offset, _index;
         // Our data vector which might be weighted.
         mutable std::vector<double> _data;
+        // A data vector cache which is either empty or else contains the weighted/unweighted
+        // complement corresponding to _data.
+        mutable std::vector<double> _dataCache;
+        // A shared pointer to our covariance matrix, if any.
         CovarianceMatrixPtr _covariance;
         // In case we have no covariance, we need a scalar that plays the role of Cinv, to
         // implement weighted operations such as add() and chiSquare().
@@ -312,6 +316,8 @@ namespace likely {
         void _initialize();
         // Throws a RuntimeError unless the specified global index is valid.
         void _checkIndex(int index) const;
+        // Prepares to change at least one element of _data.
+        void _changesData() const;
 	}; // BinnedData
 	
     void swap(BinnedData& a, BinnedData& b);
@@ -330,6 +336,13 @@ namespace likely {
     inline BinnedData::IndexIterator BinnedData::end() const { return _index.end(); }
     inline bool BinnedData::isFinalized() const { return _finalized; }
     inline BinnedData& BinnedData::operator+=(BinnedData const& other) { return add(other); }
+    
+    inline void BinnedData::_changesData() const {
+        // Any cached data is now invalid. We use resize instead of swapping with an empty vector
+        // since we are likely to need at least as much capacity in future, and the overhead of
+        // this cache is small compared with a covariance matrix.
+        _dataCache.resize(0);
+    }
 
 } // likely
 
