@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
     params.push_back(lk::FitParameter("param2",2,0.2));
     params.push_back(lk::FitParameter("param3",3,0.3));
     params.push_back(lk::FitParameter("(1-beta)*bias",1.23));
-    lk::printFitParametersToStream(params,std::cout);    
+    lk::printFitParametersToStream(params,std::cout);
 
     // This should be ok
     lk::modifyFitParameters(params,"");
@@ -59,6 +59,7 @@ int main(int argc, char *argv[]) {
     lk::printFitParametersToStream(params,std::cout);
     
     lk::modifyFitParameters(params,"boxprior[param2] @ (-1,2.3)");
+    lk::modifyFitParameters(params,"gaussprior[param1] @ (0.5,1.5;0.5)");
 
     try {
         lk::modifyFitParameters(params,"value [param3]=0;error [param3] = -123");
@@ -68,6 +69,10 @@ int main(int argc, char *argv[]) {
     }
     // Check that the parameters were not actually modified.
     lk::printFitParametersToStream(params,std::cout);
+    std::cout
+        << "-- script begin" << std::endl
+        << lk::fitParametersToScript(params)
+        << "-- script end" << std::endl;
     
     try {
         lk::FitParameter badName("a,b",123);

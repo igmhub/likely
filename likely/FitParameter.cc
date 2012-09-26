@@ -4,6 +4,7 @@
 #include "likely/RuntimeError.h"
 
 #include "boost/format.hpp"
+#include "boost/lexical_cast.hpp"
 #include "boost/function.hpp"
 #include "boost/bind.hpp"
 #include "boost/regex.hpp"
@@ -62,6 +63,21 @@ PriorType priorType) {
     _priorMax = priorMax;
     _priorScale = priorScale;
     _priorType = priorType;
+}
+
+std::string local::FitParameter::toScript() const {
+    std::string script = boost::str(boost::format("value[%s]=%s; error[%s]=%s;")
+        % _name % boost::lexical_cast<std::string>(getValue())
+        % _name % boost::lexical_cast<std::string>(std::fabs(_error)));
+    if(!isFloating()) script += " fix[" + _name + "];";
+    if(getPriorType() != NoPrior) {
+        script += (getPriorType() == BoxPrior ? " boxprior[" : " gaussprior[") +
+            _name + "]@(" +
+            boost::lexical_cast<std::string>(_priorMin) + ',' +
+            boost::lexical_cast<std::string>(_priorMax) + ';' +
+            boost::lexical_cast<std::string>(_priorScale) + ");";
+    }
+    return script + '\n';
 }
 
 void local::getFitParameterValues(FitParameters const &parameters, Parameters &values, bool onlyFloating) {
@@ -278,6 +294,14 @@ void local::modifyFitParameters(FitParameters &parameters, std::string const &sc
         throw RuntimeError("modifyFitParameters: syntax error in script.");
     }
     parameters = modified;
+}
+
+std::string local::fitParametersToScript(FitParameters const &parameters) {
+    std::string script;
+    for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
+        script += iter->toScript();
+    }
+    return script;
 }
 
 std::string local::roundValueWithError(double value, std::vector<double> const &errors, std::string const &seperator) {
