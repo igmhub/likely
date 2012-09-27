@@ -1,7 +1,10 @@
 // Created 25-Jun-2011 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 // A weighted sum accumulator test program.
 
-#include "likely/likely.h"
+#include "likely/WeightedAccumulator.h"
+#include "likely/WeightedCombiner.h"
+#include "likely/Interpolator.h"
+#include "likely/RuntimeError.h"
 
 #include "boost/program_options.hpp"
 

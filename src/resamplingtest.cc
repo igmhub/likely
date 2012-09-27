@@ -1,7 +1,14 @@
 // Created 16-Jun-2012 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 // A test program for studying resampling methods.
 
-#include "likely/likely.h"
+#include "likely/BinnedData.h"
+#include "likely/FitParameter.h"
+#include "likely/MarkovChainEngine.h"
+#include "likely/Random.h"
+#include "likely/UniformBinning.h"
+#include "likely/BinnedDataResampler.h"
+#include "likely/CovarianceMatrix.h"
+#include "likely/FunctionMinimum.h"
 
 #include "boost/program_options.hpp"
 #include "boost/foreach.hpp"

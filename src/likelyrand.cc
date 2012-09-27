@@ -1,7 +1,9 @@
 // Created 13-Aug-2011 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 // Demonstates and benchmarks the Random class.
 
-#include "likely/likely.h"
+#include "likely/Random.h"
+#include "likely/WeightedAccumulator.h"
+#include "likely/QuantileAccumulator.h"
 
 #include "boost/format.hpp"
 

@@ -1,7 +1,8 @@
 // Created 21-Jun-2011 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 // An interpolation algorithm test program.
 
-#include "likely/likely.h"
+#include "likely/Interpolator.h"
+#include "likely/RuntimeError.h"
 
 #include "boost/program_options.hpp"
 #include "boost/smart_ptr.hpp"

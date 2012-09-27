@@ -53,6 +53,9 @@ namespace likely {
         void setPrior(double priorMin, double priorMax, double priorScale, PriorType type);
         // Removes any prior on this parameter.
         void removePrior();
+        // Returns a newline-terminated string that describes the complete internal state of this
+        // parameter in the machine-readable text format expected by modifyFitParameters().
+        std::string toScript() const;
         // Returns the set of valid characters in a FitParameter name.
         static std::string const &getValidNameCharacters();
 	private:
@@ -126,6 +129,12 @@ namespace likely {
     // as a wildcard that matches zero or more trailing characters, and must match at
     // least one parameter name.
     void modifyFitParameters(FitParameters &parameters, std::string const &script);
+    
+    // Returns a script describing the specified fit parameters. Each parameter is described
+    // in the order in appears in the FitParameters using FitParameter::toScript(). The
+    // output is primarily intended for consumption by modifyFitParameters(). For a more
+    // human-readable output, try printFitParametersToStream().
+    std::string fitParametersToScript(FitParameters const &parameters);
 
     // A formatted string of a value and its error(s) is returned. The value and its 
     // error(s) are rounded to a precision that matches that of the smallest error,

@@ -61,10 +61,6 @@ namespace likely {
 		//
         virtual BinnedData *clone(bool binningOnly = false) const;
 		
-		// Assignment operator supports the same shallow copy semantics.
-        BinnedData& operator=(BinnedData other);
-        friend void swap(BinnedData& a, BinnedData& b);
-
         // Adds another congruent binned dataset to our dataset (with weight 1).
         // Equivalent to add(other).
         BinnedData& operator+=(BinnedData const &other);
@@ -163,9 +159,10 @@ namespace likely {
         // stored as Cinv.data rather than data. Changes to our internal representation are
         // triggered automatically, so this method simply allows these changes to be tracked.
         bool isDataWeighted() const;
-        // Forces our internal representation to be weighted or unweighted. Other methods call
-        // this method automatically, and you should not normally need to call it yourself.
-        void setWeighted(bool weighted) const;
+        // Forces our internal data representation to be unweighted and flushes any cached
+        // weighted data. This method must be called immediately before making any change
+        // to our covariance matrix that is intended to change the future values of weighted data.
+        void unweightData();
 
         // Returns true if covariance data is available.
         bool hasCovariance() const;
@@ -182,7 +179,7 @@ namespace likely {
         // modify its covariance matrix, with a corresponding increase in memory usage.
         void cloneCovariance();
         // Drops any covariance matrix and assigns the specified scalar weight.
-        // Calls setWeighted(false).
+        // Calls unweightData().
         void dropCovariance(double weight = 1);
         // Returns the (inverse) covariance matrix element for the specified pair of global
         // indices, or throws a RuntimeError if either of the corresponding bins has no data,
@@ -201,21 +198,20 @@ namespace likely {
         // with these methods does not directly change the contents of our data vector, but
         // it does change the meaning of weighted data. For example, if isDataWeighted() is true,
         // then setCovariance() changes the subsequent result of getData(...,weighted=false) but
-        // not of getData(...,weighted=true). Use the setWeighted() method for more control of this.
+        // not of getData(...,weighted=true). Use the unweightData() method for more control of this.
         void setCovariance(int index1, int index2, double value);
         void setInverseCovariance(int index1, int index2, double value);
         // Returns a const shared pointer to our covariance matrix, if any.
         CovarianceMatrixCPtr getCovarianceMatrix() const;
         // Replaces our covariance matrix, if any, with the specified matrix or throws a
-        // RuntimeError. Think about whether you want to call setWeighted() first.
+        // RuntimeError. Think about whether you want to call unweightData() first.
         void setCovarianceMatrix(CovarianceMatrixPtr covariance);
         // Replaces our covariance matrix, if any, with the covariance of the specified
         // congruent binned data. After this operation, isCovarianceModifiable will be false
-        // for both binned data objects. Think about whether you want to call setWeighted() first.
+        // for both binned data objects. Think about whether you want to call unweightData() first.
         void shareCovarianceMatrix(BinnedData const &other);
         // Transforms our covariance matrix C by replacing it with C.Dinv.C. On return, D
-        // contains our original covariance matrix. Think about whether you want to call
-        // setWeighted() first.
+        // contains our original covariance matrix. Calls unweightData().
         void transformCovariance(CovarianceMatrixPtr D);
 
         // Calculates the chi-square = (data-pred).Cinv.(data-pred) for the specified
@@ -300,6 +296,10 @@ namespace likely {
         std::vector<int> _offset, _index;
         // Our data vector which might be weighted.
         mutable std::vector<double> _data;
+        // A data vector cache which is either empty or else contains the weighted/unweighted
+        // complement corresponding to _data.
+        mutable std::vector<double> _dataCache;
+        // A shared pointer to our covariance matrix, if any.
         CovarianceMatrixPtr _covariance;
         // In case we have no covariance, we need a scalar that plays the role of Cinv, to
         // implement weighted operations such as add() and chiSquare().
@@ -312,6 +312,12 @@ namespace likely {
         void _initialize();
         // Throws a RuntimeError unless the specified global index is valid.
         void _checkIndex(int index) const;
+        // Forces our internal representation to be weighted or unweighted. This must be called
+        // with flushCache = true before making any changes to our _data vector or else making
+        // a change to our covariance matrix that should be reflected in future values of
+        // weighted data Cinv.d. The special case of weighted = false and flushCache = true
+        // is implemented in the public non-const (!) method unweightData().
+        void _setWeighted(bool weighted, bool flushCache = false) const;
 	}; // BinnedData
 	
     void swap(BinnedData& a, BinnedData& b);

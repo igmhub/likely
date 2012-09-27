@@ -3,7 +3,11 @@
 
 #include <iostream>
 
-#include "likely/likely.h"
+#include "likely/QuantileAccumulator.h"
+#include "likely/ExactQuantileAccumulator.h"
+#include "likely/WeightedAccumulator.h"
+#include "likely/Random.h"
+#include "likely/RuntimeError.h"
  
 #include "boost/program_options.hpp"
 

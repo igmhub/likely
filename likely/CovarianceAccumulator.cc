@@ -10,6 +10,9 @@
 #include "boost/accumulators/statistics/stats.hpp"
 #include "boost/accumulators/statistics/count.hpp"
 #include "boost/accumulators/statistics/variates/covariate.hpp"
+#include "boost/lexical_cast.hpp"
+
+#include <iostream>
 
 using namespace boost::accumulators;
 
@@ -81,4 +84,28 @@ local::CovarianceMatrixPtr local::CovarianceAccumulator::getCovariance() const {
         }
     }
     return cov;
+}
+
+void local::CovarianceAccumulator::dump(std::ostream &out) const {
+    // matrix dimension
+    out << _size << std::endl;
+    // number of samples accumulated
+    out << count() << std::endl;
+    // total weight of accumulated samples (use lexical_cast to get full precision)
+    out << boost::lexical_cast<std::string>(
+        sum_of_weights(_pimpl->accumulators[0])) << std::endl;
+    // weighted means
+    for(int col = 0; col < _size; ++col) {
+        int index = symmetricMatrixIndex(col,col,_size);
+        out << col << ' ' << boost::lexical_cast<std::string>(
+            weighted_mean(_pimpl->accumulators[index])) << std::endl;
+    }
+    // weighted second moments
+    int index(0);
+    for(int col = 0; col < _size; ++col) {
+        for(int row = 0; row <= col; ++row) {
+            out << row << ' ' << col << ' ' << boost::lexical_cast<std::string>(
+                weighted_covariance(_pimpl->accumulators[index++])) << std::endl;
+        }
+    }
 }

@@ -10,7 +10,6 @@
 #include "boost/math/special_functions/binomial.hpp"
 
 #include <algorithm>
-#include <iostream>
 
 namespace local = likely;
 
@@ -45,7 +44,7 @@ int local::BinnedDataResampler::addObservation(BinnedDataCPtr observation, int r
         }
         BinnedDataCPtr reuseData = _observations[reuseCovIndex];
         // This operation will need an input covariance if the dataset was previously weighted.
-        copy->setWeighted(false);
+        copy->unweightData();
         if(_useScalarWeights) {
             // We already dropped the previously added dataset's covariance, so we need to
             // temporarily reconstruct something here that we can add to our combined dataset.
@@ -123,7 +122,7 @@ bool local::getSubset(int n, unsigned long seqno, std::vector<int> &subset) {
 
 void local::BinnedDataResampler::_addCovariance(BinnedDataPtr sample) const {
     if(!_useScalarWeights) return;
-    sample->setWeighted(false);
+    sample->unweightData();
     double weight = sample->getScalarWeight();
     CovarianceMatrixPtr cov(new CovarianceMatrix(*_combined->getCovarianceMatrix()));
     cov->applyScaleFactor(_combinedScalarWeight/weight);
@@ -203,25 +202,21 @@ bool addCovariance) const {
     return resample;
 }
 
-local::CovarianceMatrixPtr
-local::BinnedDataResampler::estimateCombinedCovariance(int nSamples, int messageInterval) const {
+local::CovarianceAccumulatorPtr
+local::BinnedDataResampler::estimateCombinedCovariance(int nSamples,
+AccumulationCallback callback, int interval) const {
     if(nSamples <= 0) {
         throw RuntimeError("BinnedDataResampler::estimateCombinedCovariance: expected nSamples > 0.");
     }
-    if(0 == getNObservations()) return CovarianceMatrixPtr();
-    CovarianceAccumulator accumulator(_observations[0]->getNBinsWithData());
+    if(0 == getNObservations()) return CovarianceAccumulatorPtr();
+    CovarianceAccumulatorPtr accumulator(new CovarianceAccumulator(_observations[0]->getNBinsWithData()));
     bool fixCovariance(false),addCovariance(false);
     for(int sample = 0; sample < nSamples; ++sample) {
-        if(messageInterval > 0 && sample > 0 && sample % messageInterval == 0) {
-            std::cout << "generated " << sample << " bootstrap samples." << std::endl;
-        }
         BinnedDataPtr data = bootstrap(0,fixCovariance,addCovariance);
-        accumulator.accumulate(data);
+        accumulator->accumulate(data);
+        if(interval > 0 && (sample+1) % interval == 0) {
+            if(!callback(accumulator)) break;
+        }
     }
-    try {
-        return accumulator.getCovariance();
-    }
-    catch(RuntimeError const &e) {
-        throw RuntimeError("BinnedDataResampler::estimateCombinedCovariance: failed - try more samples?");
-    }
+    return accumulator;
 }

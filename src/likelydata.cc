@@ -1,20 +1,25 @@
 // Created 24-Apr-2012 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 // Demonstrates and tests the BinnedData class.
 
-#include "likely/likely.h"
+#include "likely/CovarianceMatrix.h"
+#include "likely/CovarianceAccumulator.h"
+#include "likely/UniformBinning.h"
+#include "likely/UniformSampling.h"
+#include "likely/NonUniformBinning.h"
+#include "likely/BinnedData.h"
+#include "likely/BinnedDataResampler.h"
+#include "likely/Random.h"
+#include "likely/RuntimeError.h"
 
 #include <iostream>
 #include <cassert>
-#include <sys/resource.h>
+#include <cmath>
 
 namespace lk = likely;
 
-// Returns the number of elapsed microseconds from before to after.
-double elapsed(struct timeval const &before, struct timeval const &after) {
-    return (after.tv_sec - before.tv_sec)*1e6 + (after.tv_usec - before.tv_usec);
-}
-double elapsed(struct rusage const &before, struct rusage const &after) {
-    return elapsed(before.ru_utime,after.ru_utime) + elapsed(before.ru_stime,after.ru_stime);
+bool accumulationMessage(lk::CovarianceAccumulatorCPtr accumulator) {
+    std::cout << "accumulated " << accumulator->count() << " samples." << std::endl;
+    return true;
 }
 
 int main(int argc, char **argv) {
@@ -44,13 +49,29 @@ int main(int argc, char **argv) {
         assert(data.hasData(index) == false);
         data.setData(index,index);
     }
-    std::cout << "size = " << data.getMemoryUsage() << std::endl;
+    std::cout << "   initial: " << data.getMemoryState() << std::endl;
+    data.printToStream(std::cout);
+
+    data.getData(0,true);
+    std::cout << "  weighted: " << data.getMemoryState() << std::endl;
+    data.printToStream(std::cout);
+
+    data.getData(0,false);  
+    std::cout << "unweighted: " << data.getMemoryState() << std::endl;
+    data.printToStream(std::cout);
+
     data.compress();
-    std::cout << "compressed size = " << data.getMemoryUsage() << std::endl;
+    std::cout << "compressed: " << data.getMemoryState() << std::endl;
+    data.printToStream(std::cout);
+
     lk::BinnedData copy = data;
-    std::cout << "copy size = " << copy.getMemoryUsage() << std::endl;
+    std::cout << "    copied: " << copy.getMemoryState() << std::endl;
     assert(copy.isCongruent(data));
+    copy.printToStream(std::cout);
+
     copy += data;
+    std::cout << "     added: " << copy.getMemoryState() << std::endl;
+    copy.printToStream(std::cout);
     
     lk::BinnedData::IndexIterator ptr = data.begin();
     for(lk::BinnedData::IndexIterator iter = data.begin(); iter != data.end(); ++iter) {
@@ -187,10 +208,10 @@ int main(int argc, char **argv) {
         // Estimate the covariance of the observations with bootstrap.
         std::cout << "-- bootstrap covariance estimates:" << std::endl;
         lk::CovarianceMatrixPtr bsCov;
-        bsCov = resamplerMatrix.estimateCombinedCovariance(10000);
+        bsCov = resamplerMatrix.estimateCombinedCovariance(10000)->getCovariance();
         bsCov->applyScaleFactor(nobs);
         bsCov->printToStream(std::cout);
-        bsCov = resamplerScalar.estimateCombinedCovariance(10000);
+        bsCov = resamplerScalar.estimateCombinedCovariance(10000)->getCovariance();
         bsCov->applyScaleFactor(nobs);
         bsCov->printToStream(std::cout);
     }
@@ -233,14 +254,14 @@ int main(int argc, char **argv) {
         lk::BinnedDataResampler resamplerMatrix(false,random1), resamplerScalar(true,random2);
         for(int obs = 0; obs < n1; ++obs) {
             lk::BinnedDataPtr data1 = prototype1.sample();
-            data1->setWeighted(false);
+            data1->unweightData();
             data1->setCovarianceMatrix(cov1e);
             resamplerMatrix.addObservation(data1);
             resamplerScalar.addObservation(data1);
         }
         for(int obs = 0; obs < n2; ++obs) {
             lk::BinnedDataPtr data2 = prototype2.sample();
-            data2->setWeighted(false);
+            data2->unweightData();
             data2->setCovarianceMatrix(cov2e);
             resamplerMatrix.addObservation(data2);
             resamplerScalar.addObservation(data2);
@@ -264,9 +285,19 @@ int main(int argc, char **argv) {
         cov12.addInverse(*cov2,n2);
         cov12.printToStream(std::cout);
         // Estimate the covariance of the observations with bootstrap.
+        int ntrials(1000);
         std::cout << "-- bootstrap covariance estimates:" << std::endl;
-        resamplerMatrix.estimateCombinedCovariance(10000)->printToStream(std::cout);
-        resamplerScalar.estimateCombinedCovariance(10000)->printToStream(std::cout);
+        lk::BinnedDataResampler::AccumulationCallback callback(accumulationMessage);
+        lk::CovarianceAccumulatorPtr accum;
+        lk::CovarianceMatrixPtr bsCov;
+        accum = resamplerMatrix.estimateCombinedCovariance(ntrials,callback,5000);
+        accum->dump(std::cout);
+        bsCov = accum->getCovariance();
+        bsCov->printToStream(std::cout);
+        accum = resamplerScalar.estimateCombinedCovariance(ntrials,callback,5000);
+        accum->dump(std::cout);
+        bsCov = accum->getCovariance();
+        bsCov->printToStream(std::cout);
     }
     
     return 0;
