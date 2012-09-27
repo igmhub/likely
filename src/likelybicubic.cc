@@ -1,7 +1,10 @@
 // Created 31-Aug-2012 by Michael Blomqvist (University of California, Irvine) <cblomqvi@uci.edu>
 // A bi-cubic 2D interpolation algorithm test program.
 
-#include "likely/likely.h"
+#include "likely/Random.h"
+#include "likely/BicubicInterpolator.h"
+#include "likely/WeightedAccumulator.h"
+#include "likely/RuntimeError.h"
 
 #include "boost/program_options.hpp"
 #include "boost/smart_ptr.hpp"

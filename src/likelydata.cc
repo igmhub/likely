@@ -1,21 +1,21 @@
 // Created 24-Apr-2012 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 // Demonstrates and tests the BinnedData class.
 
-#include "likely/likely.h"
+#include "likely/CovarianceMatrix.h"
+#include "likely/CovarianceAccumulator.h"
+#include "likely/UniformBinning.h"
+#include "likely/UniformSampling.h"
+#include "likely/NonUniformBinning.h"
+#include "likely/BinnedData.h"
+#include "likely/BinnedDataResampler.h"
+#include "likely/Random.h"
+#include "likely/RuntimeError.h"
 
 #include <iostream>
 #include <cassert>
-#include <sys/resource.h>
+#include <cmath>
 
 namespace lk = likely;
-
-// Returns the number of elapsed microseconds from before to after.
-double elapsed(struct timeval const &before, struct timeval const &after) {
-    return (after.tv_sec - before.tv_sec)*1e6 + (after.tv_usec - before.tv_usec);
-}
-double elapsed(struct rusage const &before, struct rusage const &after) {
-    return elapsed(before.ru_utime,after.ru_utime) + elapsed(before.ru_stime,after.ru_stime);
-}
 
 bool accumulationMessage(lk::CovarianceAccumulatorCPtr accumulator) {
     std::cout << "accumulated " << accumulator->count() << " samples." << std::endl;

@@ -1,7 +1,9 @@
 // Created 18-Apr-2012 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 // Demonstrates and tests the CovarianceMatrix class.
 
-#include "likely/likely.h"
+#include "likely/Random.h"
+#include "likely/CovarianceMatrix.h"
+#include "likely/CovarianceAccumulator.h"
 
 #include <iostream>
 #include <sys/resource.h>

@@ -1,7 +1,8 @@
 // Created 7-Aug-2011 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 // Demonstates and tests the Integrator class.
 
-#include "likely/likely.h"
+#include "likely/Integrator.h"
+#include "likely/RuntimeError.h"
 
 #include <cmath>
 #include <iostream>

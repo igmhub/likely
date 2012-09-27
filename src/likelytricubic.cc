@@ -1,7 +1,10 @@
 // Created 23-Dec-2011 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 // A tri-cubic 3D interpolation algorithm test program.
 
-#include "likely/likely.h"
+#include "likely/Random.h"
+#include "likely/TricubicInterpolator.h"
+#include "likely/WeightedAccumulator.h"
+#include "likely/RuntimeError.h"
 
 #include "boost/program_options.hpp"
 #include "boost/smart_ptr.hpp"

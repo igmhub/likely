@@ -1,7 +1,9 @@
 // Created 05-Jun-2012 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
 // Demonstates the FitParameter class.
 
-#include "likely/likely.h"
+#include "likely/FitModel.h"
+#include "likely/FitParameter.h"
+#include "likely/RuntimeError.h"
 
 #include <iostream>
 #include <cassert>

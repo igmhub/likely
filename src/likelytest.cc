@@ -3,7 +3,11 @@
 
 #include "config.h"
 
-#include "likely/likely.h"
+#include "likely/Random.h"
+#include "likely/FunctionMinimum.h"
+#include "likely/AbsEngine.h"
+#include "likely/RuntimeError.h"
+#include "likely/test/TestLikelihood.h"
 
 #include "boost/program_options.hpp"
 #include "boost/random/mersenne_twister.hpp"
