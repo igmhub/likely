@@ -2,7 +2,7 @@
 // A bi-cubic 2D interpolation algorithm test program.
 
 #include "likely/Random.h"
-#include "likely/BicubicInterpolator.h"
+#include "likely/BiCubicInterpolator.h"
 #include "likely/WeightedAccumulator.h"
 #include "likely/RuntimeError.h"
 
