@@ -61,10 +61,6 @@ namespace likely {
 		//
         virtual BinnedData *clone(bool binningOnly = false) const;
 		
-		// Assignment operator supports the same shallow copy semantics.
-        BinnedData& operator=(BinnedData other);
-        friend void swap(BinnedData& a, BinnedData& b);
-
         // Adds another congruent binned dataset to our dataset (with weight 1).
         // Equivalent to add(other).
         BinnedData& operator+=(BinnedData const &other);

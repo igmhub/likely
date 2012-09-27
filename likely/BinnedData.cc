@@ -69,28 +69,6 @@ local::BinnedData *local::BinnedData::clone(bool binningOnly) const {
     return binningOnly ? new BinnedData(getAxisBinning()) : new BinnedData(*this);
 }
 
-// The pass-by-value semantics used here are not a mistake: see
-// http://stackoverflow.com/questions/3279543/what-is-the-copy-and-swap-idiom
-local::BinnedData& local::BinnedData::operator=(BinnedData other) {
-    swap(*this,other);
-    return *this;
-}
-
-void local::swap(BinnedData& a, BinnedData& b) {
-    // Enable argument-dependent lookup (ADL)
-    using std::swap;
-    swap(a._nbins,b._nbins);
-    swap(a._axisBinning,b._axisBinning);
-    swap(a._offset,b._offset);
-    swap(a._index,b._index);
-    swap(a._data,b._data);
-    swap(a._dataCache,b._dataCache);
-    swap(a._covariance,b._covariance);
-    swap(a._weight,b._weight);
-    swap(a._weighted,b._weighted);
-    swap(a._finalized,b._finalized);
-}
-
 void local::BinnedData::cloneCovariance() {
     if(hasCovariance()) {
         // Release our reference to the original covariance matrix and reset our
