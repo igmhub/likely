@@ -2,7 +2,7 @@
 // A tri-cubic 3D interpolation algorithm test program.
 
 #include "likely/Random.h"
-#include "likely/TricubicInterpolator.h"
+#include "likely/TriCubicInterpolator.h"
 #include "likely/WeightedAccumulator.h"
 #include "likely/RuntimeError.h"
 
