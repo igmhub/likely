@@ -49,13 +49,29 @@ int main(int argc, char **argv) {
         assert(data.hasData(index) == false);
         data.setData(index,index);
     }
-    std::cout << "size = " << data.getMemoryUsage() << std::endl;
+    std::cout << "   initial: " << data.getMemoryState() << std::endl;
+    data.printToStream(std::cout);
+
+    data.setWeighted(true);
+    std::cout << "  weighted: " << data.getMemoryState() << std::endl;
+    data.printToStream(std::cout);
+
+    data.setWeighted(false);    
+    std::cout << "unweighted: " << data.getMemoryState() << std::endl;
+    data.printToStream(std::cout);
+
     data.compress();
-    std::cout << "compressed size = " << data.getMemoryUsage() << std::endl;
+    std::cout << "compressed: " << data.getMemoryState() << std::endl;
+    data.printToStream(std::cout);
+
     lk::BinnedData copy = data;
-    std::cout << "copy size = " << copy.getMemoryUsage() << std::endl;
+    std::cout << "    copied: " << copy.getMemoryState() << std::endl;
     assert(copy.isCongruent(data));
+    copy.printToStream(std::cout);
+
     copy += data;
+    std::cout << "     added: " << copy.getMemoryState() << std::endl;
+    copy.printToStream(std::cout);
     
     lk::BinnedData::IndexIterator ptr = data.begin();
     for(lk::BinnedData::IndexIterator iter = data.begin(); iter != data.end(); ++iter) {
@@ -269,15 +285,18 @@ int main(int argc, char **argv) {
         cov12.addInverse(*cov2,n2);
         cov12.printToStream(std::cout);
         // Estimate the covariance of the observations with bootstrap.
+        int ntrials(1000);
         std::cout << "-- bootstrap covariance estimates:" << std::endl;
         lk::BinnedDataResampler::AccumulationCallback callback(accumulationMessage);
         lk::CovarianceAccumulatorPtr accum;
         lk::CovarianceMatrixPtr bsCov;
-        accum = resamplerMatrix.estimateCombinedCovariance(10000,callback,5000);
+        accum = resamplerMatrix.estimateCombinedCovariance(ntrials,callback,5000);
         accum->dump(std::cout);
         bsCov = accum->getCovariance();
         bsCov->printToStream(std::cout);
-        bsCov = resamplerScalar.estimateCombinedCovariance(10000,callback,5000)->getCovariance();
+        accum = resamplerScalar.estimateCombinedCovariance(ntrials,callback,5000);
+        accum->dump(std::cout);
+        bsCov = accum->getCovariance();
         bsCov->printToStream(std::cout);
     }
     

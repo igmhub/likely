@@ -214,8 +214,7 @@ namespace likely {
         // for both binned data objects. Think about whether you want to call setWeighted() first.
         void shareCovarianceMatrix(BinnedData const &other);
         // Transforms our covariance matrix C by replacing it with C.Dinv.C. On return, D
-        // contains our original covariance matrix. Think about whether you want to call
-        // setWeighted() first.
+        // contains our original covariance matrix. Calls setWeighted(false).
         void transformCovariance(CovarianceMatrixPtr D);
 
         // Calculates the chi-square = (data-pred).Cinv.(data-pred) for the specified
