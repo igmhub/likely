@@ -173,7 +173,7 @@ void local::BinnedData::setWeighted(bool weighted) const {
     // Are we already in the desired state?
     if(weighted == _weighted) return;
     // Do we have a cached result we can use?
-    if(false && _dataCache.size() > 0) {
+    if(_dataCache.size() > 0) {
         // Enable argument-dependent lookup (ADL)
         using std::swap;
         swap(_data,_dataCache);
