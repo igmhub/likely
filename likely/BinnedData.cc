@@ -129,7 +129,7 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
             _weight = 0;
         }
         // Our zero data vector should be interpreted as Cinv.data for the
-        // purposes of adding to the other dataset, below. We don't call setWeighted here
+        // purposes of adding to the other dataset, below. We don't call _setWeighted here
         // because we don't actually want to transform the existing _data.
         _weighted = true;
     }
@@ -144,9 +144,9 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
         }
     }
     // Add the weighted _data vectors, element by element, and save the result in our _data.
-    setWeighted(true);
+    _setWeighted(true);
     _flushDataCache();
-    other.setWeighted(true);
+    other._setWeighted(true);
     for(int offset = 0; offset < _data.size(); ++offset) {
         _data[offset] += weight*other._data[offset];
     }
@@ -164,12 +164,12 @@ void local::BinnedData::unweightData() {
     // Note that both the methods below are const but we still declare this public method
     // as non-const since there is never any need to call it unless it will be followed
     // by a non-const method call that modifies our covariance.
-    setWeighted(false);
+    _setWeighted(false);
     _flushDataCache();
 }
 
-void local::BinnedData::setWeighted(bool weighted) const {
-    //!!if(_weighted != weighted) std::cout << "setWeighted " << _weighted << " -> " << weighted << std::endl;
+void local::BinnedData::_setWeighted(bool weighted) const {
+    //!!if(_weighted != weighted) std::cout << "_setWeighted " << _weighted << " -> " << weighted << std::endl;
     // Are we already in the desired state?
     if(weighted == _weighted) return;
     // Do we have a cached result we can use?
@@ -348,12 +348,12 @@ double local::BinnedData::getData(int index, bool weighted) const {
     if(!hasData(index)) {
         throw RuntimeError("BinnedData::getData: bin is empty.");
     }
-    setWeighted(weighted);
+    _setWeighted(weighted);
     return _data[_offset[index]];
 }
 
 void local::BinnedData::setData(int index, double value, bool weighted) {
-    setWeighted(weighted);
+    _setWeighted(weighted);
     _flushDataCache();
     if(hasData(index)) {
         _data[_offset[index]] = value;
@@ -375,7 +375,7 @@ void local::BinnedData::addData(int index, double offset, bool weighted) {
     if(!hasData(index)) {
         throw RuntimeError("BinnedData::addData: bin is empty.");        
     }
-    setWeighted(weighted);
+    _setWeighted(weighted);
     _flushDataCache();
     _data[_offset[index]] += offset;
 }
@@ -414,7 +414,7 @@ void local::BinnedData::setCovariance(int index1, int index2, double value) {
     if(!isCovarianceModifiable()) {
         throw RuntimeError("BinnedData::setCovariance: cannot modify shared covariance.");
     }
-    // Note that we do not call setWeighted here, so we are changing the meaning
+    // Note that we do not call _setWeighted here, so we are changing the meaning
     // of _data in a way that depends on the current value of _weighted.
     _covariance->setCovariance(_offset[index1],_offset[index2],value);
 }
@@ -433,7 +433,7 @@ void local::BinnedData::setInverseCovariance(int index1, int index2, double valu
     if(!isCovarianceModifiable()) {
         throw RuntimeError("BinnedData::setInverseCovariance: cannot modify shared covariance.");
     }
-    // Note that we do not call setWeighted here, so we are changing the meaning
+    // Note that we do not call _setWeighted here, so we are changing the meaning
     // of _data in a way that depends on the current value of _weighted.
     _covariance->setInverseCovariance(_offset[index1],_offset[index2],value);
 }
@@ -476,7 +476,7 @@ void local::BinnedData::shareCovarianceMatrix(BinnedData const &other) {
 
 bool local::BinnedData::compress(bool weighted) const {
     // Get our data vector into the requested format (weighted/unweighted)
-    setWeighted(weighted);
+    _setWeighted(weighted);
     // Drop any storage used by our cache of the alternate format.
     std::vector<double>().swap(_dataCache);
     // Compress our covariance matrix, if any.
@@ -608,7 +608,7 @@ local::BinnedDataPtr local::BinnedData::sample(RandomPtr random) const {
     sampled->_offset = _offset;
     sampled->_index = _index;
     // Add our (unweighted) data vector to the sampled noise.
-    setWeighted(false);
+    _setWeighted(false);
     // sampled was constructed with _weighted = false and empty _dataCache so
     // the next line shouldn't actually do anything
     sampled->unweightData();

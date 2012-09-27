@@ -318,7 +318,7 @@ namespace likely {
         void _checkIndex(int index) const;
         // Forces our internal representation to be weighted or unweighted. Other methods call
         // this method automatically, and you should not normally need to call it yourself.
-        void setWeighted(bool weighted) const;
+        void _setWeighted(bool weighted) const;
         // Flushes our data cache.
         void _flushDataCache() const;
 	}; // BinnedData
