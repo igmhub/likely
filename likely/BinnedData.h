@@ -179,7 +179,7 @@ namespace likely {
         // modify its covariance matrix, with a corresponding increase in memory usage.
         void cloneCovariance();
         // Drops any covariance matrix and assigns the specified scalar weight.
-        // Calls setWeighted(false).
+        // Calls unweightData().
         void dropCovariance(double weight = 1);
         // Returns the (inverse) covariance matrix element for the specified pair of global
         // indices, or throws a RuntimeError if either of the corresponding bins has no data,
@@ -198,20 +198,20 @@ namespace likely {
         // with these methods does not directly change the contents of our data vector, but
         // it does change the meaning of weighted data. For example, if isDataWeighted() is true,
         // then setCovariance() changes the subsequent result of getData(...,weighted=false) but
-        // not of getData(...,weighted=true). Use the setWeighted() method for more control of this.
+        // not of getData(...,weighted=true). Use the unweightData() method for more control of this.
         void setCovariance(int index1, int index2, double value);
         void setInverseCovariance(int index1, int index2, double value);
         // Returns a const shared pointer to our covariance matrix, if any.
         CovarianceMatrixCPtr getCovarianceMatrix() const;
         // Replaces our covariance matrix, if any, with the specified matrix or throws a
-        // RuntimeError. Think about whether you want to call setWeighted() first.
+        // RuntimeError. Think about whether you want to call unweightData() first.
         void setCovarianceMatrix(CovarianceMatrixPtr covariance);
         // Replaces our covariance matrix, if any, with the covariance of the specified
         // congruent binned data. After this operation, isCovarianceModifiable will be false
-        // for both binned data objects. Think about whether you want to call setWeighted() first.
+        // for both binned data objects. Think about whether you want to call unweightData() first.
         void shareCovarianceMatrix(BinnedData const &other);
         // Transforms our covariance matrix C by replacing it with C.Dinv.C. On return, D
-        // contains our original covariance matrix. Calls setWeighted(false).
+        // contains our original covariance matrix. Calls unweightData().
         void transformCovariance(CovarianceMatrixPtr D);
 
         // Calculates the chi-square = (data-pred).Cinv.(data-pred) for the specified
