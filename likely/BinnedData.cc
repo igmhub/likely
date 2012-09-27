@@ -176,12 +176,12 @@ void local::BinnedData::_setWeighted(bool weighted, bool flushCache) const {
             swap(_data,_dataCache);
         }
         else {
-        
+//#ifdef PARANOID_DATA_CACHE
             // Save the original state of our cache.
             std::vector<double> saveCache = _dataCache;
-
-            // Copy the original data to our cache.
-            _dataCache = _data;
+//#endif
+            // Copy the original data to our cache (unless we are going to flush it below)
+            if(!flushCache) _dataCache = _data;
         
             // Do the appropriate transformation of our data vector.
             if(weighted) {
@@ -204,7 +204,7 @@ void local::BinnedData::_setWeighted(bool weighted, bool flushCache) const {
                     for(int offset = 0; offset < _data.size(); ++offset) _data[offset] /= _weight;
                 }
             }
-        
+//#ifdef PARANOID_DATA_CACHE
             // If we have a saved cache, was it actually valid?
             if(saveCache.size() > 0) {
                 assert(saveCache.size() == _data.size());
@@ -219,7 +219,7 @@ void local::BinnedData::_setWeighted(bool weighted, bool flushCache) const {
                     }
                 }
             }
-        
+//#endif        
         }
         // Record our new state.
         _weighted = weighted;
