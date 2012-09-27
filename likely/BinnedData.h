@@ -316,11 +316,12 @@ namespace likely {
         void _initialize();
         // Throws a RuntimeError unless the specified global index is valid.
         void _checkIndex(int index) const;
-        // Forces our internal representation to be weighted or unweighted. Other methods call
-        // this method automatically, and you should not normally need to call it yourself.
-        void _setWeighted(bool weighted) const;
-        // Flushes our data cache.
-        void _flushDataCache() const;
+        // Forces our internal representation to be weighted or unweighted. This must be called
+        // with flushCache = true before making any changes to our _data vector or else making
+        // a change to our covariance matrix that should be reflected in future values of
+        // weighted data Cinv.d. The special case of weighted = false and flushCache = true
+        // is implemented in the public non-const (!) method unweightData().
+        void _setWeighted(bool weighted, bool flushCache = false) const;
 	}; // BinnedData
 	
     void swap(BinnedData& a, BinnedData& b);
@@ -339,13 +340,6 @@ namespace likely {
     inline BinnedData::IndexIterator BinnedData::end() const { return _index.end(); }
     inline bool BinnedData::isFinalized() const { return _finalized; }
     inline BinnedData& BinnedData::operator+=(BinnedData const& other) { return add(other); }
-    
-    inline void BinnedData::_flushDataCache() const {
-        // Any cached data is now invalid. We use resize instead of swapping with an empty vector
-        // since we are likely to need at least as much capacity in future, and the overhead of
-        // this cache is small compared with a covariance matrix.
-        _dataCache.resize(0);
-    }
 
 } // likely
 

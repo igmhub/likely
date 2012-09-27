@@ -144,8 +144,7 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
         }
     }
     // Add the weighted _data vectors, element by element, and save the result in our _data.
-    _setWeighted(true);
-    _flushDataCache();
+    _setWeighted(true,true); // flushes any cached data
     other._setWeighted(true);
     for(int offset = 0; offset < _data.size(); ++offset) {
         _data[offset] += weight*other._data[offset];
@@ -164,68 +163,71 @@ void local::BinnedData::unweightData() {
     // Note that both the methods below are const but we still declare this public method
     // as non-const since there is never any need to call it unless it will be followed
     // by a non-const method call that modifies our covariance.
-    _setWeighted(false);
-    _flushDataCache();
+    _setWeighted(false,true); // flushes any cached data
 }
 
-void local::BinnedData::_setWeighted(bool weighted) const {
-    //!!if(_weighted != weighted) std::cout << "_setWeighted " << _weighted << " -> " << weighted << std::endl;
+void local::BinnedData::_setWeighted(bool weighted, bool flushCache) const {
     // Are we already in the desired state?
-    if(weighted == _weighted) return;
-    // Do we have a cached result we can use?
-    if(_dataCache.size() > 0) {
-        // Enable argument-dependent lookup (ADL)
-        using std::swap;
-        swap(_data,_dataCache);
-    }
-    else {
-        
-        // Save the original state of our cache.
-        std::vector<double> saveCache = _dataCache;
-
-        // Copy the original data to our cache.
-        _dataCache = _data;
-        
-        // Do the appropriate transformation of our data vector.
-        if(weighted) {
-            if(hasCovariance() && getNBinsWithData() > 0) {
-                // Change data to Cinv.data
-                _covariance->multiplyByInverseCovariance(_data);
-            }
-            else if(_weight != 1) {
-                // Scale data by _weight, which plays the role of Cinv.
-                for(int offset = 0; offset < _data.size(); ++offset) _data[offset] *= _weight;
-            }
+    if(weighted != _weighted) {
+        // Do we have a cached result we can use?
+        if(_dataCache.size() > 0) {
+            // Enable argument-dependent lookup (ADL)
+            using std::swap;
+            swap(_data,_dataCache);
         }
         else {
-            if(hasCovariance() && getNBinsWithData() > 0) {
-                // Change Cinv.data to data = C.Cinv.data
-                _covariance->multiplyByCovariance(_data);
-            }
-            else if(_weight != 1) {
-                // Scale data by 1/_weight, which plays the role of C.
-                for(int offset = 0; offset < _data.size(); ++offset) _data[offset] /= _weight;
-            }
-        }
         
-        // If we have a saved cache, was it actually valid?
-        if(saveCache.size() > 0) {
-            assert(saveCache.size() == _data.size());
-            for(int offset = 0; offset < _data.size(); ++offset) {
-                double eps = std::fabs(_data[offset] - saveCache[offset]);
-                if(eps > 1e-8) {
-                    std::cerr << "Invalid BinnedData cache: " << offset << ' '
-                        << _data[offset] << " != " << saveCache[offset] << " (eps = "
-                        << eps << ")" << std::endl;
-                    assert(false);
-                    break;
+            // Save the original state of our cache.
+            std::vector<double> saveCache = _dataCache;
+
+            // Copy the original data to our cache.
+            _dataCache = _data;
+        
+            // Do the appropriate transformation of our data vector.
+            if(weighted) {
+                if(hasCovariance() && getNBinsWithData() > 0) {
+                    // Change data to Cinv.data
+                    _covariance->multiplyByInverseCovariance(_data);
+                }
+                else if(_weight != 1) {
+                    // Scale data by _weight, which plays the role of Cinv.
+                    for(int offset = 0; offset < _data.size(); ++offset) _data[offset] *= _weight;
                 }
             }
-        }
+            else {
+                if(hasCovariance() && getNBinsWithData() > 0) {
+                    // Change Cinv.data to data = C.Cinv.data
+                    _covariance->multiplyByCovariance(_data);
+                }
+                else if(_weight != 1) {
+                    // Scale data by 1/_weight, which plays the role of C.
+                    for(int offset = 0; offset < _data.size(); ++offset) _data[offset] /= _weight;
+                }
+            }
         
+            // If we have a saved cache, was it actually valid?
+            if(saveCache.size() > 0) {
+                assert(saveCache.size() == _data.size());
+                for(int offset = 0; offset < _data.size(); ++offset) {
+                    double eps = std::fabs(_data[offset] - saveCache[offset]);
+                    if(eps > 1e-8) {
+                        std::cerr << "Invalid BinnedData cache: " << offset << ' '
+                            << _data[offset] << " != " << saveCache[offset] << " (eps = "
+                            << eps << ")" << std::endl;
+                        assert(false);
+                        break;
+                    }
+                }
+            }
+        
+        }
+        // Record our new state.
+        _weighted = weighted;
     }
-    // Record our new state.
-    _weighted = weighted;
+    // Flush the cache now, if requested. We use resize instead of swapping with an empty vector
+    // since we are likely to need at least as much capacity in future, and the overhead of
+    // this cache is small compared with a covariance matrix.
+    if(flushCache) _dataCache.resize(0);
 }
 
 bool local::BinnedData::isCongruent(BinnedData const& other, bool onlyBinning, bool ignoreCovariance) const {
@@ -353,8 +355,7 @@ double local::BinnedData::getData(int index, bool weighted) const {
 }
 
 void local::BinnedData::setData(int index, double value, bool weighted) {
-    _setWeighted(weighted);
-    _flushDataCache();
+    _setWeighted(weighted,true); // flushes any cached data
     if(hasData(index)) {
         _data[_offset[index]] = value;
     }
@@ -375,8 +376,7 @@ void local::BinnedData::addData(int index, double offset, bool weighted) {
     if(!hasData(index)) {
         throw RuntimeError("BinnedData::addData: bin is empty.");        
     }
-    _setWeighted(weighted);
-    _flushDataCache();
+    _setWeighted(weighted,true); // flushes any cached data
     _data[_offset[index]] += offset;
 }
 
