@@ -163,9 +163,10 @@ namespace likely {
         // stored as Cinv.data rather than data. Changes to our internal representation are
         // triggered automatically, so this method simply allows these changes to be tracked.
         bool isDataWeighted() const;
-        // Forces our internal representation to be weighted or unweighted. Other methods call
-        // this method automatically, and you should not normally need to call it yourself.
-        void setWeighted(bool weighted) const;
+        // Forces our internal data representation to be unweighted and flushes any cached
+        // weighted data. This method must be called immediately before making any change
+        // to our covariance matrix that is intended to change the future values of weighted data.
+        void unweightData();
 
         // Returns true if covariance data is available.
         bool hasCovariance() const;
@@ -315,8 +316,11 @@ namespace likely {
         void _initialize();
         // Throws a RuntimeError unless the specified global index is valid.
         void _checkIndex(int index) const;
-        // Prepares to change at least one element of _data.
-        void _changesData() const;
+        // Forces our internal representation to be weighted or unweighted. Other methods call
+        // this method automatically, and you should not normally need to call it yourself.
+        void setWeighted(bool weighted) const;
+        // Flushes our data cache.
+        void _flushDataCache() const;
 	}; // BinnedData
 	
     void swap(BinnedData& a, BinnedData& b);
@@ -336,7 +340,7 @@ namespace likely {
     inline bool BinnedData::isFinalized() const { return _finalized; }
     inline BinnedData& BinnedData::operator+=(BinnedData const& other) { return add(other); }
     
-    inline void BinnedData::_changesData() const {
+    inline void BinnedData::_flushDataCache() const {
         // Any cached data is now invalid. We use resize instead of swapping with an empty vector
         // since we are likely to need at least as much capacity in future, and the overhead of
         // this cache is small compared with a covariance matrix.

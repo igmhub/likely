@@ -101,7 +101,7 @@ void local::BinnedData::cloneCovariance() {
 
 void local::BinnedData::dropCovariance(double weight) {
     if(isFinalized()) throw RuntimeError("BinnedData::dropCovariance: object is finalized.");
-    setWeighted(false);
+    unweightData();
     _covariance.reset();
     _weight = weight;
 }
@@ -144,8 +144,8 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
         }
     }
     // Add the weighted _data vectors, element by element, and save the result in our _data.
-    _changesData();
     setWeighted(true);
+    _flushDataCache();
     other.setWeighted(true);
     for(int offset = 0; offset < _data.size(); ++offset) {
         _data[offset] += weight*other._data[offset];
@@ -160,6 +160,14 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
     return *this;
 }
 
+void local::BinnedData::unweightData() {
+    // Note that both the methods below are const but we still declare this public method
+    // as non-const since there is never any need to call it unless it will be followed
+    // by a non-const method call that modifies our covariance.
+    setWeighted(false);
+    _flushDataCache();
+}
+
 void local::BinnedData::setWeighted(bool weighted) const {
     //!!if(_weighted != weighted) std::cout << "setWeighted " << _weighted << " -> " << weighted << std::endl;
     // Are we already in the desired state?
@@ -171,8 +179,13 @@ void local::BinnedData::setWeighted(bool weighted) const {
         swap(_data,_dataCache);
     }
     else {
-        // Cache the original data vector for adding/removing weights.
-        //!!_dataCache = _data;
+        
+        // Save the original state of our cache.
+        std::vector<double> saveCache = _dataCache;
+
+        // Copy the original data to our cache.
+        _dataCache = _data;
+        
         // Do the appropriate transformation of our data vector.
         if(weighted) {
             if(hasCovariance() && getNBinsWithData() > 0) {
@@ -194,6 +207,22 @@ void local::BinnedData::setWeighted(bool weighted) const {
                 for(int offset = 0; offset < _data.size(); ++offset) _data[offset] /= _weight;
             }
         }
+        
+        // If we have a saved cache, was it actually valid?
+        if(saveCache.size() > 0) {
+            assert(saveCache.size() == _data.size());
+            for(int offset = 0; offset < _data.size(); ++offset) {
+                double eps = std::fabs(_data[offset] - saveCache[offset]);
+                if(eps > 1e-8) {
+                    std::cerr << "Invalid BinnedData cache: " << offset << ' '
+                        << _data[offset] << " != " << saveCache[offset] << " (eps = "
+                        << eps << ")" << std::endl;
+                    assert(false);
+                    break;
+                }
+            }
+        }
+        
     }
     // Record our new state.
     _weighted = weighted;
@@ -324,8 +353,8 @@ double local::BinnedData::getData(int index, bool weighted) const {
 }
 
 void local::BinnedData::setData(int index, double value, bool weighted) {
-    _changesData();
     setWeighted(weighted);
+    _flushDataCache();
     if(hasData(index)) {
         _data[_offset[index]] = value;
     }
@@ -346,8 +375,8 @@ void local::BinnedData::addData(int index, double offset, bool weighted) {
     if(!hasData(index)) {
         throw RuntimeError("BinnedData::addData: bin is empty.");        
     }
-    _changesData();
     setWeighted(weighted);
+    _flushDataCache();
     _data[_offset[index]] += offset;
 }
 
@@ -414,7 +443,7 @@ void local::BinnedData::transformCovariance(CovarianceMatrixPtr D) {
         throw RuntimeError("BinnedData::transformCovariance: no covariance to transform.");
     }
     // Make sure that our _data vector is independent of our _covariance before it changes.
-    setWeighted(false);
+    unweightData();
     // Replace D with C.Dinv.C where C is our original covariance matrix.
     D->replaceWithTripleProduct(*_covariance);
     // Swap C with D
@@ -489,8 +518,7 @@ void local::BinnedData::prune(std::set<int> const &keep) {
     // Shift our (unweighted) data vector elements down to compress out any elements
     // we are not keeping. We are using the fact that std::set guarantees that iteration
     // follows sort order, from smallest to largest key value.
-    _changesData();
-    setWeighted(false);
+    unweightData();
     int newOffset(0);
     BOOST_FOREACH(int oldOffset, offsets) {
         // oldOffset >= newOffset so we will never clobber an element that we still need
@@ -581,6 +609,9 @@ local::BinnedDataPtr local::BinnedData::sample(RandomPtr random) const {
     sampled->_index = _index;
     // Add our (unweighted) data vector to the sampled noise.
     setWeighted(false);
+    // sampled was constructed with _weighted = false and empty _dataCache so
+    // the next line shouldn't actually do anything
+    sampled->unweightData();
     for(int offset = 0; offset < _data.size(); ++offset) {
         sampled->_data[offset] += _data[offset];
     }

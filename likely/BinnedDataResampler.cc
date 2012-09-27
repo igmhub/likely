@@ -44,7 +44,7 @@ int local::BinnedDataResampler::addObservation(BinnedDataCPtr observation, int r
         }
         BinnedDataCPtr reuseData = _observations[reuseCovIndex];
         // This operation will need an input covariance if the dataset was previously weighted.
-        copy->setWeighted(false);
+        copy->unweightData();
         if(_useScalarWeights) {
             // We already dropped the previously added dataset's covariance, so we need to
             // temporarily reconstruct something here that we can add to our combined dataset.
@@ -122,7 +122,7 @@ bool local::getSubset(int n, unsigned long seqno, std::vector<int> &subset) {
 
 void local::BinnedDataResampler::_addCovariance(BinnedDataPtr sample) const {
     if(!_useScalarWeights) return;
-    sample->setWeighted(false);
+    sample->unweightData();
     double weight = sample->getScalarWeight();
     CovarianceMatrixPtr cov(new CovarianceMatrix(*_combined->getCovarianceMatrix()));
     cov->applyScaleFactor(_combinedScalarWeight/weight);

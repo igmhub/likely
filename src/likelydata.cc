@@ -52,11 +52,11 @@ int main(int argc, char **argv) {
     std::cout << "   initial: " << data.getMemoryState() << std::endl;
     data.printToStream(std::cout);
 
-    data.setWeighted(true);
+    data.getData(0,true);
     std::cout << "  weighted: " << data.getMemoryState() << std::endl;
     data.printToStream(std::cout);
 
-    data.setWeighted(false);    
+    data.getData(0,false);  
     std::cout << "unweighted: " << data.getMemoryState() << std::endl;
     data.printToStream(std::cout);
 
@@ -254,14 +254,14 @@ int main(int argc, char **argv) {
         lk::BinnedDataResampler resamplerMatrix(false,random1), resamplerScalar(true,random2);
         for(int obs = 0; obs < n1; ++obs) {
             lk::BinnedDataPtr data1 = prototype1.sample();
-            data1->setWeighted(false);
+            data1->unweightData();
             data1->setCovarianceMatrix(cov1e);
             resamplerMatrix.addObservation(data1);
             resamplerScalar.addObservation(data1);
         }
         for(int obs = 0; obs < n2; ++obs) {
             lk::BinnedDataPtr data2 = prototype2.sample();
-            data2->setWeighted(false);
+            data2->unweightData();
             data2->setCovarianceMatrix(cov2e);
             resamplerMatrix.addObservation(data2);
             resamplerScalar.addObservation(data2);
