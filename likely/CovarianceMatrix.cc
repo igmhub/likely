@@ -215,21 +215,31 @@ std::vector<double> const &vector, std::vector<double> &result) {
     dspmv_(&uplo,&size,&alpha,&matrix[0],&vector[0],&incr,&beta,&result[0],&incr);
 }
 
-void local::symmetricMatrixEigenSolve(std::vector<double> const &matrix, int size) {
-    static char jobz('N'), uplo('U');
+void local::symmetricMatrixEigenSolve(std::vector<double> const &matrix,
+std::vector<double> &eigenvalues, std::vector<double> &eigenvectors, int size) {
+    static char jobz('V'), uplo('U');
     static int info(0);
+    // Calculate the matrix size if it was not provided.
     if(0 == size) size = symmetricMatrixSize(matrix.size());
-    std::vector<double> eigenvalues(size), eigenvectors(size*size), matrixCopy(matrix);
-    int workSize(1+6*size+size*size), iworkSize(3+5*size);
-    boost::scoped_array<double> work(new double[workSize]);
-    boost::scoped_array<int> iwork(new int[iworkSize]);
-    dspevd_(&jobz,&uplo,&size,&matrixCopy[0],&eigenvalues[0],&eigenvectors[0],&size,
-        &work[0],&workSize,&iwork[0],&iworkSize,&info);
-    if(0 != info) {
-        throw RuntimeError("symmetricMatrixEigenSolve: failed with info = " +
-            boost::lexical_cast<std::string>(info));
-        info = 0;
+    // Allocate space for the eigenvalues and vectors.
+    eigenvalues.resize(size), eigenvectors.resize(size*size);
+    {
+        // copy the input matrix since the algorithm overwrites it
+        std::vector<double> matrixCopy(matrix);
+        // allocate temporory workspaces
+        int workSize(1+6*size+size*size), iworkSize(3+5*size);
+        boost::scoped_array<double> work(new double[workSize]);
+        boost::scoped_array<int> iwork(new int[iworkSize]);
+        dspevd_(&jobz,&uplo,&size,&matrixCopy[0],&eigenvalues[0],&eigenvectors[0],&size,
+            &work[0],&workSize,&iwork[0],&iworkSize,&info);
+        if(0 != info) {
+            throw RuntimeError("symmetricMatrixEigenSolve: failed with info = " +
+                boost::lexical_cast<std::string>(info));
+            info = 0;
+        }
+        // cleanup temporary storage by closing this scope
     }
+    
 }
 
 void local::CovarianceMatrix::prune(std::set<int> const &keep) {

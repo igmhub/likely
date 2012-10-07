@@ -234,7 +234,11 @@ namespace likely {
         std::vector<double> const &vector, std::vector<double> &result);
     // Solves the eigensystem for a symmetric matrix, or throws a RuntimeError. The input matrix
     // is assumed to be in the BLAS packed 'U' format implied by packedMatrixIndex(row,col).
-    void symmetricMatrixEigenSolve(std::vector<double> const &matrix, int size);
+    // The matrix size will be calculated unless a positive value is provided. Fills eigenvalues
+    // and eigenvectors so that eigenvalues are in increasing order and the corresponding
+    // eigenvectors are orthonormal.
+    void symmetricMatrixEigenSolve(std::vector<double> const &matrix,
+        std::vector<double> &eigenvalues, std::vector<double> &eigenvectors, int size = 0);
         
     // Creates a diagonal covariance matrix with constant elements (first form) or specified
     // positive elements (second form).
