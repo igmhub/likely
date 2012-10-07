@@ -201,9 +201,16 @@ namespace likely {
     
     inline bool CovarianceMatrix::isCompressed() const { return _compressed; }
 
-    // Returns the array offset index for the BLAS packed symmetric matrix format
+    // Returns the array offset index for the BLAS packed 'U' symmetric matrix format
     // described at http://www.netlib.org/lapack/lug/node123.html or throws a
-    // RuntimeError for invalid row or col inputs.
+    // RuntimeError for invalid row or col inputs. The corresponding iterator sequence is:
+    //
+    //   int index(0);
+    //   for(int col = 0; col < size; ++col) {
+    //     for(int row = 0; row <= col; ++row) {
+    //       index++;
+    //     }
+    //   }
     int symmetricMatrixIndex(int row, int col, int size);
     // Returns the size of a symmetric matrix in the BLAS packed format implied by
     // symmetricMatrixIndex, or throws a RuntimeError. The size is related to the
@@ -215,16 +222,19 @@ namespace likely {
     // The matrix size will be calculated unless a positive value is provided. Returns
     // the log(determinant) of the input matrix, calculated as the product of the diagonal
     // elements of the Cholesky decomposition.
-    static double choleskyDecompose(std::vector<double> &matrix, int size = 0);
+    double choleskyDecompose(std::vector<double> &matrix, int size = 0);
     // Inverts a symmetric positive definite matrix in place, or throws a RuntimeError.
-    // The input matrix should already be Cholesky decomposed and in the BLAS packed format
+    // The input matrix should already be Cholesky decomposed and in the BLAS packed 'U' format
     // implied by packedMatrixIndex(row,col), e.g. by first calling _choleskyDecompose(matrix).
     // The matrix size will be calculated unless a positive value is provided.
-    static void invertCholesky(std::vector<double> &matrix, int size = 0);
+    void invertCholesky(std::vector<double> &matrix, int size = 0);
     // Multiplies a symmetric matrix by a vector, or throws a RuntimeError. The input matrix
-    // is assumed to be in the BLAS packed format implied by packedMatrixIndex(row,col).
-    static void symmetricMatrixMultiply(std::vector<double> const &matrix,
+    // is assumed to be in the BLAS packed 'U' format implied by packedMatrixIndex(row,col).
+    void symmetricMatrixMultiply(std::vector<double> const &matrix,
         std::vector<double> const &vector, std::vector<double> &result);
+    // Solves the eigensystem for a symmetric matrix, or throws a RuntimeError. The input matrix
+    // is assumed to be in the BLAS packed 'U' format implied by packedMatrixIndex(row,col).
+    void symmetricMatrixEigenSolve(std::vector<double> const &matrix, int size);
         
     // Creates a diagonal covariance matrix with constant elements (first form) or specified
     // positive elements (second form).

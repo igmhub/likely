@@ -5,6 +5,8 @@
 #include "likely/CovarianceMatrix.h"
 #include "likely/CovarianceAccumulator.h"
 
+#include "boost/lexical_cast.hpp"
+
 #include <iostream>
 #include <sys/resource.h>
 
@@ -21,6 +23,22 @@ double elapsed(struct rusage const &before, struct rusage const &after) {
 int main(int argc, char **argv) {
 
     lk::Random::instance()->setSeed(123);
+    
+    {
+        int size(4);
+        lk::CovarianceMatrixCPtr cov = lk::generateRandomCovariance(size);
+        std::vector<double> matrix;
+        for(int col = 0; col < size; ++col) {
+            for(int row = 0; row <= col; ++row) {
+                double value = cov->getCovariance(row,col);
+                matrix.push_back(value);
+                // print matrix elements with full precision for offline checks
+                std::cout << row << ' ' << col << ' '
+                    << boost::lexical_cast<std::string>(value) << std::endl;
+            }
+        }
+        lk::symmetricMatrixEigenSolve(matrix,size);
+    }
     
     int size(3);
     lk::CovarianceMatrix cov(size);

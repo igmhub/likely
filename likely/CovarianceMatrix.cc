@@ -5,6 +5,8 @@
 #include "likely/Random.h"
 
 #include "boost/format.hpp"
+#include "boost/lexical_cast.hpp"
+#include "boost/smart_ptr.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -27,6 +29,10 @@ extern "C" {
     void dsyrk_(char const *uplo, char const *trans, int const *n, int const *k,
         double const *alpha, double const *a, int const *lda, double const *beta,
         double *c, int const *ldc);
+    // http://www.netlib.org/lapack/double/dspevd.f
+    void dspevd_(char const *jobz, char const *uplo, int const *n, double *ap, double *w,
+        double *z, int const *ldz, double *work, int const *lwork, int *iwork,
+        int const *liwork, int *info);
 }
 
 namespace local = likely;
@@ -207,6 +213,23 @@ std::vector<double> const &vector, std::vector<double> &result) {
     std::vector<double>(size).swap(result);
     // See http://netlib.org/blas/dspmv.f
     dspmv_(&uplo,&size,&alpha,&matrix[0],&vector[0],&incr,&beta,&result[0],&incr);
+}
+
+void local::symmetricMatrixEigenSolve(std::vector<double> const &matrix, int size) {
+    static char jobz('N'), uplo('U');
+    static int info(0);
+    if(0 == size) size = symmetricMatrixSize(matrix.size());
+    std::vector<double> eigenvalues(size), eigenvectors(size*size), matrixCopy(matrix);
+    int workSize(1+6*size+size*size), iworkSize(3+5*size);
+    boost::scoped_array<double> work(new double[workSize]);
+    boost::scoped_array<int> iwork(new int[iworkSize]);
+    dspevd_(&jobz,&uplo,&size,&matrixCopy[0],&eigenvalues[0],&eigenvectors[0],&size,
+        &work[0],&workSize,&iwork[0],&iworkSize,&info);
+    if(0 != info) {
+        throw RuntimeError("symmetricMatrixEigenSolve: failed with info = " +
+            boost::lexical_cast<std::string>(info));
+        info = 0;
+    }
 }
 
 void local::CovarianceMatrix::prune(std::set<int> const &keep) {
