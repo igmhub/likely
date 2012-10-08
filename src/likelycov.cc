@@ -25,9 +25,10 @@ int main(int argc, char **argv) {
     lk::Random::instance()->setSeed(123);
     
     {
+        // Generate a random covariance matrix.
         int size(4);
         lk::CovarianceMatrixCPtr cov = lk::generateRandomCovariance(size);
-        std::vector<double> matrix, eigenvalues, eigenvectors;
+        std::vector<double> matrix;
         for(int col = 0; col < size; ++col) {
             for(int row = 0; row <= col; ++row) {
                 double value = cov->getCovariance(row,col);
@@ -37,16 +38,19 @@ int main(int argc, char **argv) {
                     << boost::lexical_cast<std::string>(value) << std::endl;
             }
         }
-        lk::symmetricMatrixEigenSolve(matrix,eigenvalues,eigenvectors,size);
+        // Solve the eigensystem and find chi2 modes assuming some delta.
+        std::vector<double> eigenvalues, eigenvectors, chi2modes,delta(size,1);
+        double chi2 = cov->chiSquareModes(delta,eigenvalues,eigenvectors,chi2modes);
+        std::cout << "chi2 = " << chi2 << " =?= " << cov->chiSquare(delta) << std::endl;
+        // Print results
         for(int i = 0; i < size; ++i) {
-            std::cout << "lambda[" << i << "] = " << eigenvalues[i] << " :";
-            for(int j = 0; j < size; ++j) std::cout << ' ' << eigenvectors[i*size+j];
+            std::cout << "[" << i << "] mode = " << chi2modes[i] << ", lambda = "
+                << eigenvalues[i] << ", vector: ";
+            for(int j = 0; j < size; ++j) {
+                std::cout << ' ' << eigenvectors[i*size+j];
+            }
             std::cout << std::endl;
         }
-        std::vector<double> delta(size,1);
-        std::cout << "chi2 = " << cov->chiSquare(delta) << std::endl;
-        double chi2 = cov->chiSquareContributionsToStream(delta,std::cout);
-        std::cout << "chi2 = " << chi2 << std::endl;
     }
     
     int size(3);

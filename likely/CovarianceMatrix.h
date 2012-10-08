@@ -79,11 +79,15 @@ namespace likely {
         // Calculates the chi-square = delta.Cinv.delta for the specified residuals vector delta
         // or throws a RuntimeError.
         double chiSquare(std::vector<double> const &delta) const;
-        // Dumps the contributions to the chi-square associated with each eigenvector of the
-        // covariance to the specified output stream, or throws a RuntimeError. Returns the
-        // chi-square value.
-        double chiSquareContributionsToStream(std::vector<double> const &delta,
-            std::ostream &out) const;
+        // Calculates the contributions to the chi-square for delta associated with each of
+        // our eigenmodes, or throws a RuntimeError. Returns the chi-square value and fills the
+        // vectors provided with the eigenvalues (in decreasing order), corresponding orthonormal
+        // eigenvectors (j-th element of i-th vector is at i*size+j), and chi-square mode
+        // contributions calculated as (eigenvec[i].delta)^2/lambda[i]. The returned chi-square
+        // is the sum of these contributions.
+        double chiSquareModes(std::vector<double> const &delta,
+            std::vector<double> &eigenvalues, std::vector<double> &eigenvectors,
+            std::vector<double> &chi2modes) const;
 
         // Multiplies all elements of the covariance matrix by the specified positive scale factor.
         void applyScaleFactor(double scaleFactor);

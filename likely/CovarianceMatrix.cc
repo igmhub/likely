@@ -503,29 +503,30 @@ double local::CovarianceMatrix::chiSquare(std::vector<double> const &delta) cons
     return result;
 }
 
-double local::CovarianceMatrix::chiSquareContributionsToStream(std::vector<double> const &delta,
-std::ostream &out) const {
+double local::CovarianceMatrix::chiSquareModes(std::vector<double> const &delta,
+std::vector<double> &eigenvalues, std::vector<double> &eigenvectors,
+std::vector<double> &chi2modes) const {
     // Solve our eigensystem for Cinv
-    // TODO: if only C is available, solve its eigensystem instead, remembering lambda -> 1/lambda
-    // and that ordering is reversed.
+    // TODO: if only C is available, solve its eigensystem instead, remembering to transform
+    // lambda -> 1/lambda and that eigenvalue ordering is therefore reversed.
     _readsICov();
-    std::vector<double> eigenvalues, eigenvectors;
     symmetricMatrixEigenSolve(_icov,eigenvalues,eigenvectors,_size);
-    // Loop over eigenvalues of Cinv
+    // Loop over eigenmodes of Cinv
     double chi2(0);
+    chi2modes.resize(0);
+    chi2modes.reserve(_size);
     for(int i = 0; i < _size; ++i) {
-        // Print the corresponding eigenvalue of C
-        out << boost::lexical_cast<std::string>(1./eigenvalues[i]);
-        // Print the components of this eigenvector and accumulate the transformed delta.
-        double transformed(0);
+        // Calculate the dot product of eigenvector i with delta
+        double dotprod(0);
         for(int j = 0; j < _size; ++j) {
-            double elem = eigenvectors[i*_size + j];
-            out << ' ' << boost::lexical_cast<std::string>(elem);
-            transformed += elem*delta[j];
+            dotprod += eigenvectors[i*_size + j]*delta[j];
         }
-        // Print out the contribution to chi2 due to this eigenvalue.
-        double chi2i = transformed*transformed*eigenvalues[i];
-        out << ' ' << boost::lexical_cast<std::string>(chi2i) << std::endl;
+        // Calculate and save the contribution to chi2 due to this eigenmode.
+        double chi2i = dotprod*dotprod*eigenvalues[i];
+        // Replace lambda with 1/lambda so that we return decreasing eigenvalues of cov
+        // instead of increasing eigenvalues of icov.
+        eigenvalues[i] = 1/eigenvalues[i];
+        chi2modes.push_back(chi2i);
         chi2 += chi2i;
     }
     return chi2;
