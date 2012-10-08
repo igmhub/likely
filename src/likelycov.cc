@@ -43,6 +43,10 @@ int main(int argc, char **argv) {
             for(int j = 0; j < size; ++j) std::cout << ' ' << eigenvectors[i*size+j];
             std::cout << std::endl;
         }
+        std::vector<double> delta(size,1);
+        std::cout << "chi2 = " << cov->chiSquare(delta) << std::endl;
+        double chi2 = cov->chiSquareContributionsToStream(delta,std::cout);
+        std::cout << "chi2 = " << chi2 << std::endl;
     }
     
     int size(3);

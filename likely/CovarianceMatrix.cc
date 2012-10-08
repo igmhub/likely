@@ -238,8 +238,7 @@ std::vector<double> &eigenvalues, std::vector<double> &eigenvectors, int size) {
             info = 0;
         }
         // cleanup temporary storage by closing this scope
-    }
-    
+    }   
 }
 
 void local::CovarianceMatrix::prune(std::set<int> const &keep) {
@@ -502,6 +501,34 @@ double local::CovarianceMatrix::chiSquare(std::vector<double> const &delta) cons
         result += delta[k]*icovDelta[k];
     }
     return result;
+}
+
+double local::CovarianceMatrix::chiSquareContributionsToStream(std::vector<double> const &delta,
+std::ostream &out) const {
+    // Solve our eigensystem for Cinv
+    // TODO: if only C is available, solve its eigensystem instead, remembering lambda -> 1/lambda
+    // and that ordering is reversed.
+    _readsICov();
+    std::vector<double> eigenvalues, eigenvectors;
+    symmetricMatrixEigenSolve(_icov,eigenvalues,eigenvectors,_size);
+    // Loop over eigenvalues of Cinv
+    double chi2(0);
+    for(int i = 0; i < _size; ++i) {
+        // Print the corresponding eigenvalue of C
+        out << boost::lexical_cast<std::string>(1./eigenvalues[i]);
+        // Print the components of this eigenvector and accumulate the transformed delta.
+        double transformed(0);
+        for(int j = 0; j < _size; ++j) {
+            double elem = eigenvectors[i*_size + j];
+            out << ' ' << boost::lexical_cast<std::string>(elem);
+            transformed += elem*delta[j];
+        }
+        // Print out the contribution to chi2 due to this eigenvalue.
+        double chi2i = transformed*transformed*eigenvalues[i];
+        out << ' ' << boost::lexical_cast<std::string>(chi2i) << std::endl;
+        chi2 += chi2i;
+    }
+    return chi2;
 }
 
 double local::CovarianceMatrix::sample(std::vector<double> &delta, RandomPtr random) const {
