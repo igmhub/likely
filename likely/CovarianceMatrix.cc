@@ -554,6 +554,37 @@ std::vector<double> &chi2modes) const {
     return chi2;
 }
 
+void local::CovarianceMatrix::rescaleEigenvalues(std::vector<double> const &scales) {
+    if(scales.size() != _size) {
+        throw RuntimeError("CovarianceMatrix::rescaleEigenvalues: bad size for scales.");
+    }
+    // Solve our eigensystem for Cinv
+    _changesICov();
+    std::vector<double> eigenvalues,eigenvectors;
+    symmetricMatrixEigenSolve(_icov,eigenvalues,eigenvectors,_size);
+    // Rescale each eigenvalue.
+    std::vector<double> scaleFactors(eigenvalues);
+    for(int j = 0; j < _size; ++j) {
+        if(scales[j] <= 0) throw RuntimeError("CovarianceMatrix::rescaleEigenvalues: got scale <= 0.");
+        // The sqrt is because we will be use matrixSquare below.
+        scaleFactors[j] = std::sqrt(eigenvalues[j]/scales[j]);
+    }
+    // Next we replace X with S.X where S is a diagonal matrix of scaleFactors and X[j*size+i] is
+    // the i-th element of the j-th eigenvector.
+    int index(0);
+    // Loop over eigenvectors
+    for(int j = 0; j < _size; ++j) {
+        double scale = std::sqrt(eigenvalues[j]/scales[j]);
+        // Loop over components of this eigenvector
+        for(int i = 0; i < _size; ++i) {
+            //eigenvectors[index++] *= scaleFactors[i];
+            eigenvectors[index++] *= scale;
+        }
+    }
+    // Finally, fill _icov with X.Xt
+    matrixSquare(eigenvectors,_icov,false,_size);
+}
+
 double local::CovarianceMatrix::sample(std::vector<double> &delta, RandomPtr random) const {
     // Use the default generator if none was specified.
     if(!random) random = Random::instance();

@@ -91,6 +91,9 @@ namespace likely {
 
         // Multiplies all elements of the covariance matrix by the specified positive scale factor.
         void applyScaleFactor(double scaleFactor);
+        // Rescales the covariance eigenvalues, listed in decreasing order, with the specified
+        // vector of scale factors.
+        void rescaleEigenvalues(std::vector<double> const &scales);
         // Replaces the original covariance matrix contents C with the triple matrix
         // product A.Cinv.A for the specified other covariance matrix A. For A,C both positive
         // definite, the result is a new (positive definite) covariance matrix.

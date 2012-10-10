@@ -62,6 +62,11 @@ int main(int argc, char **argv) {
                     << lsquare[index] << ' ' << rsquare[index] << std::endl;
             }
         }
+        std::vector<double> scales;
+        for(int i = 0; i < size; ++i) scales.push_back(1);
+        lk::CovarianceMatrixPtr cov2(new lk::CovarianceMatrix(*cov));
+        cov2->rescaleEigenvalues(scales);
+        cov2->printToStream(std::cout);
     }
     
     int size(3);
