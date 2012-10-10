@@ -51,6 +51,17 @@ int main(int argc, char **argv) {
             }
             std::cout << std::endl;
         }
+        std::vector<double> lsquare,rsquare;
+        lk::matrixSquare(eigenvectors,lsquare,true,size);
+        lk::matrixSquare(eigenvectors,rsquare,true,size);
+        for(int col = 0; col < size; ++col) {
+            for(int row = 0; row <= col; ++row) {
+                int index = lk::symmetricMatrixIndex(row,col,size);
+                std::cout << index << ' ' << row << ' ' << col << ' '
+                    << cov->getCovariance(row,col) << ' '
+                    << lsquare[index] << ' ' << rsquare[index] << std::endl;
+            }
+        }
     }
     
     int size(3);

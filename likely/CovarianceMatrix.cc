@@ -200,6 +200,28 @@ void local::invertCholesky(std::vector<double> &matrix, int size) {
     }
 } 
 
+void local::matrixSquare(std::vector<double> const &matrix, std::vector<double> &result,
+bool transposeLeft, int size) {
+    static char uplo('U');
+    static int info(0);
+    static double alpha(1),beta(0);
+    // Calculate the matrix size, if necessary.
+    if(0 == size) size = symmetricMatrixSize(matrix.size());
+    // Calculate Mt.M or M.Mt ?
+    char trans = transposeLeft ? 'T' : 'N';
+    boost::shared_array<double> unpackedResult(new double [size*size]);
+    dsyrk_(&uplo,&trans,&size,&size,&alpha,&matrix[0],&size,&beta,unpackedResult.get(),&size);
+    // Pack the result back into 'U' format.
+    result.resize(0);
+    result.reserve((size*(size+1))/2);
+    for(int col = 0; col < size; ++col) {
+        int base(col*size);
+        for(int row = 0; row <= col; ++row) {
+            result.push_back(unpackedResult[base++]);
+        }
+    }    
+}
+
 void local::symmetricMatrixMultiply(std::vector<double> const &matrix,
 std::vector<double> const &vector, std::vector<double> &result) {
     static char uplo('U');

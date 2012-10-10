@@ -241,6 +241,12 @@ namespace likely {
     // is assumed to be in the BLAS packed 'U' format implied by packedMatrixIndex(row,col).
     void symmetricMatrixMultiply(std::vector<double> const &matrix,
         std::vector<double> const &vector, std::vector<double> &result);
+    // Fills the result vector with Mt.M (transposeLeft = true) or M.Mt (transposeLeft = false)
+    // where M is the input (unpacked) matrix, and result is in the BLAS packed 'U' format
+    // implied by packedMatrixIndex(row,col). The matrix size will be calculated unless a
+    // positive value is provided. 
+    void matrixSquare(std::vector<double> const &matrix, std::vector<double> &result,
+        bool transposeLeft, int size = 0);
     // Solves the eigensystem for a symmetric matrix, or throws a RuntimeError. The input matrix
     // is assumed to be in the BLAS packed 'U' format implied by packedMatrixIndex(row,col).
     // The matrix size will be calculated unless a positive value is provided. Fills eigenvalues
