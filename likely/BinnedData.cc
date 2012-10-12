@@ -428,6 +428,20 @@ void local::BinnedData::transformCovariance(CovarianceMatrixPtr D) {
     swap(*D,*_covariance);
 }
 
+void local::BinnedData::rescaleEigenvalues(std::vector<double> modeScales) {
+    if(!hasCovariance()) {
+        throw RuntimeError("BinnedData::rescaleEigenvalues: no covariance to transform.");
+    }
+    // Check that the scale vector has the expected size.
+    if(modeScales.size() != getNBinsWithData()) {
+        throw RuntimeError("BinnedData::rescaleEigenvalues: unexpected number of mode scales.");
+    }
+    // Make sure that our _data vector is independent of our _covariance before it changes.
+    unweightData();
+    // Rescale our covariance matrix in place.
+    _covariance->rescaleEigenvalues(modeScales);
+}
+
 void local::BinnedData::setCovarianceMatrix(CovarianceMatrixPtr covariance) {
     if(isFinalized()) {
         throw RuntimeError("BinnedData::setCovarianceMatrix: object is finalized.");
