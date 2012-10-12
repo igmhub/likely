@@ -63,10 +63,20 @@ int main(int argc, char **argv) {
             }
         }
         std::vector<double> scales;
-        for(int i = 0; i < size; ++i) scales.push_back(1);
+        for(int i = 0; i < size; ++i) scales.push_back(i+1);
         lk::CovarianceMatrixPtr cov2(new lk::CovarianceMatrix(*cov));
         cov2->rescaleEigenvalues(scales);
         cov2->printToStream(std::cout);
+        chi2 = cov2->chiSquareModes(delta,eigenvalues,eigenvectors,chi2modes);
+        std::cout << "rescaled chi2 = " << chi2 << std::endl;
+        for(int i = 0; i < size; ++i) {
+            std::cout << "[" << i << "] mode = " << chi2modes[i] << ", lambda = "
+                << eigenvalues[i] << ", vector: ";
+            for(int j = 0; j < size; ++j) {
+                std::cout << ' ' << eigenvectors[i*size+j];
+            }
+            std::cout << std::endl;
+        }
     }
     
     int size(3);
