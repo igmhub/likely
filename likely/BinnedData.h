@@ -215,7 +215,7 @@ namespace likely {
         void transformCovariance(CovarianceMatrixPtr D);
         // Transforms our covariance matrix by rescaling each eigenmode using the specified
         // vector. See CovarianceMatrix::rescaleEigenvalues() for details. Calls unweightData().
-        void rescaleEigenvalues(std::vector<double> modeScales);
+        virtual void rescaleEigenvalues(std::vector<double> modeScales);
 
         // Calculates the chi-square = (data-pred).Cinv.(data-pred) for the specified
         // vector of predicted data, or throws a RuntimeError. The predicted data vector
