@@ -442,6 +442,19 @@ void local::BinnedData::rescaleEigenvalues(std::vector<double> modeScales) {
     _covariance->rescaleEigenvalues(modeScales);
 }
 
+int local::BinnedData::projectOntoModes(int nkeep) {
+    if(isFinalized()) {
+        throw RuntimeError("BinnedData::projectOntoModes: object is finalized.");
+    }
+    if(!hasCovariance()) {
+        throw RuntimeError("BinnedData::projectOntoModes: no covariance to define modes.");
+    }
+    if(0 == nkeep || nkeep >= getNBinsWithData()) {
+        throw RuntimeError("BinnedData::projectOntoModes: invalid value of nkeep.");
+    }
+    return 0;
+}
+
 void local::BinnedData::setCovarianceMatrix(CovarianceMatrixPtr covariance) {
     if(isFinalized()) {
         throw RuntimeError("BinnedData::setCovarianceMatrix: object is finalized.");

@@ -249,6 +249,13 @@ namespace likely {
         // will be changed. If an existing covariance matrix is not modifiable, it will
         // be cloned before pruning.
         void prune(std::set<int> const &keep);
+        
+        // Projects our data onto a subspace defined by a set of eigenmodes of our covariance
+        // and returns the number of degrees of freedom removed by this operation. If nkeep > 0,
+        // then the subspace is spanned by the nkeep eigenmodes with the smallest covariance
+        // eigenvalues (i.e., smallest variances). If nkeep < 0, then the subspace is spanned by
+        // the nkeep largest modes. The complement of project(nkeep) is project(nkeep-getNBinsWithData()).
+        int projectOntoModes(int nkeep);
 
         // Finalizes this object by preventing any further changes to our "shape", as
         // implemented by isCongruent(). Specifically, an existing covariance cannot be
