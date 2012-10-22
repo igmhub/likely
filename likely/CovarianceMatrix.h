@@ -71,6 +71,11 @@ namespace likely {
         // return value if you are not using this functionality.
         CovarianceMatrix &setCovariance(int row, int col, double value);
         CovarianceMatrix &setInverseCovariance(int row, int col, double value);
+        
+        // Fills the vectors provided with the eigenvectors and eigenmodes of our inverse covariance.
+        // Vectors are ordered by increasing inverse covariance eigenvalue, i.e., from large to small
+        // variance. See symmetricMatrixEigenSolve for details.
+        void getEigenModes(std::vector<double> &eigenvalues, std::vector<double> &eigenvectors) const;
 
         // Multiplies the specified vector by the (inverse) covariance or throws a RuntimeError.
         // The result is stored in the input vector, overwriting its original contents.

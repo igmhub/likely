@@ -525,14 +525,19 @@ double local::CovarianceMatrix::chiSquare(std::vector<double> const &delta) cons
     return result;
 }
 
+void local::CovarianceMatrix::getEigenModes(
+std::vector<double> &eigenvalues, std::vector<double> &eigenvectors) const {
+    // Solve our eigensystem for Cinv
+    // TODO: if only C is available, solve its eigensystem instead, remembering to transform
+    // lambda -> 1/lambda and to reverse eigenvalues vector.
+    _readsICov();
+    symmetricMatrixEigenSolve(_icov,eigenvalues,eigenvectors,_size);    
+}
+
 double local::CovarianceMatrix::chiSquareModes(std::vector<double> const &delta,
 std::vector<double> &eigenvalues, std::vector<double> &eigenvectors,
 std::vector<double> &chi2modes) const {
-    // Solve our eigensystem for Cinv
-    // TODO: if only C is available, solve its eigensystem instead, remembering to transform
-    // lambda -> 1/lambda and that eigenvalue ordering is therefore reversed.
-    _readsICov();
-    symmetricMatrixEigenSolve(_icov,eigenvalues,eigenvectors,_size);
+    getEigenModes(eigenvalues,eigenvectors);
     // Loop over eigenmodes of Cinv
     double chi2(0);
     chi2modes.resize(0);
