@@ -449,10 +449,42 @@ int local::BinnedData::projectOntoModes(int nkeep) {
     if(!hasCovariance()) {
         throw RuntimeError("BinnedData::projectOntoModes: no covariance to define modes.");
     }
-    if(0 == nkeep || nkeep >= getNBinsWithData()) {
+    int size(getNBinsWithData());
+    if(0 == nkeep || nkeep >= size) {
         throw RuntimeError("BinnedData::projectOntoModes: invalid value of nkeep.");
     }
-    return 0;
+    // Do the eigenmode analysis.
+    std::vector<double> eigenvalues,eigenvectors;
+    _covariance->getEigenModes(eigenvalues,eigenvectors);
+    // What range of modes are we projecting onto?
+    int index1,index2,ndrop;
+    if(nkeep > 0) {
+        index1 = 0;
+        index2 = nkeep;
+        ndrop = size - nkeep;
+    }
+    else {
+        index1 = size + nkeep;
+        index2 = size;
+        ndrop = size + nkeep;
+    }
+    // Prepare to change our data vector.
+    unweightData();
+    std::vector<double> projected(size,0);
+    // Loop over modes
+    for(int index = index1; index < index1; ++index) {
+        // Calculate the dot product of this mode with our data vector.
+        double dotprod(0);
+        for(int bin = 0; bin < size; ++bin) {
+            dotprod += _data[bin]*eigenvectors[index*size+bin];
+        }
+        // Update our projected vector.
+        for(int bin = 0; bin < size; ++bin) {
+            projected[bin] += dotprod*eigenvectors[index*size+bin];
+        }
+    }
+    _data = projected;
+    return ndrop;
 }
 
 void local::BinnedData::setCovarianceMatrix(CovarianceMatrixPtr covariance) {
