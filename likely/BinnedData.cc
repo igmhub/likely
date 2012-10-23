@@ -472,7 +472,7 @@ int local::BinnedData::projectOntoModes(int nkeep) {
     unweightData();
     std::vector<double> projected(size,0);
     // Loop over modes
-    for(int index = index1; index < index1; ++index) {
+    for(int index = index1; index < index2; ++index) {
         // Calculate the dot product of this mode with our data vector.
         double dotprod(0);
         for(int bin = 0; bin < size; ++bin) {
