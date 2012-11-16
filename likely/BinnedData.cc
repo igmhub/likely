@@ -450,7 +450,7 @@ int local::BinnedData::projectOntoModes(int nkeep) {
         throw RuntimeError("BinnedData::projectOntoModes: no covariance to define modes.");
     }
     int size(getNBinsWithData());
-    if(0 == nkeep || nkeep >= size) {
+    if(0 == nkeep || nkeep >= size || nkeep <= -size) {
         throw RuntimeError("BinnedData::projectOntoModes: invalid value of nkeep.");
     }
     // Do the eigenmode analysis.
