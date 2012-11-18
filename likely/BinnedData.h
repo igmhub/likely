@@ -213,6 +213,9 @@ namespace likely {
         // Transforms our covariance matrix C by replacing it with C.Dinv.C. On return, D
         // contains our original covariance matrix. Calls unweightData().
         void transformCovariance(CovarianceMatrixPtr D);
+        // Transforms our covariance matrix by rescaling each eigenmode using the specified
+        // vector. See CovarianceMatrix::rescaleEigenvalues() for details. Calls unweightData().
+        virtual void rescaleEigenvalues(std::vector<double> modeScales);
 
         // Calculates the chi-square = (data-pred).Cinv.(data-pred) for the specified
         // vector of predicted data, or throws a RuntimeError. The predicted data vector
@@ -246,6 +249,13 @@ namespace likely {
         // will be changed. If an existing covariance matrix is not modifiable, it will
         // be cloned before pruning.
         void prune(std::set<int> const &keep);
+        
+        // Projects our data onto a subspace defined by a set of eigenmodes of our covariance
+        // and returns the number of degrees of freedom removed by this operation. If nkeep > 0,
+        // then the subspace is spanned by the nkeep eigenmodes with the largest covariance
+        // eigenvalues (i.e., largest variances). If nkeep < 0, then the subspace is spanned by
+        // the nkeep smallest modes. The complement of project(nkeep) is project(nkeep-getNBinsWithData()).
+        int projectOntoModes(int nkeep);
 
         // Finalizes this object by preventing any further changes to our "shape", as
         // implemented by isCongruent(). Specifically, an existing covariance cannot be

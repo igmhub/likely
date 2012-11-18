@@ -428,6 +428,65 @@ void local::BinnedData::transformCovariance(CovarianceMatrixPtr D) {
     swap(*D,*_covariance);
 }
 
+void local::BinnedData::rescaleEigenvalues(std::vector<double> modeScales) {
+    if(!hasCovariance()) {
+        throw RuntimeError("BinnedData::rescaleEigenvalues: no covariance to transform.");
+    }
+    // Check that the scale vector has the expected size.
+    if(modeScales.size() != getNBinsWithData()) {
+        throw RuntimeError("BinnedData::rescaleEigenvalues: unexpected number of mode scales.");
+    }
+    // Make sure that our _data vector is independent of our _covariance before it changes.
+    unweightData();
+    // Rescale our covariance matrix in place.
+    _covariance->rescaleEigenvalues(modeScales);
+}
+
+int local::BinnedData::projectOntoModes(int nkeep) {
+    if(isFinalized()) {
+        throw RuntimeError("BinnedData::projectOntoModes: object is finalized.");
+    }
+    if(!hasCovariance()) {
+        throw RuntimeError("BinnedData::projectOntoModes: no covariance to define modes.");
+    }
+    int size(getNBinsWithData());
+    if(0 == nkeep || nkeep >= size || nkeep <= -size) {
+        throw RuntimeError("BinnedData::projectOntoModes: invalid value of nkeep.");
+    }
+    // Do the eigenmode analysis.
+    std::vector<double> eigenvalues,eigenvectors;
+    _covariance->getEigenModes(eigenvalues,eigenvectors);
+    // What range of modes are we projecting onto?
+    int index1,index2,ndrop;
+    if(nkeep > 0) {
+        index1 = 0;
+        index2 = nkeep;
+        ndrop = size - nkeep;
+    }
+    else {
+        index1 = size + nkeep;
+        index2 = size;
+        ndrop = size + nkeep;
+    }
+    // Prepare to change our data vector.
+    unweightData();
+    std::vector<double> projected(size,0);
+    // Loop over modes
+    for(int index = index1; index < index2; ++index) {
+        // Calculate the dot product of this mode with our data vector.
+        double dotprod(0);
+        for(int bin = 0; bin < size; ++bin) {
+            dotprod += _data[bin]*eigenvectors[index*size+bin];
+        }
+        // Update our projected vector.
+        for(int bin = 0; bin < size; ++bin) {
+            projected[bin] += dotprod*eigenvectors[index*size+bin];
+        }
+    }
+    _data = projected;
+    return ndrop;
+}
+
 void local::BinnedData::setCovarianceMatrix(CovarianceMatrixPtr covariance) {
     if(isFinalized()) {
         throw RuntimeError("BinnedData::setCovarianceMatrix: object is finalized.");

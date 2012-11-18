@@ -71,6 +71,11 @@ namespace likely {
         // return value if you are not using this functionality.
         CovarianceMatrix &setCovariance(int row, int col, double value);
         CovarianceMatrix &setInverseCovariance(int row, int col, double value);
+        
+        // Fills the vectors provided with the eigenvectors and eigenmodes of our inverse covariance.
+        // Vectors are ordered by increasing inverse covariance eigenvalue, i.e., from large to small
+        // variance. See symmetricMatrixEigenSolve for details.
+        void getEigenModes(std::vector<double> &eigenvalues, std::vector<double> &eigenvectors) const;
 
         // Multiplies the specified vector by the (inverse) covariance or throws a RuntimeError.
         // The result is stored in the input vector, overwriting its original contents.
@@ -79,9 +84,21 @@ namespace likely {
         // Calculates the chi-square = delta.Cinv.delta for the specified residuals vector delta
         // or throws a RuntimeError.
         double chiSquare(std::vector<double> const &delta) const;
+        // Calculates the contributions to the chi-square for delta associated with each of
+        // our eigenmodes, or throws a RuntimeError. Returns the chi-square value and fills the
+        // vectors provided with the eigenvalues (in decreasing order), corresponding orthonormal
+        // eigenvectors (j-th element of i-th vector is at i*size+j), and chi-square mode
+        // contributions calculated as (eigenvec[i].delta)^2/lambda[i]. The returned chi-square
+        // is the sum of these contributions.
+        double chiSquareModes(std::vector<double> const &delta,
+            std::vector<double> &eigenvalues, std::vector<double> &eigenvectors,
+            std::vector<double> &chi2modes) const;
 
         // Multiplies all elements of the covariance matrix by the specified positive scale factor.
         void applyScaleFactor(double scaleFactor);
+        // Rescales the covariance eigenvalues, listed in decreasing order, with the specified
+        // vector of scale factors.
+        void rescaleEigenvalues(std::vector<double> const &scales);
         // Replaces the original covariance matrix contents C with the triple matrix
         // product A.Cinv.A for the specified other covariance matrix A. For A,C both positive
         // definite, the result is a new (positive definite) covariance matrix.
@@ -201,9 +218,16 @@ namespace likely {
     
     inline bool CovarianceMatrix::isCompressed() const { return _compressed; }
 
-    // Returns the array offset index for the BLAS packed symmetric matrix format
+    // Returns the array offset index for the BLAS packed 'U' symmetric matrix format
     // described at http://www.netlib.org/lapack/lug/node123.html or throws a
-    // RuntimeError for invalid row or col inputs.
+    // RuntimeError for invalid row or col inputs. The corresponding iterator sequence is:
+    //
+    //   int index(0);
+    //   for(int col = 0; col < size; ++col) {
+    //     for(int row = 0; row <= col; ++row) {
+    //       index++;
+    //     }
+    //   }
     int symmetricMatrixIndex(int row, int col, int size);
     // Returns the size of a symmetric matrix in the BLAS packed format implied by
     // symmetricMatrixIndex, or throws a RuntimeError. The size is related to the
@@ -215,16 +239,29 @@ namespace likely {
     // The matrix size will be calculated unless a positive value is provided. Returns
     // the log(determinant) of the input matrix, calculated as the product of the diagonal
     // elements of the Cholesky decomposition.
-    static double choleskyDecompose(std::vector<double> &matrix, int size = 0);
+    double choleskyDecompose(std::vector<double> &matrix, int size = 0);
     // Inverts a symmetric positive definite matrix in place, or throws a RuntimeError.
-    // The input matrix should already be Cholesky decomposed and in the BLAS packed format
+    // The input matrix should already be Cholesky decomposed and in the BLAS packed 'U' format
     // implied by packedMatrixIndex(row,col), e.g. by first calling _choleskyDecompose(matrix).
     // The matrix size will be calculated unless a positive value is provided.
-    static void invertCholesky(std::vector<double> &matrix, int size = 0);
+    void invertCholesky(std::vector<double> &matrix, int size = 0);
     // Multiplies a symmetric matrix by a vector, or throws a RuntimeError. The input matrix
-    // is assumed to be in the BLAS packed format implied by packedMatrixIndex(row,col).
-    static void symmetricMatrixMultiply(std::vector<double> const &matrix,
+    // is assumed to be in the BLAS packed 'U' format implied by packedMatrixIndex(row,col).
+    void symmetricMatrixMultiply(std::vector<double> const &matrix,
         std::vector<double> const &vector, std::vector<double> &result);
+    // Fills the result vector with Mt.M (transposeLeft = true) or M.Mt (transposeLeft = false)
+    // where M is the input (unpacked) matrix, and result is in the BLAS packed 'U' format
+    // implied by packedMatrixIndex(row,col). The matrix size will be calculated unless a
+    // positive value is provided. 
+    void matrixSquare(std::vector<double> const &matrix, std::vector<double> &result,
+        bool transposeLeft, int size = 0);
+    // Solves the eigensystem for a symmetric matrix, or throws a RuntimeError. The input matrix
+    // is assumed to be in the BLAS packed 'U' format implied by packedMatrixIndex(row,col).
+    // The matrix size will be calculated unless a positive value is provided. Fills eigenvalues
+    // and eigenvectors so that eigenvalues are in increasing order and the corresponding
+    // eigenvectors are orthonormal.
+    void symmetricMatrixEigenSolve(std::vector<double> const &matrix,
+        std::vector<double> &eigenvalues, std::vector<double> &eigenvectors, int size = 0);
         
     // Creates a diagonal covariance matrix with constant elements (first form) or specified
     // positive elements (second form).
