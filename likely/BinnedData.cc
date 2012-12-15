@@ -10,6 +10,7 @@
 #include "boost/lexical_cast.hpp"
 
 #include <iostream>
+#include <fstream>
 
 namespace local = likely;
 
@@ -633,6 +634,40 @@ void local::BinnedData::printToStream(std::ostream &out, std::string format) con
         int index(*iter);
         out << (indexFormat % index) << (valueFormat % getData(index)) << std::endl;
     }
+}
+
+void local::BinnedData::saveData(std::string const &filename, bool weighted) const {    
+    std::ofstream out(filename.c_str());
+    for(IndexIterator iter = begin(); iter != end(); ++iter) {
+        double value = getData(*iter,weighted);
+        // Use lexical_cast to ensure that the full double precision is saved.
+        out << *iter << ' ' << boost::lexical_cast<std::string>(value) << std::endl;
+    }
+    out.close();
+}
+
+void local::BinnedData::saveInverseCovariance(std::string const &filename, double scale) const {
+    if(!getCovarianceMatrix()->isPositiveDefinite()) {
+        throw RuntimeError("BinnedData::saveInverseCovariance: matrix is not positive definite.");
+    }
+    std::ofstream out(filename.c_str());
+    for(IndexIterator iter1 = begin(); iter1 != end(); ++iter1) {
+        int index1(*iter1);
+        // Save all diagonal elements.
+        double value = scale*getInverseCovariance(index1,index1);
+        out << index1 << ' ' << index1 << ' '
+            << boost::lexical_cast<std::string>(value) << std::endl;
+        // Loop over pairs with index2 > index1
+        for(IndexIterator iter2 = iter1; ++iter2 != end();) {
+            int index2(*iter2);
+            value = scale*getInverseCovariance(index1,index2);
+            // Only save non-zero off-diagonal elements.
+            if(0 == value) continue;
+            // Use lexical_cast to ensure that the full double precision is saved.
+            out << index1 << ' ' << index2 << ' ' << boost::lexical_cast<std::string>(value) << std::endl;
+        }
+    }
+    out.close();
 }
 
 local::BinnedDataPtr local::BinnedData::sample(RandomPtr random) const {
