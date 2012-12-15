@@ -296,15 +296,16 @@ namespace likely {
         // To print an associated covariance matrix, use getCovarianceMatrix()->printToStream(out,...).
         void printToStream(std::ostream &out, std::string format = std::string("%+10.3lg")) const;
         
-        // Saves our data vector to a text file with the specified name, using full
+        // Saves our data vector in plain text to the specified stream, using full
         // double precision. The format is a list of "index value" lines, where
-        // to value = getData(index,weighted).
-        void saveData(std::string const &filename, bool weighted = false) const;
-        // Saves our inverse covariance matrix to a text file with the specified name,
-        // use full double precision. The formta is a list of "index1 index2 value" lines,
+        // value = getData(index,weighted).
+        void saveData(std::ostream &os, bool weighted = false) const;
+        // Saves our inverse covariance matrix in plain text to the specified stream,
+        // use full double precision. The format is a list of "index1 index2 value" lines,
         // where value = scale*getInverseCovariance(index1,index2). Lines with value==0
-        // or index2 < index1 are not written to the file.
-        void saveInverseCovariance(std::string const &filename, double scale = 1) const;
+        // or index2 < index1 are not written to the file. Throws a RuntimeError if the
+        // covariance is not positive-definite.
+        void saveInverseCovariance(std::ostream &os, double scale = 1) const;
 
         // Returns a string that displays the memory state of this object.
         std::string getMemoryState() const;
