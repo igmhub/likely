@@ -135,6 +135,36 @@ Parameters &toParams) const {
     return nlWeight;
 }
 
+
+void local::FunctionMinimum::printMachineReadableToStream(std::ostream &os) const {
+  if (!hasCovariance()) {
+    std::cout << "Not outputting anythign to MR stream as we don't have covariance." <<std::endl;
+    return;
+  }
+
+  int N(countFitParameters(_parameters,true));
+  os << N << std::endl;
+
+  os.precision(20);
+  
+  for(FitParameters::const_iterator iter = _parameters.begin(); iter != _parameters.end(); ++iter) {
+    if (iter->isFloating()) {
+      os << iter->getName()  << " " << iter->getValue()<<std::endl;
+    }
+  }
+
+  // this just produced a too complicated output.
+  //_covar->printToStream(os,false,"%20.20g");
+  for (int i=0; i<N; i++) {
+    for (int j=0; j<N; j++) {
+      os << _covar->getCovariance(i,j) <<" ";
+    }
+    os<<std::endl;
+  }
+  
+}
+
+
 void local::FunctionMinimum::printToStream(std::ostream &os, std::string const &formatSpec) const {
     boost::format formatter(formatSpec);
     std::vector<std::string> labels;
