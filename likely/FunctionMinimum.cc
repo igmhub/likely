@@ -5,6 +5,7 @@
 #include "likely/CovarianceMatrix.h"
 
 #include "boost/format.hpp"
+#include "boost/lexical_cast.hpp"
 
 #include <iostream>
 #include <algorithm>
@@ -157,5 +158,39 @@ void local::FunctionMinimum::printToStream(std::ostream &os, std::string const &
     if(hasCovariance()) {
         os << std::endl << "FMIN Errors & Correlations =" << std::endl;
         _covar->printToStream(os,true,formatSpec,labels);
+    }
+}
+
+void local::FunctionMinimum::saveParameters(std::ostream &os, bool onlyFloating) const {    
+    int index(0);
+    for(FitParameters::const_iterator iter = _parameters.begin(); iter != _parameters.end(); ++iter,++index) {
+        if(onlyFloating && !iter->isFloating()) continue;
+        // Use lexical_cast to ensure that the full double precision is saved.
+        os << index << ' ' << boost::lexical_cast<std::string>(iter->getValue())
+            << ' ' << boost::lexical_cast<std::string>(iter->getError()) << std::endl;
+    }
+}
+
+void local::FunctionMinimum::saveFloatingParameterCovariance(std::ostream &os, double scale) const {
+    if(!_covar->isPositiveDefinite()) {
+        throw RuntimeError("FunctionMinimum::saveFloatingParameterCovariance: matrix is not positive definite.");
+    }
+    int index1(0),floatingIndex1(0);
+    for(FitParameters::const_iterator iter1 = _parameters.begin(); iter1 != _parameters.end(); ++iter1,++index1) {
+        if(!iter1->isFloating()) continue;
+        // Save all diagonal elements.
+        double value = scale*_covar->getCovariance(floatingIndex1,floatingIndex1);
+        os << index1 << ' ' << index1 << ' '
+            << boost::lexical_cast<std::string>(value) << std::endl;        
+        // Loop over pairs with index2 > index1
+        int index2(index1+1),floatingIndex2(floatingIndex1+1);
+        for(FitParameters::const_iterator iter2 = iter1; ++iter2 != _parameters.end(); ++index2) {
+            if(!iter2->isFloating()) continue;
+            value = scale*_covar->getCovariance(floatingIndex1,floatingIndex2);
+            // Use lexical_cast to ensure that the full double precision is saved.
+            os << index1 << ' ' << index2 << ' ' << boost::lexical_cast<std::string>(value) << std::endl;
+            floatingIndex2++;
+        }
+        floatingIndex1++;
     }
 }

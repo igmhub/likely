@@ -76,6 +76,17 @@ namespace likely {
         // Ouptuts a multiline description of this minimum to the specified stream using
         // the specified printf format for floating point values.
         void printToStream(std::ostream &os, std::string const &formatSpec = "%12.6f") const;
+        // Saves our parameter values and diagonal errors in plain text to the specified stream,
+        // using full double precision. The format is a list of "index value error" lines, where
+        // index values start at zero and include floating and fixed parameters, and error = 0
+        // for fixed parameters.
+        void saveParameters(std::ostream &os, bool onlyFloating = false) const;
+        // Saves our floating-parameter covariance matrix in plain text to the specified stream,
+        // use full double precision. The format is a list of "index1 index2 value" lines,
+        // where value is the scaled covariance matrix element for (index1,index2), with indexing
+        // that matches saveParameterValues(). Lines with value==0 or index2 < index1 are not
+        // written to the file. Throws a RuntimeError if the covariance is not positive-definite.
+        void saveFloatingParameterCovariance(std::ostream &os, double scale = 1) const;
 	private:
         double _minValue;
         int _nFloating;
