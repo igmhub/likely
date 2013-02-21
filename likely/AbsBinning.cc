@@ -43,6 +43,7 @@ bool local::AbsBinning::isValidBinIndex(int index, std::string const &errorForma
 
 #include "likely/UniformSampling.h"
 #include "likely/NonUniformSampling.h"
+#include "likely/UniformBinning.h"
 
 #include "boost/bind.hpp"
 #include "boost/spirit/include/qi.hpp"
@@ -62,25 +63,28 @@ namespace binning {
         Grammar() : base_type(bspec) {
 
             using qi::double_;
+            using qi::int_;
             using qi::_1;
             using qi::lit;
             using phoenix::ref;
             using phoenix::push_back;
 
-            //bspec = plist;
+            bspec = plist | brange;
             
-            bspec = ( double_[push_back(ref(centers),_1)] % ',' )[boost::bind(&Grammar::createWithCenters,this)];
+            // Parse the format x1,x2,...,xn and push values into the centers vector
+            plist = ( double_[push_back(ref(centers),_1)] % ',' )[boost::bind(&Grammar::createWithCenters,this)];
+            
+            // Parse the format [lo,hi]*n and fill the corresponding data members
+            brange = ( '[' >> double_[ref(lo)=_1] >> ',' >> double_[ref(hi)=_1] >> "]*" >> int_[ref(nbins)=_1] )[
+                boost::bind(&Grammar::createWithRange,this)];
 
-            // Specs for each axis (r,mu,z) are separated by commas. All 3 axes must be present.
-            //pspec = axis >> ',' >> axis >> ',' >> axis;
-
-            // Spec for one axis is either n, n1:n2, or n1:n2:dn
-            //axis = ( int_[push_back(ref(specs),_1)] % ':' )[boost::bind(&Grammar::finalizeAxis,this)];
         }
-        qi::rule<std::string::const_iterator> bspec; //,plist;
+        qi::rule<std::string::const_iterator> bspec,plist,brange;
         likely::AbsBinningCPtr binning;
 
         std::vector<double> centers;
+        double lo,hi;
+        int nbins;
         
         void createWithCenters() {
             if(centers.size() > 2) {
@@ -89,6 +93,10 @@ namespace binning {
             else {
                 binning.reset(new likely::UniformSampling(centers.front(),centers.back(),centers.size()));
             }
+        }
+        
+        void createWithRange() {
+            binning.reset(new likely::UniformBinning(lo,hi,nbins));
         }
     };
 } // binning
