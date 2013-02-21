@@ -46,6 +46,11 @@ namespace likely {
     // is set or, otherwise, generates a RuntimeError.
     int readVectors(std::istream &input, std::vector<std::vector<double> > &vectors,
         bool ignoreExtra = true);
+        
+    // Returns a vector of doubles obtained by parsing the specified input string,
+    // where values are separated by the specified delimeter and white space is allowed.
+    // Throws a RuntimeError in case of a parsing error.
+    std::vector<double> parseVector(std::string const &input, std::string const &delim);
 	
 } // likely
 

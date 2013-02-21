@@ -137,6 +137,37 @@ bool ignoreExtra) {
     return lineNumber;
 }
 
+#include "boost/spirit/include/qi.hpp"
+#include "boost/spirit/include/phoenix_core.hpp"
+#include "boost/spirit/include/phoenix_operator.hpp"
+#include "boost/spirit/include/phoenix_stl.hpp"
+
+namespace qi = boost::spirit::qi;
+namespace ascii = boost::spirit::ascii;
+namespace phoenix = boost::phoenix;
+
+std::vector<double> local::parseVector(std::string const &input, std::string const &delim) {
+    // import boost spirit parser symbols
+    using qi::double_;
+    using qi::_1;
+    using qi::lit;
+    using phoenix::ref;
+    using phoenix::push_back;
+
+    // Parse the points string into a vector of doubles.
+    std::vector<double> output;
+    std::string::const_iterator iter = input.begin();
+    bool ok = qi::phrase_parse(iter,input.end(),
+        (
+            double_[push_back(ref(output),_1)] % lit(delim)
+        ),
+        ascii::space);
+    if(!ok || iter != input.end()) {
+        throw RuntimeError("parseVector: badly formatted input.");
+    }
+    return output;
+}
+
 // explicit template instantiations
 
 #include "likely/function_impl.h"

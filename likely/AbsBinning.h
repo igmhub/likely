@@ -3,6 +3,8 @@
 #ifndef LIKELY_ABS_BINNING
 #define LIKELY_ABS_BINNING
 
+#include "likely/types.h"
+
 #include <string>
 #include <iosfwd>
 
@@ -39,6 +41,13 @@ namespace likely {
         void dump(std::ostream &os) const;
 	private:
 	}; // AbsBinning
+	
+	// Creates a new binning object using the specification string provided, or throws a RuntimeError.
+	// The supported specification string formats are:
+	// - "x1,x2,x3,...,xn" => NonUniformSampling for at least 3 points, or else UniformSampling
+	// - "[lo,hi]*n" => UniformBinning coverings [lo,hi] with n bins
+    AbsBinningCPtr createBinning(std::string const &binningSpec);
+    
 } // likely
 
 #endif // LIKELY_ABS_BINNING
