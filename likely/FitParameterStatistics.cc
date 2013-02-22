@@ -59,7 +59,7 @@ void local::FitParameterStatistics::printToStream(std::ostream &out, std::string
     std::string resultSpec("%20s = ");
     resultSpec += formatSpec + " +/- " + formatSpec + " <<< " + formatSpec + " << " + formatSpec + " < " +
         formatSpec + " | " + formatSpec + " | " + formatSpec + " > " + formatSpec + " >> " + formatSpec + " >>>\n";
-    boost::format resultFormat(resultSpec);
+    boost::format resultFormat(resultSpec.c_str());
     out << std::endl << "Fit Parameter Value Statistics:" << std::endl;
     for(int stat = 0; stat <= _nfree; ++stat) {
         double median = _quantiles[stat].getQuantile(0.5);

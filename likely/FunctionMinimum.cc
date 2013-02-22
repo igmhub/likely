@@ -137,7 +137,7 @@ Parameters &toParams) const {
 }
 
 void local::FunctionMinimum::printToStream(std::ostream &os, std::string const &formatSpec) const {
-    boost::format formatter(formatSpec);
+    boost::format formatter(formatSpec.c_str());
     std::vector<std::string> labels;
     getFitParameterNames(_parameters,labels,true);
     if(getStatus() == ERROR) {
