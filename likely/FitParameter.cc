@@ -116,7 +116,7 @@ int local::countFitParameters(FitParameters const &parameters, bool onlyFloating
 
 void local::printFitParametersToStream(FitParameters const &parameters, std::ostream &out,
 std::string const &formatSpec) {
-    boost::format formatter(formatSpec), label("%20s = "), rounded(" $ %16s $");
+    boost::format formatter(formatSpec.c_str()), label("%20s = "), rounded(" $ %16s $");
     std::vector<double> errors(1);
     for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
         double value = iter->getValue();
@@ -334,11 +334,12 @@ std::string local::roundValueWithError(double value, std::vector<double> const &
     std::string formattedValueWithError;
     // Round value and apply floating point format
     long shiftedValue = std::floor(value*largestOffset+.5);
-    formattedValueWithError += (boost::format(format) % (shiftedValue/largestOffset)).str();
+    formattedValueWithError = (boost::format(format.c_str()) % (shiftedValue/largestOffset)).str();
     // Round errors and apply floating point format
     for(int i = 0; i < errors.size(); ++i){
         long shiftedError = std::floor(errors[i]*largestOffset + .5);
-        formattedValueWithError += (boost::format(" %s " + format) % seperator % (shiftedError/largestOffset)).str();
+        formattedValueWithError += (boost::format(" %s ") % seperator).str();
+        formattedValueWithError += (boost::format(format.c_str()) % (shiftedError/largestOffset)).str();
     }
     // Return formatted value with error(s)
     return formattedValueWithError;
