@@ -3,8 +3,8 @@ ACLOCAL_AMFLAGS = -I .
 
 # global compile and link options
 AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(SIMD_FLAGS)
-##AM_LDFLAGS = $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
-AM_LDFLAGS = -lboost_regex
+##AM_LDFLAGS = $(BOOST_REGEX_LDFLAGS)
+##LDADD = $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 # targets to build and install
 lib_LTLIBRARIES = liblikely.la
@@ -101,65 +101,63 @@ endif
 
 likelytest_SOURCES = src/likelytest.cc
 likelytest_DEPENDENCIES = $(lib_LIBRARIES)
-likelytest_LDADD = -lboost_program_options -L. -llikely
-
-##	$(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) -L. -llikely
+likelytest_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 likelymc_SOURCES = src/likelymc.cc
 likelymc_DEPENDENCIES = $(lib_LIBRARIES)
-likelymc_LDADD = -lboost_program_options -L. -llikely
+likelymc_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 likelyinterp_SOURCES = src/likelyinterp.cc
 likelyinterp_DEPENDENCIES = $(lib_LIBRARIES)
-likelyinterp_LDADD = -lboost_program_options -L. -llikely
+likelyinterp_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 likelywsum_SOURCES = src/likelywsum.cc
 likelywsum_DEPENDENCIES = $(lib_LIBRARIES)
-likelywsum_LDADD = -lboost_program_options -L. -llikely
+likelywsum_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 likelyinteg_SOURCES = src/likelyinteg.cc
 likelyinteg_DEPENDENCIES = $(lib_LIBRARIES)
-likelyinteg_LDADD = -L. -llikely
+likelyinteg_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 likelyrand_SOURCES = src/likelyrand.cc
 likelyrand_DEPENDENCIES = $(lib_LIBRARIES)
-likelyrand_LDADD = -L. -llikely
+likelyrand_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 likelybicubic_SOURCES = src/likelybicubic.cc
 likelybicubic_DEPENDENCIES = $(lib_LIBRARIES)
-likelybicubic_LDADD = -lboost_program_options -L. -llikely
+likelybicubic_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 likelytricubic_SOURCES = src/likelytricubic.cc
 likelytricubic_DEPENDENCIES = $(lib_LIBRARIES)
-likelytricubic_LDADD = -lboost_program_options -L. -llikely
+likelytricubic_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 likelycov_SOURCES = src/likelycov.cc
 likelycov_DEPENDENCIES = $(lib_LIBRARIES)
-likelycov_LDADD = -L. -llikely
+likelycov_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 likelydata_SOURCES = src/likelydata.cc
 likelydata_DEPENDENCIES = $(lib_LIBRARIES)
-likelydata_LDADD = -L. -llikely
+likelydata_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 likelyfitpar_SOURCES = src/likelyfitpar.cc
 likelyfitpar_DEPENDENCIES = $(lib_LIBRARIES)
-likelyfitpar_LDADD = -L. -llikely
+likelyfitpar_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 resamplingtest_SOURCES = src/resamplingtest.cc
 resamplingtest_DEPENDENCIES = $(lib_LIBRARIES)
-resamplingtest_LDADD = -lboost_program_options -L. -llikely
+resamplingtest_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 likelyquantile_SOURCES = src/likelyquantile.cc
 likelyquantile_DEPENDENCIES = $(lib_LIBRARIES)
-likelyquantile_LDADD = -L. -llikely
+likelyquantile_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 demo1_SOURCES = src/demo1.cc
 demo1_DEPENDENCIES = $(lib_LIBRARIES)
-demo1_LDADD = -L. -llikely
+demo1_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 demo2_SOURCES = src/demo2.cc
 demo2_DEPENDENCIES = $(lib_LIBRARIES)
-demo2_LDADD = -L. -llikely
+demo2_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 likelycheck_SOURCES = test/likelycheck.cc \
 	test/CovarianceMatrixTest.cc \
@@ -171,4 +169,4 @@ likelycheck_SOURCES = test/likelycheck.cc \
 	test/FitParameterTest.cc \
 	test/ExactQuantileAccumulatorTest.cc
 likelycheck_DEPENDENCIES = $(lib_LIBRARIES)
-likelycheck_LDADD = -lboost_unit_test_framework -L. -llikely
+likelycheck_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS) $(BOOST_TEST_LDFLAGS) $(BOOST_TEST_LIBS)
