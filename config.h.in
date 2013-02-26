@@ -12,6 +12,12 @@
 /* Define to 1 if you have <boost/function.hpp> */
 #undef HAVE_BOOST_FUNCTION_HPP
 
+/* Define to 1 if you have <boost/program_options.hpp> */
+#undef HAVE_BOOST_PROGRAM_OPTIONS_HPP
+
+/* Define to 1 if you have <boost/regex.hpp> */
+#undef HAVE_BOOST_REGEX_HPP
+
 /* Define to 1 if you have <boost/scoped_ptr.hpp> */
 #undef HAVE_BOOST_SCOPED_PTR_HPP
 
