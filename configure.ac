@@ -45,7 +45,7 @@ AS_IF([test "x$with_minuit2" != "xno"], [
 ])
 
 # We need a recent version of boost
-BOOST_REQUIRE([1.45])
+BOOST_REQUIRE([1.49])
 
 # Required header-only boost packages
 BOOST_BIND
@@ -53,11 +53,11 @@ BOOST_FOREACH
 BOOST_FUNCTION
 BOOST_UTILITY
 BOOST_SMART_PTR
-BOOST_TEST
 
 # Required boost libraries
-##BOOST_PROGRAM_OPTIONS
-##BOOST_REGEX
+BOOST_REGEX
+BOOST_PROGRAM_OPTIONS
+BOOST_TEST
 
 # Configure automake
 AC_CONFIG_FILES([Makefile])
