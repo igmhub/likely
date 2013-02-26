@@ -1,3 +1,6 @@
+# add path to boost.m4
+ACLOCAL_AMFLAGS = -I .
+
 # global compile and link options
 AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(SIMD_FLAGS)
 ##AM_LDFLAGS = $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
