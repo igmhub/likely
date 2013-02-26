@@ -45,7 +45,7 @@ AS_IF([test "x$with_minuit2" != "xno"], [
 ])
 
 # We need a recent version of boost
-BOOST_REQUIRE([1.45])
+BOOST_REQUIRE([1.49])
 
 # Required header-only boost packages
 BOOST_BIND
