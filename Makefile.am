@@ -3,8 +3,6 @@ ACLOCAL_AMFLAGS = -I .
 
 # global compile and link options
 AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(SIMD_FLAGS)
-##AM_LDFLAGS = $(BOOST_REGEX_LDFLAGS)
-##LDADD = $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
 # targets to build and install
 lib_LTLIBRARIES = liblikely.la
@@ -159,7 +157,8 @@ demo2_SOURCES = src/demo2.cc
 demo2_DEPENDENCIES = $(lib_LIBRARIES)
 demo2_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
 
-likelycheck_SOURCES = test/likelycheck.cc \
+likelycheck_SOURCES = \
+  test/likelycheck.cc \
 	test/CovarianceMatrixTest.cc \
 	test/UniformBinningTest.cc \
 	test/UniformSamplingTest.cc \
@@ -169,4 +168,4 @@ likelycheck_SOURCES = test/likelycheck.cc \
 	test/FitParameterTest.cc \
 	test/ExactQuantileAccumulatorTest.cc
 likelycheck_DEPENDENCIES = $(lib_LIBRARIES)
-likelycheck_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS) $(BOOST_TEST_LDFLAGS) $(BOOST_TEST_LIBS)
+likelycheck_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LDFLAGS) $(BOOST_UNIT_TEST_FRAMEWORK_LIBS)
