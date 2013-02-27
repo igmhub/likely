@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: likely
+Description: a library of C++ utility classes to support likelihood analysis
+Version: @VERSION@
+Libs: -L${libdir} -llikely @BOOST_REGEX_LDFLAGS@ @BOOST_REGEX_LIBS@ @LIBS@
+Cflags: -I${includedir}

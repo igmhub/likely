@@ -60,7 +60,7 @@ BOOST_PROGRAM_OPTIONS
 BOOST_TEST
 
 # Configure automake
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile likely.pc])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 # See http://www.gnu.org/s/hello/manual/automake/maintainer_002dmode.html
 AM_MAINTAINER_MODE

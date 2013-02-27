@@ -15,6 +15,10 @@ noinst_PROGRAMS = demo1 demo2
 # targets that contain unit tests
 check_PROGRAMS = likelycheck
 
+# add our pkgconfig file to the install target
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = likely.pc
+
 # instructions for building the library
 liblikely_la_SOURCES = \
 	likely/FitParameter.cc \
