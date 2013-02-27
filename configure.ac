@@ -23,16 +23,24 @@ LT_INIT
 # the library, so we just check that the linker can find the library using 'main')
 AC_CHECK_LIB([m],[cos],,
 	AC_MSG_ERROR([Cannot find the math library.]))
+AC_CHECK_LIB([blas],[main],,
+	AC_MSG_WARN([Cannot find the blas library. Will try to continue without it.]))
 AC_CHECK_LIB([lapack],[main],,
 	AC_MSG_WARN([Cannot find the lapack library. Will try to continue without it.]))
 
 # Following http://www.gentoo.org/proj/en/qa/automagic.xml below...
 
-# Use 'configure --without-gsl' if GSL should not be used.
+# Use 'configure --without-gsl' if GSL should not be used. The test below requires
+# that the GSL cblas library is present, but we only use BLAS (and LAPACK) by
+# directly calling the fortran library bindings.
 AC_ARG_WITH([gsl],
 	AS_HELP_STRING([--without-gsl], [Build without the GSL library.]))
 AS_IF([test "x$with_gsl" != "xno"], [
-	AC_CHECK_LIB([gsl],[main],,
+	AC_CHECK_LIB([gslcblas],[cblas_dgemm],,
+		AC_MSG_ERROR([Cannot find the gsl cblas library.]))
+])
+AS_IF([test "x$with_gsl" != "xno"], [
+	AC_CHECK_LIB([gsl],[cblas_dgemm],,
 		AC_MSG_ERROR([Cannot find the gsl library.]))
 ])
 
