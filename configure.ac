@@ -40,7 +40,7 @@ AS_IF([test "x$with_gsl" != "xno"], [
 		AC_MSG_ERROR([Cannot find the gsl cblas library.]))
 ])
 AS_IF([test "x$with_gsl" != "xno"], [
-	AC_CHECK_LIB([gsl],[cblas_dgemm],,
+	AC_CHECK_LIB([gsl],[main],,
 		AC_MSG_ERROR([Cannot find the gsl library.]))
 ])
 
