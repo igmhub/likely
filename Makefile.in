@@ -17,6 +17,7 @@
 
 
 
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -56,8 +57,8 @@ subdir = .
 DIST_COMMON = README $(am__configure_deps) \
 	$(am__nobase_include_HEADERS_DIST) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
-	$(top_srcdir)/configure config.guess config.sub depcomp \
-	install-sh ltmain.sh missing
+	$(srcdir)/likely.pc.in $(top_srcdir)/configure config.guess \
+	config.sub depcomp install-sh ltmain.sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/boost.m4 \
 	$(top_srcdir)/configure.ac
@@ -67,7 +68,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES =
+CONFIG_CLEAN_FILES = likely.pc
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -91,9 +92,11 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
-	"$(DESTDIR)$(includedir)"
+	"$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
-liblikely_la_LIBADD =
+am__DEPENDENCIES_1 =
+liblikely_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 am__liblikely_la_SOURCES_DIST = likely/FitParameter.cc \
 	likely/FitModel.cc likely/FitParameterStatistics.cc \
 	likely/FunctionMinimum.cc likely/AbsEngine.cc \
@@ -127,7 +130,6 @@ liblikely_la_OBJECTS = $(am_liblikely_la_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am_demo1_OBJECTS = demo1.$(OBJEXT)
 demo1_OBJECTS = $(am_demo1_OBJECTS)
-am__DEPENDENCIES_1 =
 am_demo2_OBJECTS = demo2.$(OBJEXT)
 demo2_OBJECTS = $(am_demo2_OBJECTS)
 am_likelybicubic_OBJECTS = likelybicubic.$(OBJEXT)
@@ -193,6 +195,7 @@ DIST_SOURCES = $(am__liblikely_la_SOURCES_DIST) $(demo1_SOURCES) \
 	$(likelyrand_SOURCES) $(likelytest_SOURCES) \
 	$(likelytricubic_SOURCES) $(likelywsum_SOURCES) \
 	$(resamplingtest_SOURCES)
+DATA = $(pkgconfig_DATA)
 am__nobase_include_HEADERS_DIST = likely/likely.h likely/types.h \
 	likely/function.h likely/function_impl.h likely/RuntimeError.h \
 	likely/FitParameter.h likely/FitModel.h \
@@ -367,6 +370,13 @@ AM_CPPFLAGS = $(BOOST_CPPFLAGS) $(SIMD_FLAGS)
 # targets to build and install
 lib_LTLIBRARIES = liblikely.la
 
+# add our pkgconfig file to the install target
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = likely.pc
+
+# any library dependencies not already added by configure can be added here
+liblikely_la_LIBADD = $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+
 # instructions for building the library
 liblikely_la_SOURCES = likely/FitParameter.cc likely/FitModel.cc \
 	likely/FitParameterStatistics.cc likely/FunctionMinimum.cc \
@@ -407,49 +417,49 @@ nobase_include_HEADERS = likely/likely.h likely/types.h \
 # instructions for building each program
 likelytest_SOURCES = src/likelytest.cc
 likelytest_DEPENDENCIES = $(lib_LIBRARIES)
-likelytest_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+likelytest_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS)
 likelymc_SOURCES = src/likelymc.cc
 likelymc_DEPENDENCIES = $(lib_LIBRARIES)
-likelymc_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+likelymc_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS)
 likelyinterp_SOURCES = src/likelyinterp.cc
 likelyinterp_DEPENDENCIES = $(lib_LIBRARIES)
-likelyinterp_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+likelyinterp_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS)
 likelywsum_SOURCES = src/likelywsum.cc
 likelywsum_DEPENDENCIES = $(lib_LIBRARIES)
-likelywsum_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+likelywsum_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS)
 likelyinteg_SOURCES = src/likelyinteg.cc
 likelyinteg_DEPENDENCIES = $(lib_LIBRARIES)
-likelyinteg_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+likelyinteg_LDADD = liblikely.la
 likelyrand_SOURCES = src/likelyrand.cc
 likelyrand_DEPENDENCIES = $(lib_LIBRARIES)
-likelyrand_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+likelyrand_LDADD = liblikely.la
 likelybicubic_SOURCES = src/likelybicubic.cc
 likelybicubic_DEPENDENCIES = $(lib_LIBRARIES)
-likelybicubic_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+likelybicubic_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS)
 likelytricubic_SOURCES = src/likelytricubic.cc
 likelytricubic_DEPENDENCIES = $(lib_LIBRARIES)
-likelytricubic_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+likelytricubic_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS)
 likelycov_SOURCES = src/likelycov.cc
 likelycov_DEPENDENCIES = $(lib_LIBRARIES)
-likelycov_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+likelycov_LDADD = liblikely.la
 likelydata_SOURCES = src/likelydata.cc
 likelydata_DEPENDENCIES = $(lib_LIBRARIES)
-likelydata_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+likelydata_LDADD = liblikely.la
 likelyfitpar_SOURCES = src/likelyfitpar.cc
 likelyfitpar_DEPENDENCIES = $(lib_LIBRARIES)
-likelyfitpar_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+likelyfitpar_LDADD = liblikely.la
 resamplingtest_SOURCES = src/resamplingtest.cc
 resamplingtest_DEPENDENCIES = $(lib_LIBRARIES)
-resamplingtest_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS) $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+resamplingtest_LDADD = liblikely.la $(BOOST_PROGRAM_OPTIONS_LDFLAGS) $(BOOST_PROGRAM_OPTIONS_LIBS)
 likelyquantile_SOURCES = src/likelyquantile.cc
 likelyquantile_DEPENDENCIES = $(lib_LIBRARIES)
-likelyquantile_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+likelyquantile_LDADD = liblikely.la
 demo1_SOURCES = src/demo1.cc
 demo1_DEPENDENCIES = $(lib_LIBRARIES)
-demo1_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+demo1_LDADD = liblikely.la
 demo2_SOURCES = src/demo2.cc
 demo2_DEPENDENCIES = $(lib_LIBRARIES)
-demo2_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS)
+demo2_LDADD = liblikely.la
 likelycheck_SOURCES = \
   test/likelycheck.cc \
 	test/CovarianceMatrixTest.cc \
@@ -462,7 +472,7 @@ likelycheck_SOURCES = \
 	test/ExactQuantileAccumulatorTest.cc
 
 likelycheck_DEPENDENCIES = $(lib_LIBRARIES)
-likelycheck_LDADD = liblikely.la $(BOOST_REGEX_LDFLAGS) $(BOOST_REGEX_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LDFLAGS) $(BOOST_UNIT_TEST_FRAMEWORK_LIBS)
+likelycheck_LDADD = liblikely.la $(BOOST_UNIT_TEST_FRAMEWORK_LDFLAGS) $(BOOST_UNIT_TEST_FRAMEWORK_LIBS)
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -519,6 +529,8 @@ $(srcdir)/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 
 distclean-hdr:
 	-rm -f config.h stamp-h1
+likely.pc: $(top_builddir)/config.status $(srcdir)/likely.pc.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
 install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
 	test -z "$(libdir)" || $(MKDIR_P) "$(DESTDIR)$(libdir)"
@@ -1298,6 +1310,26 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool config.lt
+install-pkgconfigDATA: $(pkgconfig_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(pkgconfigdir)" || $(MKDIR_P) "$(DESTDIR)$(pkgconfigdir)"
+	@list='$(pkgconfig_DATA)'; test -n "$(pkgconfigdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(pkgconfigdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(pkgconfigdir)" || exit $$?; \
+	done
+
+uninstall-pkgconfigDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(pkgconfig_DATA)'; test -n "$(pkgconfigdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(pkgconfigdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(pkgconfigdir)" && rm -f $$files
 install-nobase_includeHEADERS: $(nobase_include_HEADERS)
 	@$(NORMAL_INSTALL)
 	test -z "$(includedir)" || $(MKDIR_P) "$(DESTDIR)$(includedir)"
@@ -1523,11 +1555,12 @@ distcleancheck: distclean
 check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
 check: check-am
-all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(HEADERS) config.h
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(DATA) $(HEADERS) \
+		config.h
 install-binPROGRAMS: install-libLTLIBRARIES
 
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(includedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(pkgconfigdir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -1580,7 +1613,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-nobase_includeHEADERS
+install-data-am: install-nobase_includeHEADERS install-pkgconfigDATA
 
 install-dvi: install-dvi-am
 
@@ -1629,7 +1662,7 @@ ps: ps-am
 ps-am:
 
 uninstall-am: uninstall-binPROGRAMS uninstall-libLTLIBRARIES \
-	uninstall-nobase_includeHEADERS
+	uninstall-nobase_includeHEADERS uninstall-pkgconfigDATA
 
 .MAKE: all check-am install-am install-strip
 
@@ -1646,12 +1679,13 @@ uninstall-am: uninstall-binPROGRAMS uninstall-libLTLIBRARIES \
 	install-exec-am install-html install-html-am install-info \
 	install-info-am install-libLTLIBRARIES install-man \
 	install-nobase_includeHEADERS install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
+	install-pkgconfigDATA install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags uninstall uninstall-am uninstall-binPROGRAMS \
-	uninstall-libLTLIBRARIES uninstall-nobase_includeHEADERS
+	uninstall-libLTLIBRARIES uninstall-nobase_includeHEADERS \
+	uninstall-pkgconfigDATA
 
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
