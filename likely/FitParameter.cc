@@ -17,6 +17,7 @@
 
 #include <iterator>
 #include <iostream>
+#include <sstream>
 
 namespace local = likely;
 
@@ -85,6 +86,11 @@ std::string local::FitParameter::toScript() const {
             boost::lexical_cast<std::string>(_priorMin) + ',' +
             boost::lexical_cast<std::string>(_priorMax) + ';' +
             boost::lexical_cast<std::string>(_priorScale) + ");";
+    }
+    if(_binning) {
+        std::stringstream ss;
+        _binning->printToStream(ss);
+        script += " binning[" + _name + "]=" + ss.str() +';';
     }
     return script + '\n';
 }
