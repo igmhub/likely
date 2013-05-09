@@ -131,7 +131,14 @@ int local::countFitParameters(FitParameters const &parameters, bool onlyFloating
 
 void local::printFitParametersToStream(FitParameters const &parameters, std::ostream &out,
 std::string const &formatSpec) {
-    boost::format formatter(formatSpec.c_str()), label("%20s = "), rounded(" $ %16s $");
+    // Find longest parameter name to set the fixed width for printing labels
+    int width(0);
+    for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
+        int len = iter->getName().size();
+        if(len > width) width = len;
+    }
+    std::string labelFormat = boost::str(boost::format("%%%ds = ") % width);
+    boost::format formatter(formatSpec.c_str()), label(labelFormat), rounded(" $ %16s $");
     std::vector<double> errors(1);
     for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
         double value = iter->getValue();
