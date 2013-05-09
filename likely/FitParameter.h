@@ -53,6 +53,10 @@ namespace likely {
         void setPrior(double priorMin, double priorMax, double priorScale, PriorType type);
         // Removes any prior on this parameter.
         void removePrior();
+        // Sets the optional binning for this parameter using the syntax of AbsBinning::createBinning.
+        void setBinning(std::string const &binningSpec);
+        // Returns the binning, if any, for this parameter.
+        AbsBinningCPtr getBinning() const;
         // Returns a newline-terminated string that describes the complete internal state of this
         // parameter in the machine-readable text format expected by modifyFitParameters().
         std::string toScript() const;
@@ -62,6 +66,7 @@ namespace likely {
         std::string _name;
         double _value, _error, _priorMin, _priorMax, _priorScale;
         PriorType _priorType;
+        AbsBinningCPtr _binning;
         
 	}; // FitParameter
 

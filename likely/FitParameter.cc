@@ -2,6 +2,7 @@
 
 #include "likely/FitParameter.h"
 #include "likely/RuntimeError.h"
+#include "likely/AbsBinning.h"
 
 #include "boost/format.hpp"
 #include "boost/lexical_cast.hpp"
@@ -63,6 +64,14 @@ PriorType priorType) {
     _priorMax = priorMax;
     _priorScale = priorScale;
     _priorType = priorType;
+}
+
+void local::FitParameter::setBinning(std::string const &binningSpec) {
+    _binning = createBinning(binningSpec);
+}
+
+likely::AbsBinningCPtr local::FitParameter::getBinning() const {
+    return _binning;
 }
 
 std::string local::FitParameter::toScript() const {
@@ -291,7 +300,9 @@ namespace fitpar {
             binningSpec += c;
         }
         void binning() {
-            std::cout << "binning = " << binningSpec << std::endl;
+            BOOST_FOREACH(int index, selected) {
+                params[index].setBinning(binningSpec);
+            }
             binningSpec = "";
         }
     };
