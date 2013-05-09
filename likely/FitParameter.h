@@ -57,6 +57,8 @@ namespace likely {
         void setBinning(std::string const &binningSpec);
         // Returns the binning, if any, for this parameter.
         AbsBinningCPtr getBinning() const;
+        // Removes any previous binning specification.
+        void removeBinning();
         // Returns a newline-terminated string that describes the complete internal state of this
         // parameter in the machine-readable text format expected by modifyFitParameters().
         std::string toScript() const;
@@ -82,6 +84,7 @@ namespace likely {
     inline double FitParameter::getPriorMax() const { return _priorType == NoPrior ? 0 : _priorMax; }
     inline double FitParameter::getPriorScale() const { return _priorType == NoPrior ? 0 : _priorScale; }
     inline void FitParameter::removePrior() { _priorType = NoPrior; }
+    inline void FitParameter::removeBinning() { _binning.reset(); }
     
     // Defines a vector of fit parameters.
     typedef std::vector<FitParameter> FitParameters;
