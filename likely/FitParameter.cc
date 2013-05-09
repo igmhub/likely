@@ -175,6 +175,9 @@ namespace fitpar {
             using qi::lit;
             using qi::no_skip;
             using qi::char_;
+            using qi::lexeme;
+            using ascii::graph;
+            using boost::phoenix::ref;
 
             // Commands are separated by semicolons. A final semicolon is optional.
             script = ( command % ';' ) >> -lit(';');
@@ -188,7 +191,8 @@ namespace fitpar {
                 ( "release" >> name )                   [boost::bind(&Grammar::release,this)] |
                 ( "boxprior" >> name >> '@' >> range )  [boost::bind(&Grammar::boxPrior,this)] |
                 ( "gaussprior" >> name >> '@' >> range )[boost::bind(&Grammar::gaussPrior,this)] |
-                ( "noprior" >> name )                   [boost::bind(&Grammar::noPrior,this)];
+                ( "noprior" >> name )                   [boost::bind(&Grammar::noPrior,this)] |
+                ( "binning" >> name >> '=' >> binspec ) [boost::bind(&Grammar::binning,this)];
 
             // Commands share a common name and range parser.
             name = lit('[')[boost::bind(&Grammar::beginName,this)]
@@ -200,14 +204,19 @@ namespace fitpar {
                 >> double_[boost::bind(&Grammar::endRange,this,::_1)]
                 >> -( ';' >> double_[boost::bind(&Grammar::setScale,this,::_1)] )
                 >> ')';
-            
+                
+            // The binning spec is just an opaque string (w/o whitespace) here, since we
+            // delegate the actual parsing to AbsBinning::createBinning.
+            binspec = lexeme[ +graph[boost::bind(&Grammar::addToBinSpec,this,::_1)] ];
+
         }
         
         // Any space_type in this template must match the grammar template above.
-        qi::rule<std::string::const_iterator, ascii::space_type> script, command, name, range;        
+        qi::rule<std::string::const_iterator, ascii::space_type> script, command, name, range, binspec;        
 
         FitParameters &params;
         std::string theName;
+        std::string binningSpec;
         std::vector<int> selected;
         double _beginRange,_endRange,_theScale;
         
@@ -277,6 +286,13 @@ namespace fitpar {
         }
         void noPrior() {
             BOOST_FOREACH(int index, selected) params[index].removePrior();
+        }
+        void addToBinSpec(char c) {
+            binningSpec += c;
+        }
+        void binning() {
+            std::cout << "binning = " << binningSpec << std::endl;
+            binningSpec = "";
         }
     };
 } // grammar

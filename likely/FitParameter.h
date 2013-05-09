@@ -121,6 +121,7 @@ namespace likely {
     //  gaussprior [<name>] @ ( <min> , <max> )
     //  gaussprior [<name>] @ ( <min> , <max> ; <scale> )
     //  noprior [<name>]
+    //  binning [<name>] = binningSpec     [see AbsBinning::createBinning for details]
     //
     // Multiple commands separated by semicolons are executed in the order they appear.
     // Command verbs (value,error,fix,...) are case sensitive. Arbitrary whitespace

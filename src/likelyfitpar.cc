@@ -62,6 +62,9 @@ int main(int argc, char *argv[]) {
     
     lk::modifyFitParameters(params,"boxprior[param2] @ (-1,2.3)");
     lk::modifyFitParameters(params,"gaussprior[param1] @ (0.5,1.5;0.5)");
+    
+    lk::modifyFitParameters(params,"binning[param1] = [-1,+1]*10");
+    lk::modifyFitParameters(params,"binning[param2] = 0.1,0.2,0.3");
 
     try {
         lk::modifyFitParameters(params,"value [param3]=0;error [param3] = -123");
