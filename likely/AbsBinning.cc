@@ -23,11 +23,14 @@ double local::AbsBinning::getBinWidth(int index) const {
     return getBinHighEdge(index) - getBinLowEdge(index);
 }
 
-void local::AbsBinning::dump(std::ostream &os) const {
+void local::AbsBinning::printToStream(std::ostream &os) const {
+    // The default format is a comma-separated list of bin centers, which is one of
+    // the formats supported by createBinning. Subclasses can implement alternate formats.
     int nbins(getNBins());
-    os << nbins << ' ' << getBinLowEdge(0);
-    for(int bin = 0; bin < nbins; ++bin) os << ' ' << getBinHighEdge(bin);
-    os << std::endl;
+    for(int bin = 0; bin < nbins; ++bin) {
+        if(bin) os << ',';
+        os << getBinCenter(bin);
+    }
 }
 
 bool local::AbsBinning::isValidBinIndex(int index, std::string const &errorFormat) const {

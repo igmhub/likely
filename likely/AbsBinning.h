@@ -33,12 +33,12 @@ namespace likely {
         // Returns the midpoint value (lo+hi)/2 of the specified bin. Throws a BinningError if index is
         // out of range.
         virtual double getBinCenter(int index) const;
+        // Prints this binning to the specified output stream in a format compatible with createBinning.
+        virtual void printToStream(std::ostream &os) const;
         // Returns true if the specified bin index is within range. Otherwise, throws a BinningError
         // if a non-empty error message format is provided, with the first %d replaced by the index,
         // or else returns false if no error message format is specified.
         bool isValidBinIndex(int index, std::string const &errorFormat = std::string("")) const;
-        // Dumps this binning to the specified output stream in a standard one-line format.
-        void dump(std::ostream &os) const;
 	private:
 	}; // AbsBinning
 	
