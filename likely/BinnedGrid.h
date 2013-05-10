@@ -47,6 +47,9 @@ namespace likely {
         bool isCongruent(BinnedGrid const &other) const;
         // Throws a RuntimeError unless the specified global index is valid.
         void checkIndex(int index) const;
+        // Returns a const pointer to the binning of the specified axis (counting from zero)
+        // or throws a RuntimeError for an out of range axis value.
+        AbsBinningCPtr getAxisBinning(int axis) const;
 	private:
         // Initializes a new object.
         void _initialize();

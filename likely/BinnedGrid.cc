@@ -135,6 +135,14 @@ bool local::BinnedGrid::isCongruent(BinnedGrid const& other) const {
     return true;
 }
 
+local::AbsBinningCPtr local::BinnedGrid::getAxisBinning(int axis) const {
+    if(axis < 0 || axis >= _axisBinning.size()) {
+        throw RuntimeError("BinnedGrid: invalid axis " +
+            boost::lexical_cast<std::string>(axis));
+    }
+    return _axisBinning[axis];
+}
+
 void local::BinnedGrid::checkIndex(int index) const {
     if(index < 0 || index >= _nbins) {
         throw RuntimeError("BinnedGrid: invalid index " +
