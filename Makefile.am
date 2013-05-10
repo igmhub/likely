@@ -48,6 +48,7 @@ liblikely_la_SOURCES = \
 	likely/NonUniformSampling.cc \
 	likely/CovarianceMatrix.cc \
 	likely/CovarianceAccumulator.cc \
+	likely/BinnedGrid.cc \
 	likely/BinnedData.cc \
 	likely/BinnedDataResampler.cc \
 	likely/test/TestLikelihood.cc
@@ -86,6 +87,7 @@ nobase_include_HEADERS = \
 	likely/NonUniformSampling.h \
 	likely/CovarianceMatrix.h \
 	likely/CovarianceAccumulator.h \
+	likely/BinnedGrid.h \
 	likely/BinnedData.h \
 	likely/BinnedDataResampler.h \
 	likely/test/TestLikelihood.h
