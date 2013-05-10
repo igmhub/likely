@@ -4,6 +4,7 @@
 #define LIKELY_BINNED_DATA
 
 #include "likely/types.h"
+#include "likely/BinnedGrid.h"
 
 #include "boost/smart_ptr.hpp"
 
@@ -23,14 +24,8 @@ namespace likely {
     // the original).
 	class BinnedData {
 	public:
-	    // Creates a new dataset with an arbitrary number of axes.
-        explicit BinnedData(std::vector<AbsBinningCPtr> axes);
-        // Creates a new dataset with a single axis.
-		explicit BinnedData(AbsBinningCPtr axis1);
-        // Creates a new dataset with two axes.
-        BinnedData(AbsBinningCPtr axis1, AbsBinningCPtr axis2);
-        // Creates a new dataset with three axes.
-        BinnedData(AbsBinningCPtr axis1, AbsBinningCPtr axis2, AbsBinningCPtr axis3);
+	    // Creates a new dataset for the specified grid.
+        explicit BinnedData(BinnedGrid const &grid);
 		virtual ~BinnedData();
 		
 		// Shallow copying is supported via the default copy constructor, which makes copies of
@@ -45,9 +40,9 @@ namespace likely {
 		// copying. Set onlyBinning = true to only clone our binning specifications and
 		// create an empty dataset. Subclasses X must override this method, normally with:
 		//
-		//   return binningOnly ? new X(getAxisBinning()) : new X(*this)
+		//   return binningOnly ? new X(getGrid()) : new X(*this)
 		//
-		// This means that X::X(std::vector<AbsBinningCPtr> axes) and X::X(X const &other)
+		// This means that X::X(BinnedGrid const &grid) and X::X(X const &other)
 		// must also be valid (but the default copy ctor is usually ok).
 		// 
 		// Subclass users can use boost::dynamic_pointer_cast<...> to initialize smart pointers
@@ -91,8 +86,8 @@ namespace likely {
         // Returns the number of bins with data, which is never more than getNBinsTotal().
         // The hasData(...) method defines exactly what constitutes a bin with data.
         int getNBinsWithData() const;
-        // Returns a vector of shared pointers to our axis specification objects.
-        std::vector<AbsBinningCPtr> getAxisBinning() const;
+        // Returns our underlying grid specification.
+        BinnedGrid getGrid() const;
         
         // Returns the global index corresponding to the specified bin index values along
         // each axis. The global index is defined as (i0*n1+i1)*n2+…) where ik, nk are
@@ -311,8 +306,8 @@ namespace likely {
         std::string getMemoryState() const;
 
 	private:
-        int _nbins;
-        std::vector<AbsBinningCPtr> _axisBinning;
+        // The grid that our data represents.
+        BinnedGrid _grid;
         enum { EMPTY_BIN = -1 };
         std::vector<int> _offset, _index;
         // Our data vector which might be weighted.
@@ -331,8 +326,6 @@ namespace likely {
         bool _finalized;
         // Initializes a new object.
         void _initialize();
-        // Throws a RuntimeError unless the specified global index is valid.
-        void _checkIndex(int index) const;
         // Forces our internal representation to be weighted or unweighted. This must be called
         // with flushCache = true before making any changes to our _data vector or else making
         // a change to our covariance matrix that should be reflected in future values of
@@ -343,10 +336,10 @@ namespace likely {
 	
     void swap(BinnedData& a, BinnedData& b);
 	
-    inline int BinnedData::getNAxes() const { return _axisBinning.size(); }
-    inline int BinnedData::getNBinsTotal() const { return _nbins; }
+    inline int BinnedData::getNAxes() const { return _grid.getNAxes(); }
+    inline int BinnedData::getNBinsTotal() const { return _grid.getNBinsTotal(); }
     inline int BinnedData::getNBinsWithData() const { return _index.size(); }
-    inline std::vector<AbsBinningCPtr> BinnedData::getAxisBinning() const { return _axisBinning; }
+    inline BinnedGrid BinnedData::getGrid() const { return _grid; }
     inline bool BinnedData::hasCovariance() const { return _covariance.get() != 0; }
     inline bool BinnedData::isDataWeighted() const { return _weighted; }
     inline CovarianceMatrixCPtr BinnedData::getCovarianceMatrix() const { return _covariance; }

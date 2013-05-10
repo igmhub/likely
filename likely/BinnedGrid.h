@@ -14,6 +14,12 @@ namespace likely {
 	public:
 	    // Creates a new grid with the specified binning for each axis.
         explicit BinnedGrid(std::vector<AbsBinningCPtr> axes);
+        // Creates a new grid with a single axis.
+		explicit BinnedGrid(AbsBinningCPtr axis1);
+        // Creates a new grid with two axes.
+        BinnedGrid(AbsBinningCPtr axis1, AbsBinningCPtr axis2);
+        // Creates a new grid with three axes.
+        BinnedGrid(AbsBinningCPtr axis1, AbsBinningCPtr axis2, AbsBinningCPtr axis3);
 		virtual ~BinnedGrid();
 		// Returns the number of axes for this grid.
         int getNAxes() const;
@@ -36,9 +42,14 @@ namespace likely {
         // Fills the vector provided with the full bin widths along each axis for the specified
         // global index.
         void getBinWidths(int index, std::vector<double> &binWidths) const;
-	private:
+        // Tests if another binned grid is "congruent" with ours in the sense of having
+        // identical binning specifications along each axis.
+        bool isCongruent(BinnedGrid const &other) const;
         // Throws a RuntimeError unless the specified global index is valid.
-        void _checkIndex(int index) const;
+        void checkIndex(int index) const;
+	private:
+        // Initializes a new object.
+        void _initialize();
         int _nbins;
         std::vector<AbsBinningCPtr> _axisBinning;
 	}; // BinnedGrid

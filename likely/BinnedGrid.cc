@@ -15,6 +15,40 @@ local::BinnedGrid::BinnedGrid(std::vector<AbsBinningCPtr> axes)
     if(0 == axes.size()) {
         throw RuntimeError("BinnedGrid: no axes provided.");
     }
+    _initialize();
+}
+
+local::BinnedGrid::BinnedGrid(AbsBinningCPtr axis1)
+{
+    if(!axis1) {
+        throw RuntimeError("BinnedGrid: missing axis1.");
+    }
+    _axisBinning.push_back(axis1);
+    _initialize();
+}
+
+local::BinnedGrid::BinnedGrid(AbsBinningCPtr axis1, AbsBinningCPtr axis2)
+{
+    if(!axis1 || !axis2) {
+        throw RuntimeError("BinnedGrid: missing axis data.");
+    }
+    _axisBinning.push_back(axis1);    
+    _axisBinning.push_back(axis2);
+    _initialize();
+}
+
+local::BinnedGrid::BinnedGrid(AbsBinningCPtr axis1, AbsBinningCPtr axis2, AbsBinningCPtr axis3)
+{
+    if(!axis1 || !axis2 || !axis3) {
+        throw RuntimeError("BinnedGrid: missing axis data.");
+    }
+    _axisBinning.push_back(axis1);
+    _axisBinning.push_back(axis2);
+    _axisBinning.push_back(axis3);
+    _initialize();
+}
+
+void local::BinnedGrid::_initialize() {
     _nbins = 1;
     BOOST_FOREACH(AbsBinningCPtr binning, _axisBinning) {
         _nbins *= binning->getNBins();
@@ -52,7 +86,7 @@ int local::BinnedGrid::getIndex(std::vector<double> const &values) const {
 }
 
 void local::BinnedGrid::getBinIndices(int index, std::vector<int> &binIndices) const {
-    _checkIndex(index);
+    checkIndex(index);
     int nAxes(getNAxes());
     binIndices.resize(nAxes,0);
     int partial(index);
@@ -65,7 +99,7 @@ void local::BinnedGrid::getBinIndices(int index, std::vector<int> &binIndices) c
 }
 
 void local::BinnedGrid::getBinCenters(int index, std::vector<double> &binCenters) const {
-    _checkIndex(index);
+    checkIndex(index);
     binCenters.resize(0);
     binCenters.reserve(getNAxes());
     std::vector<int> binIndices;
@@ -78,7 +112,7 @@ void local::BinnedGrid::getBinCenters(int index, std::vector<double> &binCenters
 }
 
 void local::BinnedGrid::getBinWidths(int index, std::vector<double> &binWidths) const {
-    _checkIndex(index);
+    checkIndex(index);
     binWidths.resize(0);
     binWidths.reserve(getNAxes());
     std::vector<int> binIndices;
@@ -90,7 +124,18 @@ void local::BinnedGrid::getBinWidths(int index, std::vector<double> &binWidths) 
     }
 }
 
-void local::BinnedGrid::_checkIndex(int index) const {
+bool local::BinnedGrid::isCongruent(BinnedGrid const& other) const {
+    // Must have same number of axes.
+    int nAxes(getNAxes());
+    if(other.getNAxes() != nAxes) return false;
+    // Binning must be represented by the same (not equivalent) object along each axis.
+    for(int axis = 0; axis < nAxes; ++axis) {
+        if(other._axisBinning[axis] != _axisBinning[axis]) return false;
+    }
+    return true;
+}
+
+void local::BinnedGrid::checkIndex(int index) const {
     if(index < 0 || index >= _nbins) {
         throw RuntimeError("BinnedGrid: invalid index " +
             boost::lexical_cast<std::string>(index));

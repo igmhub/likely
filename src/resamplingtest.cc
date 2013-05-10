@@ -148,7 +148,8 @@ int main(int argc, char **argv) {
             lk::AbsBinningCPtr axis(new lk::UniformBinning(-range,+range,nbin));
             axes.push_back(axis);
         }
-        lk::BinnedDataPtr prototype(new lk::BinnedData(axes));
+        lk::BinnedGrid grid(axes);
+        lk::BinnedDataPtr prototype(new lk::BinnedData(grid));
         
         // Fill each bin of the prototype dataset with the model evaluated with sigma=sigma0
         std::vector<double> point(ndim);
