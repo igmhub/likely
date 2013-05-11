@@ -40,10 +40,10 @@ int main(int argc, char **argv) {
     for(int index = 0; index < grid.getNBinsTotal(); ++index) {
         std::cout << "[" << index << "] =>";
         grid.getBinIndices(index,idx);
-        assert(data.getIndex(idx) == index);
+        assert(grid.getIndex(idx) == index);
         for(int k = 0; k < nAxes; ++k) std::cout << ' ' << idx[k];
         grid.getBinCenters(index,centers);
-        assert(data.getIndex(centers) == index);
+        assert(grid.getIndex(centers) == index);
         for(int k = 0; k < nAxes; ++k) std::cout << ' ' << centers[k];
         grid.getBinWidths(index,widths);
         for(int k = 0; k < nAxes; ++k) std::cout << ' ' << widths[k];

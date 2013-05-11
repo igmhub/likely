@@ -184,14 +184,6 @@ bool local::BinnedData::isCongruent(BinnedData const& other, bool onlyBinning, b
     return true;
 }
 
-int local::BinnedData::getIndex(std::vector<int> const &binIndices) const {
-    return _grid.getIndex(binIndices);
-}
-
-int local::BinnedData::getIndex(std::vector<double> const &values) const {
-    return _grid.getIndex(values);
-}
-
 int local::BinnedData::getIndexAtOffset(int offset) const {
     if(offset < 0 || offset >= _index.size()) {
         throw RuntimeError("BinnedData::getIndexAtOffset: invalid offset.");

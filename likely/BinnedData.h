@@ -84,16 +84,7 @@ namespace likely {
         int getNBinsWithData() const;
         // Returns our underlying grid specification.
         BinnedGrid getGrid() const;
-        
-        // Returns the global index corresponding to the specified bin index values along
-        // each axis. The global index is defined as (i0*n1+i1)*n2+…) where ik, nk are
-        // the bin index and number of bins for axis k, respectively. The global
-        // index will always be >= 0 and < getNBinsTotal().
-        int getIndex(std::vector<int> const &binIndices) const;
-        // Returns the global index corresponding to the specified coordinate values along
-        // each axis.
-        int getIndex(std::vector<double> const &values) const;
-        
+
         // Returns iterators pointing to the first and last global indices for bins with data.
         // Iteration order is defined by the order of setData(...) calls, and not by the global
         // index value.
