@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
     std::cout << "naxes = " << nAxes << ", nbins = " << nBins << std::endl;
     std::vector<int> idx(nAxes);
     std::vector<double> centers(nAxes), widths(nAxes);
-    for(int index = 0; index < data.getNBinsTotal(); ++index) {
+    for(int index = 0; index < grid.getNBinsTotal(); ++index) {
         std::cout << "[" << index << "] =>";
         grid.getBinIndices(index,idx);
         assert(data.getIndex(idx) == index);

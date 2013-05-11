@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
         
         // Fill each bin of the prototype dataset with the model evaluated with sigma=sigma0
         std::vector<double> point(ndim);
-        for(int index = 0; index < prototype->getNBinsTotal(); ++index) {
+        for(int index = 0; index < grid.getNBinsTotal(); ++index) {
             prototype->getBinCenters(index,point);
             prototype->setData(index,model(point,sigma0));
         }

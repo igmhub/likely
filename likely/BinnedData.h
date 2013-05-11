@@ -78,11 +78,7 @@ namespace likely {
         //
         virtual bool isCongruent(BinnedData const &other, bool onlyBinning = false,
             bool ignoreCovariance = false) const;
-		
-		// Returns the number of axes used to bin this data.
-        int getNAxes() const;
-        // Returns the total number of bins covering the rectangular volume of our axes.
-        int getNBinsTotal() const;
+
         // Returns the number of bins with data, which is never more than getNBinsTotal().
         // The hasData(...) method defines exactly what constitutes a bin with data.
         int getNBinsWithData() const;
@@ -336,8 +332,6 @@ namespace likely {
 	
     void swap(BinnedData& a, BinnedData& b);
 	
-    inline int BinnedData::getNAxes() const { return _grid.getNAxes(); }
-    inline int BinnedData::getNBinsTotal() const { return _grid.getNBinsTotal(); }
     inline int BinnedData::getNBinsWithData() const { return _index.size(); }
     inline BinnedGrid BinnedData::getGrid() const { return _grid; }
     inline bool BinnedData::hasCovariance() const { return _covariance.get() != 0; }
