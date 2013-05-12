@@ -5,6 +5,8 @@
 
 #include "likely/types.h"
 
+#include "boost/iterator/counting_iterator.hpp"
+
 #include <vector>
 
 namespace likely {
@@ -25,6 +27,11 @@ namespace likely {
         int getNAxes() const;
         // Returns the total number of bins covering the rectangular volume of this grid.
         int getNBinsTotal() const;
+        // Returns iterators pointing to the first and last bins in the grid.
+        // Iteration order is defined by the global index sequence.
+        typedef boost::counting_iterator<int> Iterator;
+        Iterator begin() const;
+        Iterator end() const;
         // Returns the global index corresponding to the specified bin index values along
         // each axis. The global index is defined as (i0*n1+i1)*n2+…) where ik, nk are
         // the bin index and number of bins for axis k, respectively. The global
@@ -59,6 +66,8 @@ namespace likely {
 
     inline int BinnedGrid::getNAxes() const { return _axisBinning.size(); }
     inline int BinnedGrid::getNBinsTotal() const { return _nbins; }
+    inline BinnedGrid::Iterator BinnedGrid::begin() const { return Iterator(0); }
+    inline BinnedGrid::Iterator BinnedGrid::end() const { return Iterator(_nbins); }
 
 } // likely
 
