@@ -68,5 +68,5 @@ double local::UniformSampling::getBinCenter(int index) const {
 }
 
 void local::UniformSampling::printToStream(std::ostream &os) const {
-    os << '{' << _minValue << ',' << _maxValue << "}*" << _nSamples;
+    os << '{' << _minValue << ':' << _maxValue << "}*" << _nSamples;
 }

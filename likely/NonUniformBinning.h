@@ -32,6 +32,8 @@ namespace likely {
         // Returns the midpoint value (lo+hi)/2 of the specified bin. Throws a BinningError if index is
         // out of range.
         virtual double getBinCenter(int index) const;
+        // Prints this binning to the specified output stream in a format compatible with createBinning.
+        virtual void printToStream(std::ostream &os) const;
 	private:
         std::vector<double> _binEdges;
 	}; // NonUniformBinning

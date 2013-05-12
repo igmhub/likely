@@ -54,5 +54,5 @@ double local::UniformBinning::getBinCenter(int index) const {
 }
 
 void local::UniformBinning::printToStream(std::ostream &os) const {
-    os << '[' << _minValue << ',' << _maxValue << "]*" << _nBins;
+    os << '[' << _minValue << ':' << _maxValue << "]*" << _nBins;
 }
