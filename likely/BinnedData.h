@@ -28,6 +28,9 @@ namespace likely {
         explicit BinnedData(BinnedGrid const &grid);
 		virtual ~BinnedData();
 		
+        // Returns a copy of our underlying grid specification.
+        BinnedGrid getGrid() const;
+
 		// Shallow copying is supported via the default copy constructor, which makes copies of
 		// our data, but just adds smart pointer references to the original object's binning
 		// objects and covariance matrix (if any). Any covariance matrix with more than one
@@ -82,8 +85,6 @@ namespace likely {
         // Returns the number of bins with data, which is never more than getNBinsTotal().
         // The hasData(...) method defines exactly what constitutes a bin with data.
         int getNBinsWithData() const;
-        // Returns our underlying grid specification.
-        BinnedGrid getGrid() const;
 
         // Returns iterators pointing to the first and last global indices for bins with data.
         // Iteration order is defined by the order of setData(...) calls, and not by the global
@@ -301,8 +302,6 @@ namespace likely {
         mutable bool _weighted;
         // Have we been finalized?
         bool _finalized;
-        // Initializes a new object.
-        void _initialize();
         // Forces our internal representation to be weighted or unweighted. This must be called
         // with flushCache = true before making any changes to our _data vector or else making
         // a change to our covariance matrix that should be reflected in future values of
@@ -311,10 +310,8 @@ namespace likely {
         void _setWeighted(bool weighted, bool flushCache = false) const;
 	}; // BinnedData
 	
-    void swap(BinnedData& a, BinnedData& b);
-	
-    inline int BinnedData::getNBinsWithData() const { return _index.size(); }
     inline BinnedGrid BinnedData::getGrid() const { return _grid; }
+    inline int BinnedData::getNBinsWithData() const { return _index.size(); }
     inline bool BinnedData::hasCovariance() const { return _covariance.get() != 0; }
     inline bool BinnedData::isDataWeighted() const { return _weighted; }
     inline CovarianceMatrixCPtr BinnedData::getCovarianceMatrix() const { return _covariance; }
