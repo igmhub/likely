@@ -72,17 +72,19 @@ namespace binning {
             using phoenix::ref;
             using phoenix::push_back;
 
-            bspec = plist | brange;
+            bspec = plist | brange | srange;
             
             // Parse the format x1,x2,...,xn and push values into the centers vector
             plist = ( double_[push_back(ref(centers),_1)] % ',' )[boost::bind(&Grammar::createWithCenters,this)];
             
-            // Parse the format [lo,hi]*n and fill the corresponding data members
+            // Parse the formats [lo,hi]*n and {lo,hi}*n, and fill the corresponding data members
             brange = ( '[' >> double_[ref(lo)=_1] >> ',' >> double_[ref(hi)=_1] >> "]*" >> int_[ref(nbins)=_1] )[
-                boost::bind(&Grammar::createWithRange,this)];
+                boost::bind(&Grammar::createBinsWithRange,this)];
+            brange = ( '{' >> double_[ref(lo)=_1] >> ',' >> double_[ref(hi)=_1] >> "}*" >> int_[ref(nbins)=_1] )[
+                boost::bind(&Grammar::createSamplesWithRange,this)];
 
         }
-        qi::rule<std::string::const_iterator> bspec,plist,brange;
+        qi::rule<std::string::const_iterator> bspec,plist,brange,srange;
         likely::AbsBinningCPtr binning;
 
         std::vector<double> centers;
@@ -96,10 +98,12 @@ namespace binning {
             else {
                 binning.reset(new likely::UniformSampling(centers.front(),centers.back(),centers.size()));
             }
-        }
-        
-        void createWithRange() {
+        }        
+        void createBinsWithRange() {
             binning.reset(new likely::UniformBinning(lo,hi,nbins));
+        }
+        void createSamplesWithRange() {
+            binning.reset(new likely::UniformSampling(lo,hi,nbins));
         }
     };
 } // binning
