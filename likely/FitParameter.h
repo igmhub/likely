@@ -4,6 +4,7 @@
 #define LIKELY_FIT_PARAMETER
 
 #include "likely/types.h"
+#include "likely/BinnedGrid.h"
 
 #include <string>
 #include <vector>
@@ -114,6 +115,14 @@ namespace likely {
 
     // Returns the index of the parameter with the specified name or throws a RuntimeError.
     int findFitParameterByName(FitParameters const &parameters, std::string const &name);
+    
+    // Returns the grid defined by the parameter binning specifications.
+    BinnedGrid getFitParametersGrid(FitParameters const &parameters);
+    
+    // Returns a string to configure the specified fit parameters for the specified iterator
+    // position on the specified grid (usually obtained by calling getFitParametersGrid).
+    std::string getFitParametersGridConfig(FitParameters const &parameters,
+        BinnedGrid const &grid, BinnedGrid::Iterator iter);
         
     // Modifies FitParameters using instructions in the specified script or throws a
     // RuntimeError in case an error in the script is detected (in which case the input

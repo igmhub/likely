@@ -186,6 +186,32 @@ bool onlyFloating) {
     setFitParameterValues(parameters,values.begin(),values.end(),onlyFloating);
 }
 
+local::BinnedGrid local::getFitParametersGrid(FitParameters const &parameters) {
+    std::vector<AbsBinningCPtr> axes;
+    for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
+        AbsBinningCPtr binning = iter->getBinning();
+        if(binning) axes.push_back(binning);
+    }
+    return BinnedGrid(axes);
+}
+
+std::string local::getFitParametersGridConfig(FitParameters const &parameters,
+BinnedGrid const &grid, BinnedGrid::Iterator gridIter) {
+    // Get the bin center values for this iterator position.
+    std::vector<double> binCenters;
+    grid.getBinCenters(*gridIter,binCenters);
+    std::vector<double>::const_iterator nextCenter(binCenters.begin());
+    // Loop over the fit parameters to build a config string for these bin center values.
+    std::string config;
+    boost::format fmt("fix[%s]=%f;");
+    for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
+        if(iter->getBinning()) {
+            config += boost::str(fmt % iter->getName() % (*nextCenter++));
+        }
+    }
+    return config;
+}
+
 namespace likely {
 namespace fitpar {
     // Declare our script grammar.
