@@ -101,16 +101,6 @@ namespace likely {
         // an index with no associated data or out of range.
         int getOffsetForIndex(int index) const;
         
-        // Fills the vector provided with the bin index values along each axis for the specified
-        // global index.
-        void getBinIndices(int index, std::vector<int> &binIndices) const;
-        // Fills the vector provided with the bin centers along each axis for the specified
-        // global index.
-        void getBinCenters(int index, std::vector<double> &binCenters) const;
-        // Fills the vector provided with the full bin widths along each axis for the specified
-        // global index.
-        void getBinWidths(int index, std::vector<double> &binWidths) const;
-        
         // Returns true if the bin corresponding to the specified global index has data, or
         // else returns false. Note that a data whose contents is zero is not considered empty.
         // An empty bin is one that has never had any value assigned to it.

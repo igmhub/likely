@@ -65,7 +65,7 @@ public:
         double sigma = params[0];
         std::vector<double> point, prediction;
         for(lk::BinnedData::IndexIterator iter = _data->begin(); iter != _data->end(); ++iter) {
-            _data->getBinCenters(*iter,point);
+            _data->getGrid().getBinCenters(*iter,point);
             prediction.push_back(model(point,sigma));
         }
         return 0.5*_data->chiSquare(prediction);
@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
         // Fill each bin of the prototype dataset with the model evaluated with sigma=sigma0
         std::vector<double> point(ndim);
         for(int index = 0; index < grid.getNBinsTotal(); ++index) {
-            prototype->getBinCenters(index,point);
+            grid.getBinCenters(index,point);
             prototype->setData(index,model(point,sigma0));
         }
         int size(prototype->getNBinsWithData());

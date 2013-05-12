@@ -198,18 +198,6 @@ int local::BinnedData::getOffsetForIndex(int index) const {
     return _offset[index];
 }
 
-void local::BinnedData::getBinIndices(int index, std::vector<int> &binIndices) const {
-    return _grid.getBinIndices(index,binIndices);
-}
-
-void local::BinnedData::getBinCenters(int index, std::vector<double> &binCenters) const {
-    return _grid.getBinCenters(index,binCenters);
-}
-
-void local::BinnedData::getBinWidths(int index, std::vector<double> &binWidths) const {
-    return _grid.getBinWidths(index,binWidths);
-}
-
 bool local::BinnedData::hasData(int index) const {
     _grid.checkIndex(index);
     return !(_offset[index] == EMPTY_BIN);
