@@ -789,7 +789,15 @@ std::vector<std::string> const &labels) const {
     if(labels.size() > 0 && labels.size() != _size) {
         throw RuntimeError("CovarianceMatrix::printToStream: unexpected number of labels.");
     }
-    boost::format indexFormat("%5d :"),labelFormat("%20s :"),valueFormat(format);
+    // Find longest label name to set the fixed width for output formatting
+    int width(0);
+    for(std::vector<std::string>::const_iterator iter = labels.begin();
+    iter != labels.end(); ++iter) {
+        int len = iter->size();
+        if(len > width) width = len;
+    }
+    std::string labelSpec = boost::str(boost::format("%%%ds :") % width);
+    boost::format indexFormat("%5d :"),labelFormat(labelSpec),valueFormat(format);
     for(int row = 0; row < _size; ++row) {
         os << ((labels.size() > 0) ? (labelFormat % labels[row]) : (indexFormat % row));
         for(int col = 0; col <= row; ++col) {
