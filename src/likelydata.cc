@@ -1,11 +1,12 @@
 // Created 24-Apr-2012 by David Kirkby (University of California, Irvine) <dkirkby@uci.edu>
-// Demonstrates and tests the BinnedData class.
+// Demonstrates and tests the BinnnedGrid and BinnedData classes.
 
 #include "likely/CovarianceMatrix.h"
 #include "likely/CovarianceAccumulator.h"
 #include "likely/UniformBinning.h"
 #include "likely/UniformSampling.h"
 #include "likely/NonUniformBinning.h"
+#include "likely/BinnedGrid.h"
 #include "likely/BinnedData.h"
 #include "likely/BinnedDataResampler.h"
 #include "likely/Random.h"
@@ -30,20 +31,22 @@ int main(int argc, char **argv) {
         axis2(new lk::UniformSampling(0.,1.,3)),
         axis3(new lk::NonUniformBinning(bins));
 
-    lk::BinnedData data(axis1,axis2,axis3);
-    int nAxes(data.getNAxes()), nBins(data.getNBinsTotal());
+    lk::BinnedGrid grid(axis1,axis2,axis3);
+    lk::BinnedData data(grid);
+    int nAxes(grid.getNAxes()), nBins(grid.getNBinsTotal());
     std::cout << "naxes = " << nAxes << ", nbins = " << nBins << std::endl;
     std::vector<int> idx(nAxes);
     std::vector<double> centers(nAxes), widths(nAxes);
-    for(int index = 0; index < data.getNBinsTotal(); ++index) {
+    for(lk::BinnedGrid::Iterator iter = grid.begin(); iter != grid.end(); ++iter) {
+        int index = *iter;
         std::cout << "[" << index << "] =>";
-        data.getBinIndices(index,idx);
-        assert(data.getIndex(idx) == index);
+        grid.getBinIndices(index,idx);
+        assert(grid.getIndex(idx) == index);
         for(int k = 0; k < nAxes; ++k) std::cout << ' ' << idx[k];
-        data.getBinCenters(index,centers);
-        assert(data.getIndex(centers) == index);
+        grid.getBinCenters(index,centers);
+        assert(grid.getIndex(centers) == index);
         for(int k = 0; k < nAxes; ++k) std::cout << ' ' << centers[k];
-        data.getBinWidths(index,widths);
+        grid.getBinWidths(index,widths);
         for(int k = 0; k < nAxes; ++k) std::cout << ' ' << widths[k];
         std::cout << std::endl;
         assert(data.hasData(index) == false);
@@ -103,7 +106,8 @@ int main(int argc, char **argv) {
         int nbins(3);
         lk::CovarianceMatrixPtr C(lk::createDiagonalCovariance(nbins,1));
         lk::AbsBinningCPtr bins(new lk::UniformBinning(0.,1.,nbins));
-        lk::BinnedData d1(bins), d2(bins), d3(bins), c1(bins), c2(bins), c3(bins);
+        lk::BinnedGrid grid(bins);
+        lk::BinnedData d1(grid), d2(grid), d3(grid), c1(grid), c2(grid), c3(grid);
         for(int k = 0; k < nbins; ++k) {
             d1.setData(k,1.); c1.setData(k,1.);
             d2.setData(k,2.); c2.setData(k,2.);
@@ -113,7 +117,7 @@ int main(int argc, char **argv) {
         c2.setCovarianceMatrix(C);
         c3.setCovarianceMatrix(C);
 
-        lk::BinnedData d123(bins), c123(bins);
+        lk::BinnedData d123(grid), c123(grid);
         double wgt(1.5);
         d123.add(d1,2*wgt);
         c123.add(c1,2*wgt);
@@ -134,7 +138,8 @@ int main(int argc, char **argv) {
         lk::CovarianceMatrixPtr C(lk::generateRandomCovariance(nbins,1,random));
         // Initialize an empty dataset.
         lk::AbsBinningCPtr binning(new lk::UniformBinning(0,1,nbins));
-        lk::BinnedData data(binning);
+        lk::BinnedGrid grid(binning);
+        lk::BinnedData data(grid);
         // Generate random prediction and data vectors.
         std::vector<double> pred,noise;
         C->sample(noise,random);
@@ -163,7 +168,8 @@ int main(int argc, char **argv) {
         // Create a prototype dataset.
         int nbins(2);
         lk::AbsBinningCPtr binning(new lk::UniformBinning(0.,1.,nbins));
-        lk::BinnedData prototype(binning);
+        lk::BinnedGrid grid(binning);
+        lk::BinnedData prototype(grid);
         prototype.setData(0,0);
         prototype.setData(1,1);
         // Define a covariance matrix.
@@ -222,7 +228,8 @@ int main(int argc, char **argv) {
         // Create two prototype datasets with the same binning and contents (MC truth)
         int nbins(2);
         lk::AbsBinningCPtr binning(new lk::UniformBinning(0.,1.,nbins));
-        lk::BinnedData prototype1(binning),prototype2(binning);
+        lk::BinnedGrid grid(binning);
+        lk::BinnedData prototype1(grid),prototype2(grid);
         prototype1.setData(0,0);
         prototype1.setData(1,+1);
         prototype2.setData(0,0);

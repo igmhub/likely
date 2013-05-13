@@ -13,51 +13,10 @@
 
 namespace local = likely;
 
-local::BinnedData::BinnedData(std::vector<AbsBinningCPtr> axes)
-: _axisBinning(axes)
+local::BinnedData::BinnedData(BinnedGrid const &grid)
+: _grid(grid)
 {
-    if(0 == axes.size()) {
-        throw RuntimeError("BinnedData: no axes provided.");
-    }
-    _initialize();
-}
-
-local::BinnedData::BinnedData(AbsBinningCPtr axis1)
-{
-    if(!axis1) {
-        throw RuntimeError("BinnedData: missing axis1.");
-    }
-    _axisBinning.push_back(axis1);
-    _initialize();
-}
-
-local::BinnedData::BinnedData(AbsBinningCPtr axis1, AbsBinningCPtr axis2)
-{
-    if(!axis1 || !axis2) {
-        throw RuntimeError("BinnedData: missing axis data.");
-    }
-    _axisBinning.push_back(axis1);    
-    _axisBinning.push_back(axis2);
-    _initialize();
-}
-
-local::BinnedData::BinnedData(AbsBinningCPtr axis1, AbsBinningCPtr axis2, AbsBinningCPtr axis3)
-{
-    if(!axis1 || !axis2 || !axis3) {
-        throw RuntimeError("BinnedData: missing axis data.");
-    }
-    _axisBinning.push_back(axis1);
-    _axisBinning.push_back(axis2);
-    _axisBinning.push_back(axis3);
-    _initialize();
-}
-
-void local::BinnedData::_initialize() {
-    _nbins = 1;
-    BOOST_FOREACH(AbsBinningCPtr binning, _axisBinning) {
-        _nbins *= binning->getNBins();
-    }
-    _offset.resize(_nbins,EMPTY_BIN);
+    _offset.resize(_grid.getNBinsTotal(),EMPTY_BIN);
     _weight = 1;
     _weighted = false;
     _finalized = false;
@@ -66,7 +25,7 @@ void local::BinnedData::_initialize() {
 local::BinnedData::~BinnedData() { }
 
 local::BinnedData *local::BinnedData::clone(bool binningOnly) const {
-    return binningOnly ? new BinnedData(getAxisBinning()) : new BinnedData(*this);
+    return binningOnly ? new BinnedData(_grid) : new BinnedData(*this);
 }
 
 void local::BinnedData::cloneCovariance() {
@@ -209,13 +168,7 @@ void local::BinnedData::_setWeighted(bool weighted, bool flushCache) const {
 }
 
 bool local::BinnedData::isCongruent(BinnedData const& other, bool onlyBinning, bool ignoreCovariance) const {
-    // Must have same number of axes.
-    int nAxes(getNAxes());
-    if(other.getNAxes() != nAxes) return false;
-    // [1] Binning must be represented by the same (not equivalent) object along each axis.
-    for(int axis = 0; axis < nAxes; ++axis) {
-        if(other._axisBinning[axis] != _axisBinning[axis]) return false;
-    }
+    if(!_grid.isCongruent(other.getGrid())) return false;
     if(!onlyBinning) {
         // [2] List (not set, i.e., order matters) of bins with data must be the same.
         if(other.getNBinsWithData() != getNBinsWithData()) return false;
@@ -229,34 +182,6 @@ bool local::BinnedData::isCongruent(BinnedData const& other, bool onlyBinning, b
         }
     }
     return true;
-}
-
-int local::BinnedData::getIndex(std::vector<int> const &binIndices) const {
-    int nAxes(getNAxes());
-    if(binIndices.size() != nAxes) {
-        throw RuntimeError("BinnedData::getIndex: invalid input vector size.");
-    }
-    int index(0);
-    for(int axis = 0; axis < nAxes; ++axis) {
-        int binIndex(binIndices[axis]), nBins(_axisBinning[axis]->getNBins());
-        if(binIndex < 0 || binIndex >= nBins) {
-            throw RuntimeError("BinnedData::getIndex: invalid bin index.");
-        }
-        index = binIndex + index*nBins;
-    }
-    return index;
-}
-
-int local::BinnedData::getIndex(std::vector<double> const &values) const {
-    int index(0), nAxes(getNAxes());
-    if(values.size() != nAxes) {
-        throw RuntimeError("BinnedData::getIndex: invalid input vector size.");
-    }
-    std::vector<int> binIndices;
-    for(int axis = 0; axis < nAxes; ++axis) {
-        binIndices.push_back(_axisBinning[axis]->getBinIndex(values[axis]));
-    }
-    return getIndex(binIndices);
 }
 
 int local::BinnedData::getIndexAtOffset(int offset) const {
@@ -273,54 +198,8 @@ int local::BinnedData::getOffsetForIndex(int index) const {
     return _offset[index];
 }
 
-void local::BinnedData::_checkIndex(int index) const {
-    if(index < 0 || index >= _nbins) {
-        throw RuntimeError("BinnedData: invalid index " +
-            boost::lexical_cast<std::string>(index));
-    }
-}
-
-void local::BinnedData::getBinIndices(int index, std::vector<int> &binIndices) const {
-    _checkIndex(index);
-    int nAxes(getNAxes());
-    binIndices.resize(nAxes,0);
-    int partial(index);
-    for(int axis = nAxes-1; axis >= 0; --axis) {
-        AbsBinningCPtr binning = _axisBinning[axis];
-        int nBins(binning->getNBins()), binIndex(partial % nBins);
-        binIndices[axis] = binIndex;
-        partial = (partial - binIndex)/nBins;
-    }
-}
-
-void local::BinnedData::getBinCenters(int index, std::vector<double> &binCenters) const {
-    _checkIndex(index);
-    binCenters.resize(0);
-    binCenters.reserve(getNAxes());
-    std::vector<int> binIndices;
-    getBinIndices(index,binIndices);
-    int nAxes(getNAxes());
-    for(int axis = 0; axis < nAxes; ++axis) {
-        AbsBinningCPtr binning = _axisBinning[axis];
-        binCenters.push_back(binning->getBinCenter(binIndices[axis]));
-    }
-}
-
-void local::BinnedData::getBinWidths(int index, std::vector<double> &binWidths) const {
-    _checkIndex(index);
-    binWidths.resize(0);
-    binWidths.reserve(getNAxes());
-    std::vector<int> binIndices;
-    getBinIndices(index,binIndices);
-    int nAxes(getNAxes());
-    for(int axis = 0; axis < nAxes; ++axis) {
-        AbsBinningCPtr binning = _axisBinning[axis];
-        binWidths.push_back(binning->getBinWidth(binIndices[axis]));
-    }
-}
-
 bool local::BinnedData::hasData(int index) const {
-    _checkIndex(index);
+    _grid.checkIndex(index);
     return !(_offset[index] == EMPTY_BIN);
 }
 
@@ -544,14 +423,14 @@ void local::BinnedData::prune(std::set<int> const &keep) {
     // all indices are valid.
     std::set<int> offsets;
     BOOST_FOREACH(int index, keep) {
-        _checkIndex(index);
+        _grid.checkIndex(index);
         offsets.insert(_offset[index]);
     }
     // Are we actually removing anything?
     int newSize(offsets.size());
     if(newSize == getNBinsWithData()) return;
     // Reset our vector of offset for each index with data.
-    _offset.assign(_nbins,EMPTY_BIN);
+    _offset.assign(_grid.getNBinsTotal(),EMPTY_BIN);
     // Shift our (unweighted) data vector elements down to compress out any elements
     // we are not keeping. We are using the fact that std::set guarantees that iteration
     // follows sort order, from smallest to largest key value.

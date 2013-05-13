@@ -23,13 +23,6 @@ double local::AbsBinning::getBinWidth(int index) const {
     return getBinHighEdge(index) - getBinLowEdge(index);
 }
 
-void local::AbsBinning::dump(std::ostream &os) const {
-    int nbins(getNBins());
-    os << nbins << ' ' << getBinLowEdge(0);
-    for(int bin = 0; bin < nbins; ++bin) os << ' ' << getBinHighEdge(bin);
-    os << std::endl;
-}
-
 bool local::AbsBinning::isValidBinIndex(int index, std::string const &errorFormat) const {
     if(index >= 0 && index < getNBins()) return true;
     if(0 < errorFormat.length()) {
@@ -44,6 +37,7 @@ bool local::AbsBinning::isValidBinIndex(int index, std::string const &errorForma
 #include "likely/UniformSampling.h"
 #include "likely/NonUniformSampling.h"
 #include "likely/UniformBinning.h"
+#include "likely/NonUniformBinning.h"
 
 #include "boost/bind.hpp"
 #include "boost/spirit/include/qi.hpp"
@@ -69,34 +63,44 @@ namespace binning {
             using phoenix::ref;
             using phoenix::push_back;
 
-            bspec = plist | brange;
+            bspec = ( blist | slist | brange | srange );
             
-            // Parse the format x1,x2,...,xn and push values into the centers vector
-            plist = ( double_[push_back(ref(centers),_1)] % ',' )[boost::bind(&Grammar::createWithCenters,this)];
+            // Parse the formats [x1,x2,...,xn] and {x1,x2,...,xn}
+            blist = ( '[' >> valuesList >> ']' )[boost::bind(&Grammar::createBinsWithEdges,this)];
+            slist = ( '{' >> valuesList >> '}' )[boost::bind(&Grammar::createSamplesWithCenters,this)];
+                
+            valuesList = ( double_[push_back(ref(values),_1)] % ',' );
             
-            // Parse the format [lo,hi]*n and fill the corresponding data members
-            brange = ( '[' >> double_[ref(lo)=_1] >> ',' >> double_[ref(hi)=_1] >> "]*" >> int_[ref(nbins)=_1] )[
-                boost::bind(&Grammar::createWithRange,this)];
+            // Parse the formats [lo:hi]*n and {lo:hi}*n
+            brange = ( '[' >> double_[ref(lo)=_1] >> ':' >> double_[ref(hi)=_1] >> "]*" >> int_[ref(nbins)=_1] )[
+                boost::bind(&Grammar::createBinsWithRange,this)];
+            srange = ( '{' >> double_[ref(lo)=_1] >> ':' >> double_[ref(hi)=_1] >> "}*" >> int_[ref(nbins)=_1] )[
+                boost::bind(&Grammar::createSamplesWithRange,this)];
 
         }
-        qi::rule<std::string::const_iterator> bspec,plist,brange;
+        qi::rule<std::string::const_iterator> bspec,blist,slist,valuesList,brange,srange;
         likely::AbsBinningCPtr binning;
 
-        std::vector<double> centers;
+        std::vector<double> values;
         double lo,hi;
         int nbins;
         
-        void createWithCenters() {
-            if(centers.size() > 2) {
-                binning.reset(new likely::NonUniformSampling(centers));
+        void createBinsWithEdges() {
+            binning.reset(new likely::NonUniformBinning(values));
+        }
+        void createSamplesWithCenters() {
+            if(values.size() > 2) {
+                binning.reset(new likely::NonUniformSampling(values));
             }
             else {
-                binning.reset(new likely::UniformSampling(centers.front(),centers.back(),centers.size()));
+                binning.reset(new likely::UniformSampling(values.front(),values.back(),values.size()));
             }
-        }
-        
-        void createWithRange() {
+        }        
+        void createBinsWithRange() {
             binning.reset(new likely::UniformBinning(lo,hi,nbins));
+        }
+        void createSamplesWithRange() {
+            binning.reset(new likely::UniformSampling(lo,hi,nbins));
         }
     };
 } // binning

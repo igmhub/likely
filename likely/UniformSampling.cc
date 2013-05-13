@@ -66,3 +66,7 @@ double local::UniformSampling::getBinCenter(int index) const {
     isValidBinIndex(index,"getBinCenter: invalid bin index %d.");
     return _minValue + index*_sampleSpacing;
 }
+
+void local::UniformSampling::printToStream(std::ostream &os) const {
+    os << '{' << _minValue << ':' << _maxValue << "}*" << _nSamples;
+}

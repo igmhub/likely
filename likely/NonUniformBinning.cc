@@ -57,3 +57,12 @@ double local::NonUniformBinning::getBinCenter(int index) const {
     isValidBinIndex(index,"getBinCenter: invalid bin index %d.");
     return 0.5*(_binEdges[index] + _binEdges[index+1]);
 }
+
+void local::NonUniformBinning::printToStream(std::ostream &os) const {
+    os << '[';
+    for(int bin = 0; bin < _binEdges.size(); ++bin) {
+        if(bin) os << ',';
+        os << _binEdges[bin];
+    }
+    os << ']';
+}

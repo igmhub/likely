@@ -4,6 +4,7 @@
 #define LIKELY_FIT_PARAMETER
 
 #include "likely/types.h"
+#include "likely/BinnedGrid.h"
 
 #include <string>
 #include <vector>
@@ -53,6 +54,12 @@ namespace likely {
         void setPrior(double priorMin, double priorMax, double priorScale, PriorType type);
         // Removes any prior on this parameter.
         void removePrior();
+        // Sets the optional binning for this parameter using the syntax of AbsBinning::createBinning.
+        void setBinning(std::string const &binningSpec);
+        // Returns the binning, if any, for this parameter.
+        AbsBinningCPtr getBinning() const;
+        // Removes any previous binning specification.
+        void removeBinning();
         // Returns a newline-terminated string that describes the complete internal state of this
         // parameter in the machine-readable text format expected by modifyFitParameters().
         std::string toScript() const;
@@ -62,6 +69,7 @@ namespace likely {
         std::string _name;
         double _value, _error, _priorMin, _priorMax, _priorScale;
         PriorType _priorType;
+        AbsBinningCPtr _binning;
         
 	}; // FitParameter
 
@@ -77,6 +85,7 @@ namespace likely {
     inline double FitParameter::getPriorMax() const { return _priorType == NoPrior ? 0 : _priorMax; }
     inline double FitParameter::getPriorScale() const { return _priorType == NoPrior ? 0 : _priorScale; }
     inline void FitParameter::removePrior() { _priorType = NoPrior; }
+    inline void FitParameter::removeBinning() { _binning.reset(); }
     
     // Defines a vector of fit parameters.
     typedef std::vector<FitParameter> FitParameters;
@@ -106,6 +115,14 @@ namespace likely {
 
     // Returns the index of the parameter with the specified name or throws a RuntimeError.
     int findFitParameterByName(FitParameters const &parameters, std::string const &name);
+    
+    // Returns the grid defined by the parameter binning specifications.
+    BinnedGrid getFitParametersGrid(FitParameters const &parameters);
+    
+    // Returns a string to configure the specified fit parameters for the specified iterator
+    // position on the specified grid (usually obtained by calling getFitParametersGrid).
+    std::string getFitParametersGridConfig(FitParameters const &parameters,
+        BinnedGrid const &grid, BinnedGrid::Iterator iter);
         
     // Modifies FitParameters using instructions in the specified script or throws a
     // RuntimeError in case an error in the script is detected (in which case the input
@@ -121,6 +138,7 @@ namespace likely {
     //  gaussprior [<name>] @ ( <min> , <max> )
     //  gaussprior [<name>] @ ( <min> , <max> ; <scale> )
     //  noprior [<name>]
+    //  binning [<name>] = binningSpec     [see AbsBinning::createBinning for details]
     //
     // Multiple commands separated by semicolons are executed in the order they appear.
     // Command verbs (value,error,fix,...) are case sensitive. Arbitrary whitespace

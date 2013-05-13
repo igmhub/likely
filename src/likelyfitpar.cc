@@ -62,6 +62,16 @@ int main(int argc, char *argv[]) {
     
     lk::modifyFitParameters(params,"boxprior[param2] @ (-1,2.3)");
     lk::modifyFitParameters(params,"gaussprior[param1] @ (0.5,1.5;0.5)");
+    lk::printFitParametersToStream(params,std::cout);
+    
+    try {
+        lk::modifyFitParameters(params,"binning[param1] = [-1:+1]*4");
+        lk::modifyFitParameters(params,"binning[param3] = {-1,0,+1}");
+        lk::printFitParametersToStream(params,std::cout);
+    }
+    catch(lk::RuntimeError const &e) {
+        std::cout << e.what() << std::endl;
+    }
 
     try {
         lk::modifyFitParameters(params,"value [param3]=0;error [param3] = -123");
@@ -89,6 +99,13 @@ int main(int argc, char *argv[]) {
     catch(lk::RuntimeError const &e) {
         // We expect this since the pattern does not match any names.
         std::cout << "Got expected RuntimeError" << std::endl;
+    }
+    
+    // Test grid iteration
+    lk::BinnedGrid grid = getFitParametersGrid(params);
+    for(lk::BinnedGrid::Iterator iter = grid.begin(); iter != grid.end(); ++iter) {
+        std::string config = getFitParametersGridConfig(params,grid,iter);
+        std::cout << "config[" << (*iter) << "]: " << config << std::endl;
     }
     
     TestModel model;

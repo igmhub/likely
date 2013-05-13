@@ -26,6 +26,7 @@
 #include "likely/NonUniformSampling.h"
 
 #include "likely/CovarianceMatrix.h"
+#include "likely/BinnedGrid.h"
 #include "likely/BinnedData.h"
 #include "likely/BinnedDataResampler.h"
 

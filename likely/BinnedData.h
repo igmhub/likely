@@ -4,6 +4,7 @@
 #define LIKELY_BINNED_DATA
 
 #include "likely/types.h"
+#include "likely/BinnedGrid.h"
 
 #include "boost/smart_ptr.hpp"
 
@@ -23,16 +24,13 @@ namespace likely {
     // the original).
 	class BinnedData {
 	public:
-	    // Creates a new dataset with an arbitrary number of axes.
-        explicit BinnedData(std::vector<AbsBinningCPtr> axes);
-        // Creates a new dataset with a single axis.
-		explicit BinnedData(AbsBinningCPtr axis1);
-        // Creates a new dataset with two axes.
-        BinnedData(AbsBinningCPtr axis1, AbsBinningCPtr axis2);
-        // Creates a new dataset with three axes.
-        BinnedData(AbsBinningCPtr axis1, AbsBinningCPtr axis2, AbsBinningCPtr axis3);
+	    // Creates a new dataset for the specified grid.
+        explicit BinnedData(BinnedGrid const &grid);
 		virtual ~BinnedData();
 		
+        // Returns a copy of our underlying grid specification.
+        BinnedGrid getGrid() const;
+
 		// Shallow copying is supported via the default copy constructor, which makes copies of
 		// our data, but just adds smart pointer references to the original object's binning
 		// objects and covariance matrix (if any). Any covariance matrix with more than one
@@ -45,9 +43,9 @@ namespace likely {
 		// copying. Set onlyBinning = true to only clone our binning specifications and
 		// create an empty dataset. Subclasses X must override this method, normally with:
 		//
-		//   return binningOnly ? new X(getAxisBinning()) : new X(*this)
+		//   return binningOnly ? new X(getGrid()) : new X(*this)
 		//
-		// This means that X::X(std::vector<AbsBinningCPtr> axes) and X::X(X const &other)
+		// This means that X::X(BinnedGrid const &grid) and X::X(X const &other)
 		// must also be valid (but the default copy ctor is usually ok).
 		// 
 		// Subclass users can use boost::dynamic_pointer_cast<...> to initialize smart pointers
@@ -83,26 +81,11 @@ namespace likely {
         //
         virtual bool isCongruent(BinnedData const &other, bool onlyBinning = false,
             bool ignoreCovariance = false) const;
-		
-		// Returns the number of axes used to bin this data.
-        int getNAxes() const;
-        // Returns the total number of bins covering the rectangular volume of our axes.
-        int getNBinsTotal() const;
+
         // Returns the number of bins with data, which is never more than getNBinsTotal().
         // The hasData(...) method defines exactly what constitutes a bin with data.
         int getNBinsWithData() const;
-        // Returns a vector of shared pointers to our axis specification objects.
-        std::vector<AbsBinningCPtr> getAxisBinning() const;
-        
-        // Returns the global index corresponding to the specified bin index values along
-        // each axis. The global index is defined as (i0*n1+i1)*n2+…) where ik, nk are
-        // the bin index and number of bins for axis k, respectively. The global
-        // index will always be >= 0 and < getNBinsTotal().
-        int getIndex(std::vector<int> const &binIndices) const;
-        // Returns the global index corresponding to the specified coordinate values along
-        // each axis.
-        int getIndex(std::vector<double> const &values) const;
-        
+
         // Returns iterators pointing to the first and last global indices for bins with data.
         // Iteration order is defined by the order of setData(...) calls, and not by the global
         // index value.
@@ -118,16 +101,6 @@ namespace likely {
         // Returns the offset corresponding to a global index, or throws a RuntimeError for
         // an index with no associated data or out of range.
         int getOffsetForIndex(int index) const;
-        
-        // Fills the vector provided with the bin index values along each axis for the specified
-        // global index.
-        void getBinIndices(int index, std::vector<int> &binIndices) const;
-        // Fills the vector provided with the bin centers along each axis for the specified
-        // global index.
-        void getBinCenters(int index, std::vector<double> &binCenters) const;
-        // Fills the vector provided with the full bin widths along each axis for the specified
-        // global index.
-        void getBinWidths(int index, std::vector<double> &binWidths) const;
         
         // Returns true if the bin corresponding to the specified global index has data, or
         // else returns false. Note that a data whose contents is zero is not considered empty.
@@ -311,8 +284,8 @@ namespace likely {
         std::string getMemoryState() const;
 
 	private:
-        int _nbins;
-        std::vector<AbsBinningCPtr> _axisBinning;
+        // The grid that our data represents.
+        BinnedGrid _grid;
         enum { EMPTY_BIN = -1 };
         std::vector<int> _offset, _index;
         // Our data vector which might be weighted.
@@ -329,10 +302,6 @@ namespace likely {
         mutable bool _weighted;
         // Have we been finalized?
         bool _finalized;
-        // Initializes a new object.
-        void _initialize();
-        // Throws a RuntimeError unless the specified global index is valid.
-        void _checkIndex(int index) const;
         // Forces our internal representation to be weighted or unweighted. This must be called
         // with flushCache = true before making any changes to our _data vector or else making
         // a change to our covariance matrix that should be reflected in future values of
@@ -341,12 +310,8 @@ namespace likely {
         void _setWeighted(bool weighted, bool flushCache = false) const;
 	}; // BinnedData
 	
-    void swap(BinnedData& a, BinnedData& b);
-	
-    inline int BinnedData::getNAxes() const { return _axisBinning.size(); }
-    inline int BinnedData::getNBinsTotal() const { return _nbins; }
+    inline BinnedGrid BinnedData::getGrid() const { return _grid; }
     inline int BinnedData::getNBinsWithData() const { return _index.size(); }
-    inline std::vector<AbsBinningCPtr> BinnedData::getAxisBinning() const { return _axisBinning; }
     inline bool BinnedData::hasCovariance() const { return _covariance.get() != 0; }
     inline bool BinnedData::isDataWeighted() const { return _weighted; }
     inline CovarianceMatrixCPtr BinnedData::getCovarianceMatrix() const { return _covariance; }

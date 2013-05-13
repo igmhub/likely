@@ -66,3 +66,12 @@ double local::NonUniformSampling::getBinCenter(int index) const {
     isValidBinIndex(index,"getBinCenter: invalid bin index %d.");
     return _samplePoints[index];
 }
+
+void local::NonUniformSampling::printToStream(std::ostream &os) const {
+    os << '{';
+    for(int bin = 0; bin < _samplePoints.size(); ++bin) {
+        if(bin) os << ',';
+        os << _samplePoints[bin];
+    }
+    os << '}';
+}

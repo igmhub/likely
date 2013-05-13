@@ -52,3 +52,7 @@ double local::UniformBinning::getBinCenter(int index) const {
     isValidBinIndex(index,"getBinCenter: invalid bin index %d.");
     return _minValue + (index+0.5)*_binWidth;
 }
+
+void local::UniformBinning::printToStream(std::ostream &os) const {
+    os << '[' << _minValue << ':' << _maxValue << "]*" << _nBins;
+}

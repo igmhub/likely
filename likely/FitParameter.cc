@@ -2,6 +2,7 @@
 
 #include "likely/FitParameter.h"
 #include "likely/RuntimeError.h"
+#include "likely/AbsBinning.h"
 
 #include "boost/format.hpp"
 #include "boost/lexical_cast.hpp"
@@ -16,6 +17,7 @@
 
 #include <iterator>
 #include <iostream>
+#include <sstream>
 
 namespace local = likely;
 
@@ -65,6 +67,14 @@ PriorType priorType) {
     _priorType = priorType;
 }
 
+void local::FitParameter::setBinning(std::string const &binningSpec) {
+    _binning = createBinning(binningSpec);
+}
+
+likely::AbsBinningCPtr local::FitParameter::getBinning() const {
+    return _binning;
+}
+
 std::string local::FitParameter::toScript() const {
     std::string script = boost::str(boost::format("value[%s]=%s; error[%s]=%s;")
         % _name % boost::lexical_cast<std::string>(getValue())
@@ -76,6 +86,11 @@ std::string local::FitParameter::toScript() const {
             boost::lexical_cast<std::string>(_priorMin) + ',' +
             boost::lexical_cast<std::string>(_priorMax) + ';' +
             boost::lexical_cast<std::string>(_priorScale) + ");";
+    }
+    if(_binning) {
+        std::stringstream ss;
+        _binning->printToStream(ss);
+        script += " binning[" + _name + "]=" + ss.str() +';';
     }
     return script + '\n';
 }
@@ -116,7 +131,14 @@ int local::countFitParameters(FitParameters const &parameters, bool onlyFloating
 
 void local::printFitParametersToStream(FitParameters const &parameters, std::ostream &out,
 std::string const &formatSpec) {
-    boost::format formatter(formatSpec.c_str()), label("%20s = "), rounded(" $ %16s $");
+    // Find longest parameter name to set the fixed width for printing labels
+    int width(0);
+    for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
+        int len = iter->getName().size();
+        if(len > width) width = len;
+    }
+    std::string labelFormat = boost::str(boost::format("%%%ds = ") % width);
+    boost::format formatter(formatSpec.c_str()), label(labelFormat), rounded(" $ %16s $");
     std::vector<double> errors(1);
     for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
         double value = iter->getValue();
@@ -164,6 +186,32 @@ bool onlyFloating) {
     setFitParameterValues(parameters,values.begin(),values.end(),onlyFloating);
 }
 
+local::BinnedGrid local::getFitParametersGrid(FitParameters const &parameters) {
+    std::vector<AbsBinningCPtr> axes;
+    for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
+        AbsBinningCPtr binning = iter->getBinning();
+        if(binning) axes.push_back(binning);
+    }
+    return BinnedGrid(axes);
+}
+
+std::string local::getFitParametersGridConfig(FitParameters const &parameters,
+BinnedGrid const &grid, BinnedGrid::Iterator gridIter) {
+    // Get the bin center values for this iterator position.
+    std::vector<double> binCenters;
+    grid.getBinCenters(*gridIter,binCenters);
+    std::vector<double>::const_iterator nextCenter(binCenters.begin());
+    // Loop over the fit parameters to build a config string for these bin center values.
+    std::string config;
+    boost::format fmt("fix[%s]=%f;");
+    for(FitParameters::const_iterator iter = parameters.begin(); iter != parameters.end(); ++iter) {
+        if(iter->getBinning()) {
+            config += boost::str(fmt % iter->getName() % (*nextCenter++));
+        }
+    }
+    return config;
+}
+
 namespace likely {
 namespace fitpar {
     // Declare our script grammar.
@@ -175,6 +223,9 @@ namespace fitpar {
             using qi::lit;
             using qi::no_skip;
             using qi::char_;
+            using qi::lexeme;
+            using ascii::graph;
+            using boost::phoenix::ref;
 
             // Commands are separated by semicolons. A final semicolon is optional.
             script = ( command % ';' ) >> -lit(';');
@@ -188,7 +239,8 @@ namespace fitpar {
                 ( "release" >> name )                   [boost::bind(&Grammar::release,this)] |
                 ( "boxprior" >> name >> '@' >> range )  [boost::bind(&Grammar::boxPrior,this)] |
                 ( "gaussprior" >> name >> '@' >> range )[boost::bind(&Grammar::gaussPrior,this)] |
-                ( "noprior" >> name )                   [boost::bind(&Grammar::noPrior,this)];
+                ( "noprior" >> name )                   [boost::bind(&Grammar::noPrior,this)] |
+                ( "binning" >> name >> '=' >> binspec ) [boost::bind(&Grammar::binning,this)];
 
             // Commands share a common name and range parser.
             name = lit('[')[boost::bind(&Grammar::beginName,this)]
@@ -200,14 +252,19 @@ namespace fitpar {
                 >> double_[boost::bind(&Grammar::endRange,this,::_1)]
                 >> -( ';' >> double_[boost::bind(&Grammar::setScale,this,::_1)] )
                 >> ')';
-            
+                
+            // The binning spec is just an opaque string (w/o whitespace) here, since we
+            // delegate the actual parsing to AbsBinning::createBinning.
+            binspec = lexeme[ +graph[boost::bind(&Grammar::addToBinSpec,this,::_1)] ];
+
         }
         
         // Any space_type in this template must match the grammar template above.
-        qi::rule<std::string::const_iterator, ascii::space_type> script, command, name, range;        
+        qi::rule<std::string::const_iterator, ascii::space_type> script, command, name, range, binspec;        
 
         FitParameters &params;
         std::string theName;
+        std::string binningSpec;
         std::vector<int> selected;
         double _beginRange,_endRange,_theScale;
         
@@ -277,6 +334,15 @@ namespace fitpar {
         }
         void noPrior() {
             BOOST_FOREACH(int index, selected) params[index].removePrior();
+        }
+        void addToBinSpec(char c) {
+            binningSpec += c;
+        }
+        void binning() {
+            BOOST_FOREACH(int index, selected) {
+                params[index].setBinning(binningSpec);
+            }
+            binningSpec = "";
         }
     };
 } // grammar
