@@ -66,7 +66,7 @@ double local::TriCubicInterpolator::operator()(double x, double y, double z) con
 			0.5*(_data[_index(xi,yi,zi+2)]-_data[_index(xi,yi,zi)]),
 			0.5*(_data[_index(xi+1,yi,zi+2)]-_data[_index(xi+1,yi,zi)]),
 			0.5*(_data[_index(xi,yi+1,zi+2)]-_data[_index(xi,yi+1,zi)]),
-			0.25*(_data[_index(xi+1,yi+1,zi+2)]-_data[_index(xi+1,yi+1,zi)]),
+			0.5*(_data[_index(xi+1,yi+1,zi+2)]-_data[_index(xi+1,yi+1,zi)]),
             // values of d2f/dxdy at each corner.
 		    0.25*(_data[_index(xi+1,yi+1,zi)]-_data[_index(xi-1,yi+1,zi)]-_data[_index(xi+1,yi-1,zi)]+_data[_index(xi-1,yi-1,zi)]),
 			0.25*(_data[_index(xi+2,yi+1,zi)]-_data[_index(xi,yi+1,zi)]-_data[_index(xi+2,yi-1,zi)]+_data[_index(xi,yi-1,zi)]),
