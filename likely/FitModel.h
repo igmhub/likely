@@ -23,8 +23,12 @@ namespace likely {
         std::string getName() const;
         // Returns the number of model parameters.
         int getNParameters(bool onlyFloating = false) const;
-        // Prints a multi-line description of this object to the specified output stream.
+        // Prints a multi-line description of this object to the specified output stream,
+        // including information about our parameters and their initial values.
         virtual void printToStream(std::ostream &out, std::string const &formatSpec = "%12.6f") const;
+        // Prints a multi-line summary of our current parameter values to the specified
+        // output stream. Values that are flagged as changed will be marked with an asterisk.
+        void printCurrentValues(std::ostream &out, std::string const &formatSpec = "%12.6f") const;
         // Configures our fit parameters using the specified script. See the documentation for
         // modifyFitParameters in FitParameters.h for details. Note that this method modifies our
         // parameter configuration, i.e., their default values and errors, but not their current values
