@@ -28,6 +28,10 @@ namespace likely {
         // Returns the derivative y'(x) for the specified x value or zero if x is outside
         // the interpolation domain.
         double getDerivative(double x) const;
+        // Returns a copy of the grid of x values that we interpolate on.
+        CoordinateValues getXGrid() const;
+        // Returns a copy of the grid of y values that we interpolate on.
+        CoordinateValues getYGrid() const;
 	private:
         int _nValues;
         CoordinateValues _x, _y;
@@ -35,6 +39,9 @@ namespace likely {
         boost::scoped_ptr<Implementation> _pimpl;
 	}; // Interpolator
 	
+    inline Interpolator::CoordinateValues Interpolator::getXGrid() const { return _x; }
+    inline Interpolator::CoordinateValues Interpolator::getYGrid() const { return _y; }
+
     // Returns a smart pointer to an interpolator based on control points read
     // from the specified file name.
 	InterpolatorPtr createInterpolator(std::string const &filename,

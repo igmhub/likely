@@ -6,6 +6,8 @@
 #include "likely/FunctionMinimum.h"
 #include "likely/CovarianceMatrix.h"
 
+#include "boost/format.hpp"
+
 #include <iostream>
 
 namespace local = likely;
@@ -45,6 +47,25 @@ bool local::FitModel::updateParameterValues(Parameters const &values) {
 void  local::FitModel::printToStream(std::ostream &out, std::string const &formatSpec) const {
     out << "Fit Model \"" << _name << "\" has initial parameters:" << std::endl;
     printFitParametersToStream(_parameters,out,formatSpec);
+}
+
+void local::FitModel::printCurrentValues(std::ostream &out, std::string const &formatSpec) const {
+    // Find longest parameter name to set the fixed width for printing labels
+    int width(0);
+    for(FitParameters::const_iterator iter = _parameters.begin(); iter != _parameters.end(); ++iter) {
+        int len = iter->getName().size();
+        if(len > width) width = len;
+    }
+    // Prepare formats
+    std::string labelFormat = boost::str(boost::format("%%c[%%02d] %%%ds = ") % width);
+    // Loop over parameters and print each one's name and current value.
+    int nValues(_parameterValue.size());
+    boost::format formatter(formatSpec.c_str()), label(labelFormat);
+    for(int index = 0; index < nValues; ++index) {
+        char changed = isParameterValueChanged(index)? '*':' ';
+        out << label % changed % index % _parameters[index].getName();
+        out << formatter % getParameterValue(index) << std::endl;
+    }
 }
 
 void local::FitModel::configureFitParameters(std::string const &script) {
