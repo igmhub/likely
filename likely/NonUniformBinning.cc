@@ -3,6 +3,8 @@
 #include "likely/NonUniformBinning.h"
 #include "likely/BinningError.h"
 
+#include <iostream>
+
 namespace local = likely;
 
 local::NonUniformBinning::NonUniformBinning(std::vector<double> const &binEdges)
