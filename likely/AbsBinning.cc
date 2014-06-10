@@ -60,7 +60,6 @@ namespace binning {
             using qi::int_;
             using qi::_1;
             using qi::lit;
-            using phoenix::ref;
             using phoenix::push_back;
 
             bspec = ( blist | slist | brange | srange );
@@ -69,12 +68,12 @@ namespace binning {
             blist = ( '[' >> valuesList >> ']' )[boost::bind(&Grammar::createBinsWithEdges,this)];
             slist = ( '{' >> valuesList >> '}' )[boost::bind(&Grammar::createSamplesWithCenters,this)];
                 
-            valuesList = ( double_[push_back(ref(values),_1)] % ',' );
+            valuesList = ( double_[push_back(phoenix::ref(values),_1)] % ',' );
             
             // Parse the formats [lo:hi]*n and {lo:hi}*n
-            brange = ( '[' >> double_[ref(lo)=_1] >> ':' >> double_[ref(hi)=_1] >> "]*" >> int_[ref(nbins)=_1] )[
+            brange = ( '[' >> double_[phoenix::ref(lo)=_1] >> ':' >> double_[phoenix::ref(hi)=_1] >> "]*" >> int_[phoenix::ref(nbins)=_1] )[
                 boost::bind(&Grammar::createBinsWithRange,this)];
-            srange = ( '{' >> double_[ref(lo)=_1] >> ':' >> double_[ref(hi)=_1] >> "}*" >> int_[ref(nbins)=_1] )[
+            srange = ( '{' >> double_[phoenix::ref(lo)=_1] >> ':' >> double_[phoenix::ref(hi)=_1] >> "}*" >> int_[phoenix::ref(nbins)=_1] )[
                 boost::bind(&Grammar::createSamplesWithRange,this)];
 
         }
