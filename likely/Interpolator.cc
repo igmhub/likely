@@ -151,7 +151,6 @@ std::vector<double> local::parseVector(std::string const &input, std::string con
     using qi::double_;
     using qi::_1;
     using qi::lit;
-    using phoenix::ref;
     using phoenix::push_back;
 
     // Parse the points string into a vector of doubles.
@@ -159,7 +158,7 @@ std::vector<double> local::parseVector(std::string const &input, std::string con
     std::string::const_iterator iter = input.begin();
     bool ok = qi::phrase_parse(iter,input.end(),
         (
-            double_[push_back(ref(output),_1)] % lit(delim)
+            double_[push_back(phoenix::ref(output),_1)] % lit(delim)
         ),
         ascii::space);
     if(!ok || iter != input.end()) {
