@@ -4,6 +4,7 @@
 #include "likely/BinningError.h"
 
 #include <cmath>
+#include <ostream>
 
 namespace local = likely;
 
