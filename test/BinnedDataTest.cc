@@ -16,7 +16,9 @@ struct BinnedDataFixture
         	axis1(new lk::UniformBinning(0.,1.,3)),
         	axis2(new lk::UniformSampling(0.,1.,3)),
         	axis3(new lk::NonUniformBinning(bins));
-        binnedData.reset(new lk::BinnedData(axis1, axis2, axis3));
+
+        lk::BinnedGrid grid(axis1,axis2,axis3);
+        binnedData.reset(new lk::BinnedData(grid));
     }
     ~BinnedDataFixture() { }   
     boost::shared_ptr<const lk::BinnedData> binnedData;
