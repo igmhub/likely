@@ -98,6 +98,30 @@ void local::BinnedGrid::getBinIndices(int index, std::vector<int> &binIndices) c
     }
 }
 
+void local::BinnedGrid::getBinNeighbors(int index, std::vector<int> &neighborIndices, int n) const {
+    checkIndex(index);
+    int nAxes(getNAxes());
+    std::vector<int> binIndices(nAxes);
+    getBinIndices(index, binIndices);
+    // Start with a single entry, the specified bin
+    neighborIndices.clear();
+    neighborIndices.push_back(0);
+    for(int axis = 0; axis < nAxes; ++axis) {
+        int nBins(_axisBinning[axis]->getNBins());
+        // Loop over neighbors so far
+        std::vector<int> tempIndices;
+        for(int neighbor = 0; neighbor < neighborIndices.size(); ++neighbor) {
+            int partial(neighborIndices[neighbor]), binIndex(binIndices[axis]);
+            // Add neighbors in this dimension
+            for(int i = std::max(binIndex-n,0); i <= std::min(binIndex+n,nBins-1); ++i){
+                tempIndices.push_back(i + partial*nBins);
+            }
+        }
+        // Update neighbors with indices from this dimension
+        neighborIndices = tempIndices;
+    }
+}
+
 void local::BinnedGrid::getBinCenters(int index, std::vector<double> &binCenters) const {
     checkIndex(index);
     binCenters.resize(0);

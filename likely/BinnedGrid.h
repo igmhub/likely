@@ -40,6 +40,10 @@ namespace likely {
         // Returns the global index corresponding to the specified coordinate values along
         // each axis.
         int getIndex(std::vector<double> const &values) const;
+        // Fills the vector provided with the global index values neighboring the specified
+        // global index. Optional argument n specifies how far to search for neighbors in each
+        // dimension (default n = 1). The set of neighbors includes the specified global index.
+        void getBinNeighbors(int index, std::vector<int> &neighborIndices, int n = 1) const;
         // Fills the vector provided with the bin index values along each axis for the specified
         // global index.
         void getBinIndices(int index, std::vector<int> &binIndices) const;

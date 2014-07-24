@@ -3,7 +3,7 @@
 #include "likely/NonUniformBinning.h"
 #include "likely/BinningError.h"
 
-#include <iostream>
+#include <ostream>
 
 namespace local = likely;
 
