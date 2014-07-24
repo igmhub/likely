@@ -102,9 +102,6 @@ bool local::getSubset(int n, unsigned long seqno, std::vector<int> &subset) {
     if(0 == m) {
         throw RuntimeError("BinnedDataResampler::getSubset: subset is empty.");
     }
-    if(seqno < 0) {
-        throw RuntimeError("BinnedDataResampler::getSubset: expected seqno >= 0.");
-    }
     // See http://en.wikipedia.org/wiki/Combinatorial_number_system
     for(int k = m; k > 0; --k) {
         int next = k-1;
