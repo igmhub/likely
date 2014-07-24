@@ -119,7 +119,8 @@ bool local::CovarianceMatrix::compress() const {
         double value;
         for(int col = 0; col < _size; ++col) {
             for(int row = 0; row < col; ++row) {
-                if(value = _icov[index]) {
+                // double parentheses here to tell clang that the '=' below isn't a typo.
+                if((value = _icov[index])) {
                     _offdiagIndex.push_back(index);
                     _offdiagValue.push_back(value);
                 }

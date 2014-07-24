@@ -153,6 +153,8 @@ std::string const &formatSpec) {
             case FitParameter::GaussPrior:
                 out << " gauss prior";
                 break;
+            case FitParameter::NoPrior:
+                break;
             }
             if(iter->getPriorType() != FitParameter::NoPrior) {
                 out << " @ (" << iter->getPriorMin() << ',' << iter->getPriorMax()
