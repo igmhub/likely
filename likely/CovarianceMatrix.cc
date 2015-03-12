@@ -866,6 +866,7 @@ bool local::CovarianceMatrix::isPositiveDefinite() const {
         return true;
     }
     catch(RuntimeError const &e) {
+        std::vector<double>().swap(_cholesky);
         return false;
     }
 }
