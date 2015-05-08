@@ -7,8 +7,9 @@
 
 namespace local = likely;
 
-local::BiCubicInterpolator::BiCubicInterpolator(DataPlane data, double spacing, int n1, int n2)
-: _data(data), _spacing(spacing), _n1(n1), _n2(n2), _initialized(false)
+local::BiCubicInterpolator::BiCubicInterpolator(DataPlane data, double spacing, int n1, int n2,
+    double x0, double y0)
+: _data(data), _spacing(spacing), _n1(n1), _n2(n2), _x0(x0), _y0(y0), _initialized(false)
 {
     if(_n2 == 0) {
         _n2 = _n1;
@@ -24,7 +25,7 @@ double local::BiCubicInterpolator::operator()(double x, double y) const {
     // https://svn.blender.org/svnroot/bf-blender/branches/volume25/source/blender/blenlib/intern/voxel.c
     
     // Map x,y to a point dx,dy in the plane [0,n1) x [0,n2)
-    double dx(std::fmod(x/_spacing,_n1)), dy(std::fmod(y/_spacing,_n2));
+    double dx(std::fmod((x-_x0)/_spacing,_n1)), dy(std::fmod((y-_y0)/_spacing,_n2));
     if(dx < 0) dx += _n1;
     if(dy < 0) dy += _n2;
     // Calculate the corresponding lower-bound grid indices.
