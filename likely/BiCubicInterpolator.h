@@ -13,8 +13,8 @@ namespace likely {
         // Initializes an interpolator using the specified dataplane of length n1*n2 where
         // data is ordered first along the n1 axis [0,0], [1,0], ..., [n1-1,0], [0,1], ...
         // If n2 is omitted, then n1=n2 is assumed. Data is assumed to be equally spaced
-        // and periodic along each axis, with the coordinate origin (0,0) at grid index [0,0].
-		BiCubicInterpolator(DataPlane data, double spacing, int n1, int n2 = 0);
+        // and periodic along each axis, with the coordinate origin (x0,y0) at grid index [0,0].
+		BiCubicInterpolator(DataPlane data, double spacing, int n1, int n2 = 0, double x0 = 0, double y0 = 0);
 		virtual ~BiCubicInterpolator();
         // Returns the interpolated data value for the specified x,y point. If the point lies
         // outside the box [0,n1*spacing) x [0,n2*spacing), it will be folded
@@ -29,7 +29,7 @@ namespace likely {
 	    // Assumes that i1 increases fastest in the 1D array.
         int _index(int i1, int i2) const;
         DataPlane _data;
-        double _spacing;
+        double _spacing, _x0, _y0;
         int _n1, _n2;
         mutable int _i1, _i2;
         mutable double _coefs[16];
