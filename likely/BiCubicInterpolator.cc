@@ -7,15 +7,19 @@
 
 namespace local = likely;
 
-local::BiCubicInterpolator::BiCubicInterpolator(DataPlane data, double spacing, int n1, int n2,
-    double x0, double y0)
-: _data(data), _spacing(spacing), _n1(n1), _n2(n2), _x0(x0), _y0(y0), _initialized(false)
+local::BiCubicInterpolator::BiCubicInterpolator(DataPlane data, double xspacing, int nx, int ny,
+    double yspacing, double x0, double y0)
+: _data(data), _xspacing(xspacing), _nx(nx), _ny(ny), _yspacing(yspacing), _x0(x0), _y0(y0),
+_initialized(false)
 {
-    if(_n2 == 0) {
-        _n2 = _n1;
+    if(_ny == 0) {
+        _ny = _nx;
     }
-    if(_n1 <= 0 || _n2 <= 0) throw RuntimeError("Bad dataplane dimensions.");
-    if(_spacing <= 0) throw RuntimeError("Bad dataplane grid spacing.");
+    if(_yspacing == 0) {
+        _yspacing = _xspacing;
+    }
+    if(_nx <= 0 || _ny <= 0) throw RuntimeError("Bad dataplane dimensions.");
+    if(_xspacing <= 0 || _yspacing <= 0) throw RuntimeError("Bad dataplane grid spacing.");
 }
 
 local::BiCubicInterpolator::~BiCubicInterpolator() { }
@@ -24,10 +28,10 @@ double local::BiCubicInterpolator::operator()(double x, double y) const {
     // Code here is based on:
     // https://svn.blender.org/svnroot/bf-blender/branches/volume25/source/blender/blenlib/intern/voxel.c
     
-    // Map x,y to a point dx,dy in the plane [0,n1) x [0,n2)
-    double dx(std::fmod((x-_x0)/_spacing,_n1)), dy(std::fmod((y-_y0)/_spacing,_n2));
-    if(dx < 0) dx += _n1;
-    if(dy < 0) dy += _n2;
+    // Map x,y to a point dx,dy in the plane [0,nx) x [0,ny)
+    double dx(std::fmod((x-_x0)/_xspacing,_nx)), dy(std::fmod((y-_y0)/_yspacing,_ny));
+    if(dx < 0) dx += _nx;
+    if(dy < 0) dy += _ny;
     // Calculate the corresponding lower-bound grid indices.
     int xi = (int)std::floor(dx);
     int yi = (int)std::floor(dy);
