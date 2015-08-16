@@ -11,6 +11,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <stdint.h>
 
 namespace likely {
 	class Random {
