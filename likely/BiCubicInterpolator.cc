@@ -1,9 +1,12 @@
 // Created 29-Aug-2012 by Michael Blomqvist (University of California, Irvine) <cblomqvi@uci.edu>
 
 #include "likely/BiCubicInterpolator.h"
+#include "likely/Interpolator.h"
 #include "likely/RuntimeError.h"
 
 #include <cmath>
+#include <iostream>
+#include <fstream>
 
 namespace local = likely;
 
@@ -105,3 +108,21 @@ int local::BiCubicInterpolator::_C[16][16] = {
     {-6, 6, 6,-6,-4,-2, 4, 2,-3, 3,-3, 3,-2,-1,-2,-1},
     { 4,-4,-4, 4, 2, 2,-2,-2, 2,-2, 2,-2, 1, 1, 1, 1}
 };
+
+local::BiCubicInterpolatorPtr local::createBiCubicInterpolator(std::string const &filename) {
+    std::vector<std::vector<double> > columns(3);
+    std::ifstream input(filename.c_str());
+    int nLines = local::readVectors(input,columns);
+    double x0 = columns[0][0];
+    double y0 = columns[1][0];
+    double xspacing = columns[0][1]-x0;
+    int nx = (columns[0][nLines-1]-x0)/xspacing + 1;
+    int ny = nLines/nx;
+    double yspacing = (columns[1][nLines-1]-y0)/(ny-1);
+    boost::shared_array<double> data(new double [nLines]);
+    for(int i = 0; i < nLines; ++i) {
+        data[i] = (double)columns[2][i];
+    }
+    BiCubicInterpolatorPtr bicubicinterpolator(new local::BiCubicInterpolator(local::BiCubicInterpolator::DataPlane(data),xspacing,nx,ny,yspacing,x0,y0));
+    return bicubicinterpolator;
+}
