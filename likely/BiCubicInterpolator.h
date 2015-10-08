@@ -3,7 +3,11 @@
 #ifndef LIKELY_BI_CUBIC_INTERPOLATOR
 #define LIKELY_BI_CUBIC_INTERPOLATOR
 
+#include "likely/types.h"
+
 #include "boost/smart_ptr.hpp"
+
+#include <vector>
 
 namespace likely {
 	class BiCubicInterpolator {
@@ -27,6 +31,8 @@ namespace likely {
         double getYSpacing() const;
         int getNX() const;
         int getNY() const;
+        double getX0() const;
+        double getY0() const;
 	private:
 	    // Returns the unrolled 1D index corresponding to [i1,i2] after mapping to each ik into [0,nk).
 	    // Assumes that i1 increases fastest in the 1D array.
@@ -38,18 +44,24 @@ namespace likely {
         mutable double _coefs[16];
         mutable bool _initialized;
         static int _C[16][16];
-	}; // BiCubicInterpolator
+    }; // BiCubicInterpolator
 
     inline double BiCubicInterpolator::getXSpacing() const { return _xspacing; }
     inline double BiCubicInterpolator::getYSpacing() const { return _yspacing; }
     inline int BiCubicInterpolator::getNX() const { return _nx; }
     inline int BiCubicInterpolator::getNY() const { return _ny; }
+    inline double BiCubicInterpolator::getX0() const { return _x0; }
+    inline double BiCubicInterpolator::getY0() const { return _y0; }
 
 	inline int BiCubicInterpolator::_index(int i1, int i2) const {
         if((i1 %= _nx) < 0) i1 += _nx;
         if((i2 %= _ny) < 0) i2 += _ny;
         return i1 + _nx*i2;
 	}
+	
+    // Returns a smart pointer to a bicubic interpolator based on control points read
+    // from the specified file name.
+    BiCubicInterpolatorPtr createBiCubicInterpolator(std::string const &filename);
 
 } // likely
 
