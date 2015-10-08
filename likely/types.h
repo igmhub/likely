@@ -65,6 +65,10 @@ namespace likely {
     class Interpolator;
     typedef boost::shared_ptr<Interpolator> InterpolatorPtr;
     
+    // Represents a smart pointer to a bicubic interpolator object.
+    class BiCubicInterpolator;
+    typedef boost::shared_ptr<BiCubicInterpolator> BiCubicInterpolatorPtr;
+    
     // Represents a smart pointer to a weighted accumulator object.
     class AbsAccumulator;
     typedef boost::shared_ptr<AbsAccumulator> AbsAccumulatorPtr;
