@@ -17,8 +17,10 @@ local::BinnedData::BinnedData(BinnedGrid const &grid)
 : _grid(grid)
 {
     _offset.resize(_grid.getNBinsTotal(),EMPTY_BIN);
+    _customOffset.resize(_grid.getNBinsTotal(),EMPTY_BIN);
     _weight = 1;
     _weighted = false;
+    _customGrid = false;
     _finalized = false;
 }
 
@@ -69,6 +71,13 @@ local::BinnedData& local::BinnedData::add(BinnedData const& other, double weight
         // purposes of adding to the other dataset, below. We don't call _setWeighted here
         // because we don't actually want to transform the existing _data.
         _weighted = true;
+        // If a custom grid is used, set the custom bin centers based on the other dataset.
+        if(other.useCustomGrid()) {
+            for(IndexIterator iter = other.beginCustom(); iter != other.endCustom(); ++iter) {
+                setCustomBinCenters(*iter,other._customBin1[other._customOffset[*iter]],
+                    other._customBin2[other._customOffset[*iter]],other._customBin3[other._customOffset[*iter]],true);
+            }
+        }
     }
     else {
         // We already have data, so we will try to add the other data to ours.
@@ -235,6 +244,49 @@ void local::BinnedData::addData(int index, double offset, bool weighted) {
     }
     _setWeighted(weighted,true); // flushes any cached data
     _data[_offset[index]] += offset;
+}
+
+bool local::BinnedData::hasCustomBinCenters(int index) const {
+    _grid.checkIndex(index);
+    return !(_customOffset[index] == EMPTY_BIN);
+}
+
+void local::BinnedData::setCustomBinCenters(int index, double bin1, double bin2, double bin3, bool customGrid) {
+    _customGrid = customGrid;
+    if(hasCustomBinCenters(index)) {
+        _customBin1[_customOffset[index]] = bin1;
+        _customBin2[_customOffset[index]] = bin2;
+        _customBin3[_customOffset[index]] = bin3;
+    }
+    else {
+        _customOffset[index] = _customIndex.size();
+        _customIndex.push_back(index);
+        _customBin1.push_back(bin1);
+        _customBin2.push_back(bin2);
+        _customBin3.push_back(bin3);
+    }
+}
+
+void local::BinnedData::getCustomBinCenters(int index, std::vector<double> &binCenters) const {
+    if(!hasCustomBinCenters(index)) {
+        throw RuntimeError("BinnedData::getCustomBinCenters: bin is empty.");
+    }
+    binCenters.resize(0);
+    binCenters.reserve(3);
+    binCenters.push_back(_customBin1[_customOffset[index]]);
+    binCenters.push_back(_customBin2[_customOffset[index]]);
+    binCenters.push_back(_customBin3[_customOffset[index]]);
+}
+
+void local::BinnedData::getCustomBinWidths(int index, std::vector<double> &binWidths) const {
+    if(!hasCustomBinCenters(index)) {
+        throw RuntimeError("BinnedData::getCustomBinWidths: bin is empty.");
+    }
+    binWidths.resize(0);
+    binWidths.reserve(3);
+    binWidths.push_back(0);
+    binWidths.push_back(0);
+    binWidths.push_back(0);
 }
 
 double local::BinnedData::getCovariance(int index1, int index2) const {

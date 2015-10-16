@@ -282,12 +282,36 @@ namespace likely {
 
         // Returns a string that displays the memory state of this object.
         std::string getMemoryState() const;
+        
+        // Sets the custom bin center values for the bin associated with the specified global index.
+        void setCustomBinCenters(int index, double bin1, double bin2, double bin3, bool customGrid = false);
+        // Returns true if the custom bin corresponding to the specified global index has a value, or
+        // else returns false. Note that a custom bin whose contents is zero is not considered empty.
+        // An empty custom bin is one that has never had any value assigned to it.
+        bool hasCustomBinCenters(int index) const;
+        // Fills the vector provided with the custom bin centers along each axis for the specified
+        // global index.
+        void getCustomBinCenters(int index, std::vector<double> &binCenters) const;
+        // Fills the vector provided with the custom bin widths along each axis for the specified
+        // global index.
+        void getCustomBinWidths(int index, std::vector<double> &binWidths) const;
+        // Returns the number of bins of the custom grid, which should be equal to getNBinsTotal().
+        int getNCustomBins() const;
+        // Returns true if a custom grid is used.
+        bool useCustomGrid() const;
+        // Returns iterators pointing to the first and last global indices for custom bins.
+        // Iteration order is defined by the order of setCustomBinCenters(...) calls, and
+        // not by the global index value.
+        IndexIterator beginCustom() const;
+        IndexIterator endCustom() const;
 
 	private:
         // The grid that our data represents.
         BinnedGrid _grid;
         enum { EMPTY_BIN = -1 };
-        std::vector<int> _offset, _index;
+        std::vector<int> _offset, _index, _customOffset, _customIndex;
+        // Custom grid vectors.
+        std::vector<double> _customBin1, _customBin2, _customBin3;
         // Our data vector which might be weighted.
         mutable std::vector<double> _data;
         // A data vector cache which is either empty or else contains the weighted/unweighted
@@ -300,6 +324,8 @@ namespace likely {
         double _weight;
         // Is our _data vector weighted by _Cinv?
         mutable bool _weighted;
+        // Are we using custom bins?
+        mutable bool _customGrid;
         // Have we been finalized?
         bool _finalized;
         // Forces our internal representation to be weighted or unweighted. This must be called
@@ -322,6 +348,10 @@ namespace likely {
     inline BinnedData::IndexIterator BinnedData::end() const { return _index.end(); }
     inline bool BinnedData::isFinalized() const { return _finalized; }
     inline BinnedData& BinnedData::operator+=(BinnedData const& other) { return add(other); }
+    inline int BinnedData::getNCustomBins() const { return _customIndex.size(); }
+    inline bool BinnedData::useCustomGrid() const { return _customGrid; }
+    inline BinnedData::IndexIterator BinnedData::beginCustom() const { return _customIndex.begin(); }
+    inline BinnedData::IndexIterator BinnedData::endCustom() const { return _customIndex.end(); }
 
 } // likely
 
