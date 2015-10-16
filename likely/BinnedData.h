@@ -292,6 +292,9 @@ namespace likely {
         // Fills the vector provided with the custom bin centers along each axis for the specified
         // global index.
         void getCustomBinCenters(int index, std::vector<double> &binCenters) const;
+        // Fills the vector provided with the custom bin widths along each axis for the specified
+        // global index.
+        void getCustomBinWidths(int index, std::vector<double> &binWidths) const;
         // Returns the number of bins of the custom grid, which should be equal to getNBinsTotal().
         int getNCustomBins() const;
         // Returns true if a custom grid is used.

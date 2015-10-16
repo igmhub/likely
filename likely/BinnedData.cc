@@ -278,6 +278,17 @@ void local::BinnedData::getCustomBinCenters(int index, std::vector<double> &binC
     binCenters.push_back(_customBin3[_customOffset[index]]);
 }
 
+void local::BinnedData::getCustomBinWidths(int index, std::vector<double> &binWidths) const {
+    if(!hasCustomBinCenters(index)) {
+        throw RuntimeError("BinnedData::getCustomBinWidths: bin is empty.");
+    }
+    binWidths.resize(0);
+    binWidths.reserve(3);
+    binWidths.push_back(0);
+    binWidths.push_back(0);
+    binWidths.push_back(0);
+}
+
 double local::BinnedData::getCovariance(int index1, int index2) const {
     if(!hasCovariance()) {
         throw RuntimeError("BinnedData::getCovariance: has no covariance specified.");
